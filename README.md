@@ -9,6 +9,7 @@ A web-based scholarship application system using **Spring Boot (Backend)** and *
 ## Installation and Setup
 ### React
 ```
+cd sef/frontend
 npm install
 ```
 
