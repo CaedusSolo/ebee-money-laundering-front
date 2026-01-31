@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -10,7 +13,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
+      // Connect to Backend API
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -20,37 +27,47 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Store session token
+        // 1. Save Token & Role
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.role);
+        localStorage.setItem('name', data.name);
 
-        // Redirect based on role (Section 8.1.1 Routing logic)
-        alert(`Login Successful! Welcome ${data.name} (${data.role})`);
-        // window.location.href = `/${data.role.toLowerCase()}-dashboard`;
+        // 2. Redirect based on Role
+        if (data.role === 'STUDENT') navigate('/student-dashboard');
+        else if (data.role === 'ADMIN') navigate('/admin-dashboard');
+        else if (data.role === 'COMMITTEE') navigate('/committee-dashboard');
+        else if (data.role === 'REVIEWER') navigate('/reviewer-dashboard');
+        else navigate('/');
       } else {
-        setError(data.error);
+        setError(data.error || 'Login failed');
       }
     } catch (err) {
-      setError('Connection failed');
+      setError('Cannot connect to server. Is Backend running?');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-2">Welcome back!</h2>
-        <p className="text-center text-gray-500 mb-6">Enter your Credentials to access your account</p>
+        <h2 className="text-2xl font-bold text-center mb-2 text-gray-800">Welcome Back</h2>
+        <p className="text-center text-gray-500 mb-6">Login to the Scholarship System</p>
 
-        {error && <div className="p-2 mb-4 text-red-700 bg-red-100 rounded">{error}</div>}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email address</label>
+            <label className="block text-sm font-medium text-gray-700">Email Address</label>
             <input
               type="email"
               name="email"
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
-              placeholder="e.g. user@example.com"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="user@example.com"
               onChange={handleChange}
               required
             />
@@ -60,17 +77,26 @@ const Login = () => {
             <input
               type="password"
               name="password"
-              className="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-blue-300"
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="••••••••"
               onChange={handleChange}
               required
             />
           </div>
-          <button type="submit" className="w-full px-4 py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700">
-            Login
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full px-4 py-2 font-bold text-white rounded hover:bg-blue-700 transition duration-200 ${loading ? 'bg-blue-400' : 'bg-blue-600'}`}
+          >
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <p className="mt-4 text-center text-sm">
-          Don't have an account? <a href="/signup" className="text-blue-600 hover:underline">Sign Up</a>
+
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+            Sign Up
+          </Link>
         </p>
       </div>
     </div>
