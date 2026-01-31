@@ -22,7 +22,7 @@ public class ReviewerService {
         app1.put("applicationID", 1);
         app1.put("studentName", "John Doe");
         app1.put("scholarshipName", "Merit Excellence Scholarship");
-        app1.put("status", "PENDING_APPROVAL");
+        app1.put("status", "PENDING APPROVAL");
         app1.put("submittedAt", "2026-01-25");
         app1.put("major", "Computer Science");
         app1.put("totalScore", 249);
@@ -34,7 +34,7 @@ public class ReviewerService {
         app2.put("applicationID", 2);
         app2.put("studentName", "Jane Smith");
         app2.put("scholarshipName", "Merit Excellence Scholarship");
-        app2.put("status", "PENDING_APPROVAL");
+        app2.put("status", "PENDING APPROVAL");
         app2.put("submittedAt", "2026-01-26");
         app2.put("major", "Business Administration");
         app2.put("totalScore", 269);
@@ -46,7 +46,7 @@ public class ReviewerService {
         app3.put("applicationID", 3);
         app3.put("studentName", "Ahmed Hassan");
         app3.put("scholarshipName", "Merit Excellence Scholarship");
-        app3.put("status", "UNDER_REVIEW");
+        app3.put("status", "UNDER REVIEW");
         app3.put("submittedAt", "2026-01-27");
         app3.put("major", "Engineering");
         app3.put("totalScore", 0);
@@ -107,7 +107,7 @@ public class ReviewerService {
         education.put("studyLevel", "UNDERGRADUATE");
         application.put("education", education);
 
-        application.put("status", "PENDING_REVIEW");
+        application.put("status", "PENDING REVIEW");
         application.put("submittedAt", "2026-01-25");
 
         return application;
@@ -133,7 +133,7 @@ public class ReviewerService {
         Map<String, Integer> byStatus = new HashMap<>();
         byStatus.put("APPROVED", 28);
         byStatus.put("REJECTED", 12);
-        byStatus.put("PENDING_REVIEW", 5);
+        byStatus.put("PENDING REVIEW", 5);
         stats.put("applicationsByStatus", byStatus);
 
         return stats;
