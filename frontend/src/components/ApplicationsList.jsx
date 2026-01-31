@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function ApplicationsList({ applications, onSelectApplication }) {
+  const [selectedStatus, setSelectedStatus] = useState(null);
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'APPROVED':
@@ -16,20 +18,70 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
     }
   };
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'PENDING_APPROVAL':
+        return 'Pending Approval';
+      case 'UNDER_REVIEW':
+        return 'Under Review';
+      case 'APPROVED':
+        return 'Approved';
+      case 'REJECTED':
+        return 'Rejected';
+      default:
+        return status;
+    }
+  };
+
+  // Get unique statuses from applications
+  const statuses = [...new Set(applications.map(app => app.status))];
+
+  // Filter applications based on selected status
+  const filteredApplications = selectedStatus
+    ? applications.filter(app => app.status === selectedStatus)
+    : applications;
+
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Assigned Applications</h2>
-        <p className="text-gray-600">Total: {applications.length}</p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Assigned Applications</h2>
+        <p className="text-gray-600 mb-4">Total: {filteredApplications.length}</p>
+
+        {/* Status Filter Buttons */}
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedStatus(null)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              selectedStatus === null
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
+            }`}
+          >
+            All
+          </button>
+          {statuses.map((status) => (
+            <button
+              key={status}
+              onClick={() => setSelectedStatus(status)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                selectedStatus === status
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
+              }`}
+            >
+              {getStatusLabel(status)}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4">
-        {applications.length === 0 ? (
+        {filteredApplications.length === 0 ? (
           <div className="p-4 bg-gray-100 rounded text-gray-600">
-            No applications assigned yet.
+            No applications found with this status.
           </div>
         ) : (
-          applications.map((app) => (
+          filteredApplications.map((app) => (
             <div
               key={app.applicationID}
               className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
@@ -46,15 +98,16 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Submitted:</span> {app.submittedAt}
                   </p>
-                  {app.judgingCompleted && (
-                    <p className="text-sm font-semibold text-gray-900 mt-2">
-                      <span className="font-medium">Total Score:</span> {app.totalScore}/300
-                    </p>
-                  )}
                 </div>
                 <div className="ml-4 flex flex-col items-end gap-3">
+                  {app.judgingCompleted && (
+                    <div className="px-4 py-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                      <p className="text-xs text-gray-600 font-medium mb-1">Total Score</p>
+                      <p className="text-2xl font-bold text-green-600">{app.totalScore}<span className="text-sm text-gray-600 font-medium">/300</span></p>
+                    </div>
+                  )}
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}>
-                    {app.status === 'PENDING_APPROVAL' ? 'Pending Approval' : 'Under Review'}
+                    {getStatusLabel(app.status)}
                   </span>
                   {app.judgingCompleted && (
                     <button
