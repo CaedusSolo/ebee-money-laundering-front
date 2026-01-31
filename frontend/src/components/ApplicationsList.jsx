@@ -10,7 +10,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
       case 'REJECTED':
         return 'bg-red-100 text-red-800';
       case 'PENDING_APPROVAL':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-200 text-yellow-800';
       case 'UNDER_REVIEW':
         return 'bg-blue-100 text-blue-800';
       default:
@@ -98,6 +98,11 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Submitted:</span> {app.submittedAt}
                   </p>
+                  <div className="mt-2">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}>
+                      {getStatusLabel(app.status)}
+                    </span>
+                  </div>
                 </div>
                 <div className="ml-4 flex flex-col items-end gap-3">
                   {app.judgingCompleted && (
@@ -106,9 +111,6 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                       <p className="text-2xl font-bold text-green-600">{app.totalScore}<span className="text-sm text-gray-600 font-medium">/300</span></p>
                     </div>
                   )}
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}>
-                    {getStatusLabel(app.status)}
-                  </span>
                   {app.judgingCompleted && (
                     <button
                       onClick={() => onSelectApplication(app)}
