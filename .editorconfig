@@ -1,0 +1,26 @@
+# http://editorconfig.org
+root = true
+
+# All files
+[*]
+charset = utf-8
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Java - Standard 4 space indentation
+[*.java]
+indent_size = 4
+
+# React / Web - Standard 2 space indentation
+[*.{js,jsx,ts,tsx,json,css,scss,html,yml,yaml}]
+indent_size = 2
+
+# XML (Maven pom.xml)
+[*.xml]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
