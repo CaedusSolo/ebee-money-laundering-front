@@ -9,7 +9,7 @@ A web-based scholarship application system using **Spring Boot (Backend)** and *
 ## Installation and Setup
 ### React
 ```
-cd sef/frontend
+cd frontend
 npm install
 ```
 
@@ -18,15 +18,21 @@ npm install
 ### 1. Start Backend (Spring Boot)
 Runs on `http://localhost:8080`. The database (`scholarship.db`) is created automatically.
 
+In project root, run:
+
 **Windows:**
 ```cmd
-cd sef
 .\mvnw.cmd spring-boot:run
 ```
 
-### 2. Start Frontend (React)
-Runs on http://localhost:5173
+**Mac/Linux:**
+```bash
+./mvnw spring-boot:run
 ```
-cd sef/frontend
+
+### 2. Start Frontend (React)
+Runs on `http://localhost:5173`
+```
+cd frontend
 npm run dev
 ```
