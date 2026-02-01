@@ -133,7 +133,7 @@ const SignUp = () => {
               className="h-4 w-4 text-blue-900 border-gray-300 rounded focus:ring-blue-900"
             />
             <label htmlFor="agreeToTerms" className="ml-2 block text-sm font-bold text-gray-900">
-              I agree to the <a href="#" className="underline">terms & policy</a>
+              I agree to the <a href="/terms-and-policy" className="underline">terms & policy</a>
             </label>
           </div>
 

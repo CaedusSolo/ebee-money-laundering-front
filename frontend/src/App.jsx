@@ -4,8 +4,10 @@ import { AuthProvider, useAuth } from './context/AuthContext'; // Import Context
 
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import ResetPassword from "./pages/ResetPassword"
 import ScholarshipCommitteeDashboard from './pages/ScholarshipCommitteeDashboard';
 import ReviewerDashboard from "./pages/ReviewerDashboard"
+import TermsAndPolicy from "./pages/TermsAndPolicy"
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -30,7 +32,10 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Navigate to="/login" />} />
+
+          <Route path="/terms-and-policy" element={<TermsAndPolicy />} />
 
           {/* Committee Routes */}
           <Route path="/scholarship-committee-dashboard" element={
