@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
-  // Internal state to manage the form within the modal
   const [formData, setFormData] = useState({
     academic: '',
     curriculum: '',
@@ -9,7 +8,6 @@ const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
     comments: '',
   });
 
-  // When the modal opens or the application prop changes, update the internal form state
   useEffect(() => {
     if (application) {
       setFormData({
@@ -25,35 +23,31 @@ const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
     return null;
   }
 
-  // Handle form input changes
   const handleChange = (field, value) => {
     if (field === 'comments') {
       setFormData({ ...formData, [field]: value });
     } else {
-      // Clamp scores between 0 and 20
       const score = value === '' ? '' : Math.max(0, Math.min(20, parseInt(value, 10)));
       setFormData({ ...formData, [field]: score });
     }
   };
 
-  // Placeholder for document actions
   const handleDocumentAction = (action, docName) => {
     alert(`${action} triggered for: ${docName}`);
   };
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Pass the final form data up to the parent component
     onSubmit(formData);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center p-4 z-50">
+    // UPDATED: Used bg-black/60 for transparency and backdrop-blur-sm for the blur effect
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-blue-800 text-white px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-bold">Evaluate: {application.id}</h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white">
+          <button onClick={onClose} className="text-gray-300 hover:text-white transition">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
