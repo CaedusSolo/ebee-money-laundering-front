@@ -35,7 +35,7 @@ const Login = () => {
         // 2. Redirect based on Role
         if (data.role === 'STUDENT') navigate('/student-dashboard');
         else if (data.role === 'ADMIN') navigate('/admin-dashboard');
-        else if (data.role === 'COMMITTEE') navigate('/committee-dashboard');
+        else if (data.role === 'COMMITTEE') navigate('/scholarship-committee-dashboard');
         else if (data.role === 'REVIEWER') navigate('/reviewer-dashboard');
         else navigate('/');
       } else {
