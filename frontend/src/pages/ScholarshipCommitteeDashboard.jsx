@@ -98,7 +98,7 @@ const ScholarshipCommitteeDashboard = () => {
                 <div className="w-16"></div>
 
                 <span className={`${COL_WIDTH} text-center`}>Academic</span>
-                <span className={`${COL_WIDTH} text-center`}>Curriculum</span>
+                <span className={`${COL_WIDTH} text-center`}>Co-Curriculum</span>
                 <span className={`${COL_WIDTH} text-center`}>Leadership</span>
                 <span className={`${COL_WIDTH} text-center`}>Total Score</span>
               </div>
