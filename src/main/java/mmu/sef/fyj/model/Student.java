@@ -1,15 +1,14 @@
 package mmu.sef.fyj.model;
 
-import java.time.LocalDate;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "students")
 public class Student {
-    
+
     @Id
-    @GeneratedValue(strategy = GeneratedValue.IDENTITY)
-    private Integer studentId; // in DB
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer studentId;
 
     @Column(nullable = false) 
     private String name;
@@ -22,6 +21,9 @@ public class Student {
 
     @Column(nullable = false)
     private String password; // hashed
+
+    @Column
+    private String profileImage;
 
     public Student(String name, String studentUniId, String email, String password) {
         this.name = name;
@@ -59,7 +61,15 @@ public class Student {
         return email;
     }
 
-    public String setEmail(String email) {
+    public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import scholarship1 from '../assets/images/scholarship1.png';
 import scholarship2 from '../assets/images/scholarship2.png';
 import scholarship3 from '../assets/images/scholarship3.png';
-// import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function AvailableScholarships() {
     const [searchQuery, setSearchQuery] = useState('');
