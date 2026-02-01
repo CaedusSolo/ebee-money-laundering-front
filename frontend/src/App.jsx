@@ -8,6 +8,8 @@ import ResetPassword from "./pages/ResetPassword"
 import ScholarshipCommitteeDashboard from './pages/ScholarshipCommitteeDashboard';
 import ReviewerDashboard from "./pages/ReviewerDashboard"
 import TermsAndPolicy from "./pages/TermsAndPolicy"
+import ApplicationForm from "./pages/ApplicationForm";
+import ScholarshipsList from "./pages/ScholarshipsList";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -51,6 +53,10 @@ function App() {
               <ReviewerDashboard />
             </ProtectedRoute>
           } />
+
+          {/* Scholarship/Applications Routes */}
+          <Route path="scholarships-list" element={<ScholarshipsList />} />
+          <Route path="application-form" element={<ApplicationForm />} />
 
         </Routes>
       </Router>
