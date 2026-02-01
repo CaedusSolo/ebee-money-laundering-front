@@ -1,34 +1,35 @@
 package mmu.sef.fyj.model;
 
 import jakarta.persistence.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userID;
+    private Long id;
 
-    @Column(nullable = false)
     private String name;
-
-    @Column(nullable = false, unique = true)
     private String email;
-
-    @Column(nullable = false)
-    private String password; // Hashed
+    private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    // Specific to Student Sign Up
     private String studentId;
 
-    // Constructors, Getters, Setters
+    // empty default constructor cuz hibernate wouldnt let the app run without it
     public User() {
     }
 
+    // --- 2. EXISTING CONSTRUCTOR (Used by DataSeeder) ---
     public User(String name, String email, String password, Role role, String studentId) {
         this.name = name;
         this.email = email;
@@ -37,13 +38,13 @@ public class User {
         this.studentId = studentId;
     }
 
-    // Standard Getters and Setters for all fields...
-    public Integer getUserID() {
-        return userID;
+    // --- 3. GETTERS & SETTERS ---
+    public Long getId() {
+        return id;
     }
 
-    public void setUserID(Integer userID) {
-        this.userID = userID;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -60,10 +61,6 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     public void setPassword(String password) {
@@ -84,5 +81,42 @@ public class User {
 
     public void setStudentId(String studentId) {
         this.studentId = studentId;
+    }
+
+    // --- 4. SPRING SECURITY DETAILS ---
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }
