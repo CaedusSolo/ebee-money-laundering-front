@@ -1,15 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import graduationHat from "../assets/graduationHat.svg"
+import { useAuth } from '../context/AuthContext';
+import graduationHat from "../assets/graduationHat.svg";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, currentUser } = useAuth();
+
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.role === 'STUDENT') navigate('/student-dashboard', { replace: true });
+      else if (currentUser.role === 'ADMIN') navigate('/admin-dashboard', { replace: true });
+      else if (currentUser.role === 'COMMITTEE') navigate('/scholarship-committee-dashboard', { replace: true });
+      else if (currentUser.role === 'REVIEWER') navigate('/reviewer-dashboard', { replace: true });
+    }
+  }, [currentUser, navigate]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error when typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -17,33 +31,24 @@ const Login = () => {
     setLoading(true);
     setError('');
 
+    // --- FRONTEND VALIDATION ---
+    if (!formData.email || !formData.password) {
+        setError('Please enter both email and password.');
+        setLoading(false);
+        return;
+    }
+
     try {
-      // Connect to Backend API
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      const user = await login(formData.email, formData.password);
 
-      const data = await response.json();
+      if (user.role === 'STUDENT') navigate('/student-dashboard', { replace: true });
+      else if (user.role === 'ADMIN') navigate('/admin-dashboard', { replace: true });
+      else if (user.role === 'COMMITTEE') navigate('/scholarship-committee-dashboard', { replace: true });
+      else if (user.role === 'REVIEWER') navigate('/reviewer-dashboard', { replace: true });
+      else navigate('/', { replace: true });
 
-      if (response.ok) {
-        // 1. Save Token & Role
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('role', data.role);
-        localStorage.setItem('name', data.name);
-
-        // 2. Redirect based on Role
-        if (data.role === 'STUDENT') navigate('/student-dashboard');
-        else if (data.role === 'ADMIN') navigate('/admin-dashboard');
-        else if (data.role === 'COMMITTEE') navigate('/scholarship-committee-dashboard');
-        else if (data.role === 'REVIEWER') navigate('/reviewer-dashboard');
-        else navigate('/');
-      } else {
-        setError(data.error || 'Login failed');
-      }
     } catch (err) {
-      setError('Cannot connect to server. Is Backend running?');
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -57,6 +62,13 @@ const Login = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome back!</h1>
           <p className="text-gray-600 font-medium">Enter your credentials to access your account</p>
         </div>
+
+        {/* Error Message Display */}
+        {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded text-sm text-center">
+                {error}
+            </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -73,7 +85,7 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
-              required
+              required // Browser default validation
             />
           </div>
 
@@ -102,9 +114,10 @@ const Login = () => {
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-[#1e3a8a] text-white font-bold py-3 rounded-lg cursor-pointer hover:bg-indigo-800 transition duration-300 shadow-md"
+            disabled={loading}
+            className={`w-full bg-[#1e3a8a] text-white font-bold py-3 rounded-lg cursor-pointer hover:bg-indigo-800 transition duration-300 shadow-md ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            Login
+            {loading ? 'Logging In...' : 'Login'}
           </button>
         </form>
 
@@ -121,9 +134,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-[#6ee7b7] via-[#3b82f6] to-[#1e3a8a]"></div>
 
         <div className="relative w-full h-full flex items-center justify-center rounded-tl-[100px] rounded-bl-[100px] overflow-hidden z-10">
-
             <img src={graduationHat} alt="Logo" />
-
         </div>
       </div>
     </div>
