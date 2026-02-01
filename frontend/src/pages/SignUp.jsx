@@ -140,7 +140,7 @@ const SignUp = () => {
           {/* Signup Button */}
           <button
             type="submit"
-            className="w-full bg-[#1e3a8a] text-white font-bold py-3 rounded-lg hover:bg-blue-900 transition duration-300 shadow-md"
+            className="w-full bg-[#1e3a8a] text-white cursor-pointer font-bold py-3 rounded-lg hover:bg-blue-900 transition duration-300 shadow-md"
           >
             Signup
           </button>
