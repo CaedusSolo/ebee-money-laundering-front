@@ -4,25 +4,31 @@ import mmu.sef.fyj.model.Role;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.Base64;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DataSeeder(UserRepository userRepository) {
+    public DataSeeder(UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("--- Starting Data Seeding ---");
+        System.out.println("--- Starting Secure Data Seeding ---");
 
+        seedUsers();
+
+        System.out.println("--- Data Seeding Completed ---");
+    }
+
+    private void seedUsers() {
         // 1. Admin Account (1 Account)
         seedUser("System Admin", "admin@mmu.edu.my", "admin123", Role.ADMIN, null);
 
@@ -55,30 +61,17 @@ public class DataSeeder implements CommandLineRunner {
                     Role.REVIEWER,
                     null);
         }
-
-        System.out.println("--- Data Seeding Completed ---");
     }
 
     private void seedUser(String name, String email, String rawPassword, Role role, String studentId) {
-        // Only create if email doesn't exist
         if (!userRepository.existsByEmail(email)) {
-            String hashedPassword = hashPassword(rawPassword);
-            User user = new User(name, email, hashedPassword, role, studentId);
+            // SECURE: Encode password using BCrypt
+            String encodedPassword = passwordEncoder.encode(rawPassword);
+
+            User user = new User(name, email, encodedPassword, role, studentId);
             userRepository.save(user);
-            System.out.println("Created: " + email + " [" + role + "]");
-        } else {
-            System.out.println("Skipped: " + email + " (Already exists)");
+            System.out.println("Created User: " + email + " [" + role + "]");
         }
     }
 
-    // Helper to replicate AuthService hashing
-    private String hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
-            throw new RuntimeException("Error hashing password during seed", e);
-        }
-    }
 }
