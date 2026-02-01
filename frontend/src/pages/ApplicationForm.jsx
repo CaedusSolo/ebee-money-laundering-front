@@ -7,7 +7,7 @@ const ScholarshipApplication = () => {
     const location = useLocation();
     // Extract the name from state, provide a fallback if accessed directly"
     // fix: added this function too js to avoid confusion on the forms
-    const selectedScholarship = location.state?.scholarshipName || Scholarship";
+    const selectedScholarship = location.state?.scholarshipName || "Scholarship";
 
     const [step, setStep] = useState(1);
 
