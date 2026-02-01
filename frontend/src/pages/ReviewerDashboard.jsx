@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import ApplicationsList from './ApplicationsList';
-import Statistics from './Statistics';
-import ApplicationDetails from './ApplicationDetails';
+import ApplicationsList from '../components/ApplicationsList';
+import Statistics from '../components/Statistics';
+import ApplicationDetails from '../components/ApplicationDetails';
 
 export default function ReviewerDashboard() {
   const [view, setView] = useState('dashboard'); // dashboard, applications, statistics, details

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import EvaluationModal from './EvaluationModal';
-import Navbar from "./Navbar"
+import Navbar from "../components/Navbar"
 import personPlaceholder from "../assets/personPlaceholder.svg"
 
 // Mock data
@@ -98,7 +98,7 @@ const ScholarshipCommitteeDashboard = () => {
                 <div className="w-16"></div>
 
                 <span className={`${COL_WIDTH} text-center`}>Academic</span>
-                <span className={`${COL_WIDTH} text-center`}>Curriculum</span>
+                <span className={`${COL_WIDTH} text-center`}>Co-Curriculum</span>
                 <span className={`${COL_WIDTH} text-center`}>Leadership</span>
                 <span className={`${COL_WIDTH} text-center`}>Total Score</span>
               </div>
@@ -106,9 +106,18 @@ const ScholarshipCommitteeDashboard = () => {
 
             <div className="space-y-4">
               {applications.map((app, index) => (
-                <div key={app.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200 border-l border-blue-600 flex flex-col md:flex-row items-start md:items-center justify-between">
+              <div
+                key={app.id}
+                className="
+                  bg-gray-50 p-4 rounded-lg
+                  border border-gray-200
+                  border-l-6
+                  border-l-blue-600
+                  flex flex-col md:flex-row items-start md:items-center justify-between
+                "
+              >
                   {/* Left Side: App Info */}
-                  <div className="flex-1 mb-4 md:mb-0 border-l-4 border-blue-600 pl-3">
+                  <div className="flex-1 mb-4 md:mb-0 pl-3">
                     <h4 className="font-bold text-lg text-gray-900">{app.id}</h4>
                     <p className="text-sm text-gray-600 mt-1">Status: {app.status}</p>
                     <p className="text-sm text-gray-400">Submitted: {app.submittedDate}</p>
