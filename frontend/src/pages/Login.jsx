@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // 1. Import Auth Hook
+import { useAuth } from '../context/AuthContext';
 import graduationHat from "../assets/graduationHat.svg";
 
 const Login = () => {
-const navigate = useNavigate();
-  const { login, currentUser } = useAuth(); // Get currentUser
+  const navigate = useNavigate();
+  const { login, currentUser } = useAuth();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // --- FIX 2: Redirect if already logged in ---
   useEffect(() => {
     if (currentUser) {
       if (currentUser.role === 'STUDENT') navigate('/student-dashboard', { replace: true });
@@ -23,12 +22,21 @@ const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear error when typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // --- FRONTEND VALIDATION ---
+    if (!formData.email || !formData.password) {
+        setError('Please enter both email and password.');
+        setLoading(false);
+        return;
+    }
 
     try {
       const user = await login(formData.email, formData.password);
@@ -77,7 +85,7 @@ const navigate = useNavigate();
               value={formData.email}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
-              required
+              required // Browser default validation
             />
           </div>
 
