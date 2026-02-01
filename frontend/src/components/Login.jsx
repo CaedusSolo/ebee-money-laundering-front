@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import graduationHat from "../assets/graduationHat.svg"
 
 const Login = () => {
   const navigate = useNavigate();
@@ -49,55 +50,81 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-2 text-gray-800">Welcome Back</h2>
-        <p className="text-center text-gray-500 mb-6">Login to the Scholarship System</p>
+    <div className="flex h-screen w-full bg-white">
+      {/* LEFT SIDE - FORM */}
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-10 md:px-24">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome back!</h1>
+          <p className="text-gray-600 font-medium">Enter your credentials to access your account</p>
+        </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm text-center">
-            {error}
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-6">
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email Address</label>
+          {/* Email Input */}
+          <div>
+            <label className="block text-sm font-bold text-gray-900 mb-2" htmlFor="email">
+              Email address
+            </label>
             <input
               type="email"
               name="email"
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="user@example.com"
+              id="email"
+              placeholder="Enter your email"
+              value={formData.email}
               onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
               required
             />
           </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+
+          {/* Password Input */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-bold text-gray-900" htmlFor="password">
+                Password
+              </label>
+              <a href="#" className="text-sm font-bold text-blue-700 hover:underline">
+                forgot password
+              </a>
+            </div>
             <input
               type="password"
               name="password"
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
+              id="password"
+              placeholder="Enter your password"
+              value={formData.password}
               onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
               required
             />
           </div>
+
+          {/* Login Button */}
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full px-4 py-2 font-bold text-white rounded hover:bg-blue-700 transition duration-200 ${loading ? 'bg-blue-400' : 'bg-blue-600'}`}
+            className="w-full bg-[#1e3a8a] text-white font-bold py-3 rounded-lg cursor-pointer hover:bg-indigo-800 transition duration-300 shadow-md"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            Login
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center text-sm font-bold text-gray-900">
           Don't have an account?{' '}
-          <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+          <Link to="/signup" className="text-blue-700 hover:underline">
             Sign Up
           </Link>
         </p>
+      </div>
+
+      {/* RIGHT SIDE - IMAGE/GRADIENT */}
+      <div className="hidden md:flex w-1/2 relative bg-gradient-to-br from-[#4ade80] to-[#1e3a8a]">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#6ee7b7] via-[#3b82f6] to-[#1e3a8a]"></div>
+
+        <div className="relative w-full h-full flex items-center justify-center rounded-tl-[100px] rounded-bl-[100px] overflow-hidden z-10">
+
+            <img src={graduationHat} alt="Logo" />
+
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import graduationHat from "../assets/graduationHat.svg"
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -44,47 +45,124 @@ const SignUp = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Student Registration</h2>
+    <div className="flex h-screen w-full bg-white">
+      {/* LEFT SIDE - FORM */}
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-10 md:px-24 overflow-y-auto">
+        <div className="mb-6 mt-10 md:mt-0">
+          <h1 className="text-3xl font-bold text-gray-900">Further Your Journey: Get Started Now</h1>
+        </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm text-center">
-            {error}
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-5">
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-            <input type="text" name="name" onChange={handleChange} className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" required />
+          {/* Full Name */}
+          <div>
+            <label className="block text-sm font-bold text-gray-900 mb-1" htmlFor="fullName">
+              Full Name
+            </label>
+            <input
+              type="text"
+              name="fullName"
+              id="fullName"
+              placeholder="Enter your name"
+              value={formData.fullName}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 placeholder-gray-300"
+              required
+            />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Student ID</label>
-            <input type="text" name="studentId" onChange={handleChange} className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" required />
+
+          {/* Student ID */}
+          <div>
+            <label className="block text-sm font-bold text-gray-900 mb-1" htmlFor="studentId">
+              Student ID
+            </label>
+            <input
+              type="text"
+              name="studentId"
+              id="studentId"
+              placeholder="Enter your student ID"
+              value={formData.studentId}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 placeholder-gray-300"
+              required
+            />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email Address</label>
-            <input type="email" name="email" onChange={handleChange} className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" required />
+
+          {/* Email Address */}
+          <div>
+            <label className="block text-sm font-bold text-gray-900 mb-1" htmlFor="email">
+              Email address
+            </label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 placeholder-gray-300"
+              required
+            />
           </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" name="password" onChange={handleChange} className="w-full px-3 py-2 mt-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none" required />
+
+          {/* Password */}
+          <div>
+            <label className="block text-sm font-bold text-gray-900 mb-1" htmlFor="password">
+              Password
+            </label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 placeholder-gray-300"
+              required
+            />
           </div>
+
+          {/* Terms Checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="agreeToTerms"
+              id="agreeToTerms"
+              checked={formData.agreeToTerms}
+              onChange={handleChange}
+              className="h-4 w-4 text-blue-900 border-gray-300 rounded focus:ring-blue-900"
+            />
+            <label htmlFor="agreeToTerms" className="ml-2 block text-sm font-bold text-gray-900">
+              I agree to the <a href="#" className="underline">terms & policy</a>
+            </label>
+          </div>
+
+          {/* Signup Button */}
           <button
             type="submit"
-            disabled={loading}
-            className={`w-full px-4 py-2 font-bold text-white rounded hover:bg-blue-700 transition duration-200 ${loading ? 'bg-blue-400' : 'bg-blue-600'}`}
+            className="w-full bg-[#1e3a8a] text-white font-bold py-3 rounded-lg hover:bg-blue-900 transition duration-300 shadow-md"
           >
-             {loading ? 'Creating Account...' : 'Sign Up'}
+            Signup
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline font-medium">
-            Login here
+
+        <p className="mt-6 mb-10 text-center text-sm font-bold text-gray-900">
+          Have an account?{' '}
+          <Link to="/login" className="text-blue-700 hover:underline">
+            Sign In
           </Link>
         </p>
+      </div>
+
+      {/* RIGHT SIDE - IMAGE/GRADIENT */}
+      <div className="hidden md:flex w-1/2 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#6ee7b7] via-[#3b82f6] to-[#1e3a8a]"></div>
+
+        <div className="relative w-full h-full flex items-center justify-center rounded-tl-[100px] rounded-bl-[100px] overflow-hidden z-10">
+           <div className="w-full h-full flex items-center justify-center opacity-30">
+            <img src={graduationHat} alt="Logo" />
+           </div>
+        </div>
       </div>
     </div>
   );
