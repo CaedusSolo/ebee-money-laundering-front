@@ -16,7 +16,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
 
-        {/* Placeholder for Dashboard (we'll build this next) */}
         <Route path="/student-dashboard" element={<div><h1>Welcome Student!</h1></div>} />
         <Route path="/admin-dashboard" element={<div><h1>Welcome Admin!</h1></div>} />
         <Route path="/reviewer-dashboard" element={<ReviewerDashboard />} />

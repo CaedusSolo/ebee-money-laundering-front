@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import EvaluationModal from './EvaluationModal';
 import Navbar from "./Navbar"
+import personPlaceholder from "../assets/personPlaceholder.svg"
 
 // Mock data
 const initialApplications = [
@@ -68,11 +69,14 @@ const ScholarshipCommitteeDashboard = () => {
           {/* Profile Card */}
           <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
             <div className="flex items-center space-x-6">
-              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden"><span className="text-xs">Profile Img</span></div>
+              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden">
+
+                <img src={personPlaceholder} alt="Profile Image" />
+              </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-800">FIRSTNAME LASTNAME</h2>
                 <p className="text-gray-600">Scholarship Committee</p>
-                <p className="text-gray-500 text-sm">alexarawles@fyj.edu.my</p>
+                <p className="text-gray-500 text-sm">alexarawles@mmu.edu.my</p>
               </div>
             </div>
             <button className="bg-blue-800 text-white font-semibold px-6 py-2 rounded-md hover:bg-blue-700 transition">Edit</button>
