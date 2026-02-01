@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import EvaluationModal from './EvaluationModal';
-import Navbar from "./Navbar"
+import Navbar from "../components/Navbar"
 import personPlaceholder from "../assets/personPlaceholder.svg"
 
 // Mock data

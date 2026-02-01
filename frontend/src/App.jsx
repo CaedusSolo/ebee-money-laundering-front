@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './components/Login';
-import SignUp from './components/SignUp';
-import ReviewerDashboard from './components/ReviewerDashboard';
-import ScholarshipCommitteeDashboard from "./components/ScholarshipCommitteeDashboard";
+import Login from './pages/Login';
+import SignUp from './pages/SignUp';
+import ReviewerDashboard from './pages/ReviewerDashboard';
+import ScholarshipCommitteeDashboard from "./pages/ScholarshipCommitteeDashboard";
 
 function App() {
   return (
