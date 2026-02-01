@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import scholarship1 from '../assets/images/scholarship1.png';
 import scholarship2 from '../assets/images/scholarship2.png';
@@ -101,9 +102,14 @@ export default function AvailableScholarships() {
                                 </p>
                                 
                                 <div>
-                                    <button className="text-gray-900 font-bold border-b-2 border-gray-900 hover:text-blue-700 hover:border-blue-700 transition-all pb-1">
+                                    {/* FIX: changed this to link and pass scholarship name */}
+                                    <Link 
+                                        to="/application-form" 
+                                        state={{ scholarshipName: scholarship.name }} 
+                                        className="text-gray-900 font-bold border-b-2 border-gray-900 hover:text-blue-700 hover:border-blue-700 transition-all pb-1 inline-block"
+                                    >
                                         Apply Now →
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
