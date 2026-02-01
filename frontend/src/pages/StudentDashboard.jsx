@@ -1,112 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from "../components/Navbar";
-import scholarship1 from '../assets/images/scholarship1.png';
-import scholarship2 from '../assets/images/scholarship2.png';
-import scholarship3 from '../assets/images/scholarship3.png';
+import personPlaceholder from "../assets/personPlaceholder.svg";
 
-export default function AvailableScholarships() {
-    const [searchQuery, setSearchQuery] = useState('');
+export default function StudentDashboard() {
+    const [dashboardData, setDashboardData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const scholarships = [
-        {
-            id: 1,
-            name: "Merit's Scholarship",
-            description: "Awarded to students with exceptional academic performance and standardized test scores.",
-            requirements: ["Minimum 3.67 CGPA", "Requirement 2", "Requirement 3"],
-            deadline: "15 March 2026",
-            image: scholarship1
-        },
-        {
-            id: 2,
-            name: "President's Scholarship",
-            description: "Our most prestigious award for students who demonstrate holistic excellence and vision.",
-            requirements: ["Minimum 3.9 CGPA", "Req 2", "Req 3"],
-            deadline: "15 March 2026",
-            image: scholarship2
-        },
-        {
-            id: 3,
-            name: "High Achiever's Scholarship",
-            description: "Supporting students who have achieved significant milestones in specialized fields.",
-            requirements: ["Req 1", "Req 2", "Req 3"],
-            deadline: "15 March 2026",
-            image: scholarship3
-        }
+    // dummy applications for now 
+    const mockApplications = [
+        { applicationId: 1, scholarshipName: "Merit's Scholarship", status: "Under Review", submittedDate: "DD/MM/YYYY" },
+        { applicationId: 2, scholarshipName: "President's Scholarship", status: "Accepted", submittedDate: "DD/MM/YYYY" },
+        { applicationId: 3, scholarshipName: "High Achiever's Scholarship", status: "Submitted", submittedDate: "DD/MM/YYYY" },
     ];
 
-    const filteredScholarships = scholarships.filter(scholarship =>
-        scholarship.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const studentId = 1;
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/students/dashboard/${studentId}`);
+                const data = await response.json();
+                setDashboardData(data);
+            } catch (error) {
+                console.error("Error fetching dashboard:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashboardData();
+    }, []);
+
+    // Fallback to mock data if API fails or is empty to ensure stubs display
+    const applications = dashboardData?.applications?.length > 0 ? dashboardData.applications : mockApplications;
+
+    if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-gray-100 min-h-screen font-sans">
             <Navbar />
 
-            <main className="max-w-5xl mx-auto px-4 py-12">
-                <h1 className="text-4xl font-bold text-gray-900 mb-8">Available Scholarships</h1>
-                
-                {/* Search Bar matching the image style */}
-                <div className="mb-10">
-                    <div className="relative border border-gray-200 rounded shadow-sm bg-gray-50/30">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg className="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="block w-full pl-10 pr-3 py-2 bg-transparent text-sm focus:outline-none"
-                        />
-                    </div>
-                </div>
-
-                {/* Horizontal Scholarship Cards */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="space-y-8">
-                    {filteredScholarships.map((scholarship) => (
-                        <div key={scholarship.id} className="flex flex-col md:flex-row bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                            
-                            {/* Square Image Section */}
-                            <div className="w-full md:w-64 h-64 md:h-auto overflow-hidden">
-                                <img
-                                    src={scholarship.image}
-                                    alt={scholarship.name}
-                                    className="w-full h-full object-cover"
+                    
+                    {/* Profile Card  */}
+                    <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                        <div className="flex items-center space-x-6">
+                            <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden border border-gray-100">
+                                <img 
+                                    src={personPlaceholder} 
+                                    alt="Profile" 
                                 />
                             </div>
-
-                            {/* Text Content Section */}
-                            <div className="p-8 flex-1 flex flex-col justify-center">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2">{scholarship.name}</h2>
-                                <p className="text-gray-500 text-sm mb-4 leading-relaxed">
-                                    {scholarship.description}
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800 uppercase">
+                                    {dashboardData?.student?.name || "IZZMINHAL"}
+                                </h2>
+                                <p className="text-gray-600">Student</p>
+                                <p className="text-gray-500 text-sm">
+                                    {dashboardData?.student?.email || "jimin@student.fyj.edu.my"}
                                 </p>
-
-                                <div className="space-y-1 mb-4">
-                                    <h3 className="text-sm font-semibold text-gray-400">Requirements:</h3>
-                                    <ul className="text-gray-500 text-sm">
-                                        {scholarship.requirements.map((req, index) => (
-                                            <li key={index} className="flex items-center">
-                                                <span className="mr-2">→</span> {req}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <p className="text-gray-500 text-sm mb-6">
-                                    Deadline : <span className="font-medium text-gray-700">{scholarship.deadline}</span>
-                                </p>
-                                
-                                <div>
-                                    <button className="text-gray-900 font-bold border-b-2 border-gray-900 hover:text-blue-700 hover:border-blue-700 transition-all pb-1">
-                                        Apply Now →
-                                    </button>
-                                </div>
                             </div>
                         </div>
-                    ))}
+                        <button className="bg-blue-800 text-white font-semibold px-6 py-2 rounded-md hover:bg-blue-700 transition">
+                            Edit
+                        </button>
+                    </div>
+
+                    {/* Application Status Section */}
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        
+                        {/* Header Row */}
+                        <div className="flex items-center mb-6 pb-2 border-b border-gray-100">
+                            <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <h3 className="text-xl font-bold text-gray-800">Application Status</h3>
+                        </div>
+
+                        {/* Scholarship Stubs */}
+                        <div className="space-y-4">
+                            {applications.map((app) => (
+                                <div 
+                                    key={app.applicationId} 
+                                    className="bg-gray-50 p-4 rounded-lg border border-gray-200 border-l-6 border-l-blue-600"
+                                >
+                                    <div className="pl-3">
+                                        <h4 className="font-bold text-lg text-gray-900">
+                                            {app.scholarshipName}
+                                        </h4>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                            Status: <span className="text-gray-500">{app.status}</span>
+                                        </p>
+                                        <p className="text-sm text-gray-400">
+                                            Submitted: {app.submittedDate}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Destructive Action */}
+                    <div className="flex justify-end">
+                        <button className="bg-red-600 text-white px-6 py-2 rounded-md font-bold hover:bg-red-700 transition shadow-sm">
+                            Delete Account
+                        </button>
+                    </div>
                 </div>
             </main>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Navbar from "../components/Navbar";
 import scholarship1 from '../assets/images/scholarship1.png';
 import scholarship2 from '../assets/images/scholarship2.png';
 import scholarship3 from '../assets/images/scholarship3.png';
@@ -6,158 +7,109 @@ import scholarship3 from '../assets/images/scholarship3.png';
 export default function AvailableScholarships() {
     const [searchQuery, setSearchQuery] = useState('');
 
-  // data for scholarships, stubs for now cus can add on scholarships later 
+    //stubs rn 
     const scholarships = [
-    {
-        id: 1,
-        name: "Merit's Scholarship",
-        description: "Call out a feature, benefit, or value of your site or product that can stand on its own.",
-        requirements: ["Req 1", "Req 2", "Req 3"],
-        deadline: "Date",
-        image: scholarship1
-    },
-    {
-        id: 2,
-        name: "President's Scholarship",
-        description: "Call out a feature, benefit, or value of your site or product that can stand on its own.",
-        requirements: ["Req 1", "Req 2", "Req 3"],
-        deadline: "Date",
-        image: scholarship2
-    },
-    {
-        id: 3,
-        name: "High Achiever's Scholarship",
-        description: "Call out a feature, benefit, or value of your site or product that can stand on its own.",
-        requirements: ["Req 1", "Req 2", "Req 3"],
-        deadline: "Date",
-        image: scholarship3
-    }
-];
+        {
+            id: 1,
+            name: "Merit's Scholarship",
+            description: "Awarded to students with exceptional academic performance and standardized test scores.",
+            requirements: ["Minimum 3.67 CGPA", "Requirement 2", "Requirement 3"],
+            deadline: "15 March 2026",
+            image: scholarship1
+        },
+        {
+            id: 2,
+            name: "President's Scholarship",
+            description: "Our most prestigious award for students who demonstrate holistic excellence and vision.",
+            requirements: ["Minimum 3.9 CGPA", "Req 2", "Req 3"],
+            deadline: "15 March 2026",
+            image: scholarship2
+        },
+        {
+            id: 3,
+            name: "High Achiever's Scholarship",
+            description: "Supporting students who have achieved significant milestones in specialized fields.",
+            requirements: ["Req 1", "Req 2", "Req 3"],
+            deadline: "15 March 2026",
+            image: scholarship3
+        }
+    ];
 
-  // filter scholarships based on search query
     const filteredScholarships = scholarships.filter(scholarship =>
         scholarship.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const handleApply = (scholarshipId) => {
-        // stub function for applying to a scholarship
-        console.log(`Applying to scholarship with ID: ${scholarshipId}`);
-        alert(`Application submitted for scholarship ID: ${scholarshipId}`);
-    };
-
     return (
-        <div className="min-vh-100" style={{ backgroundColor: '#f8f9fa' }}>
-        {/* Header */}
-        <nav className="navbar navbar-expand-lg" style={{ 
-            background: 'linear-gradient(135deg, #2D25CC 0%, #6FE6D5 100%)',
-            padding: '1rem 2rem'
-            }}>
-            <div className="container-fluid">
-                <a className="navbar-brand text-white d-flex align-items-center" href="#">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="me-2">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="white"/>
-                    <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2"/>
-                    </svg>
-                    <span className="fw-bold">Further Your Journey</span>
-                </a>
-                <div className="ms-auto">
-                    <button className="btn btn-light me-2" style={{ fontWeight: '500' }}>Sign Up</button>
-                    <button className="btn btn-outline-light" style={{ fontWeight: '500' }}>Login</button>
-                </div>
-            </div>
-        </nav>
+        <div className="bg-white min-h-screen">
+            <Navbar />
 
-      {/* Main Content */}
-        <div className="container py-5">
-            <h1 className="fw-bold mb-4" style={{ fontSize: '2rem' }}>Available Scholarships</h1>
-
-            {/* Search Bar */}
-            <div className="mb-5">
-                <div className="input-group" style={{ maxWidth: '600px' }}>
-                    <span className="input-group-text bg-white border-end-0">
-                    <svg width="16" height="16" fill="currentColor" className="text-muted" viewBox="0 0 16 16">
-                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                    </svg>
-                    </span>
-                    <input
-                    type="text"
-                    className="form-control border-start-0 ps-0"
-                    placeholder="Search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{ boxShadow: 'none' }}
-                    />
-                </div>
-            </div>
-
-        {/* Scholarships Grid */}
-        <div className="row g-4">
-                {filteredScholarships.map((scholarship) => (
-                <div key={scholarship.id} className="col-12 col-md-6 col-lg-4">
-                    <div className="card h-100 border-0 shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-                        {/* Image */}
-                        <div style={{ height: '200px', overflow: 'hidden' }}>
-                            <img
-                            src={scholarship.image}
-                            alt={scholarship.name}
-                            className="w-100 h-100"
-                            style={{ objectFit: 'cover' }}
-                            />
+            <main className="max-w-5xl mx-auto px-4 py-12">
+                <h1 className="text-4xl font-bold text-gray-900 mb-8">Available Scholarships</h1>
+                
+                {/* Search Bar matching the image style */}
+                <div className="mb-10">
+                    <div className="relative border border-gray-200 rounded shadow-sm bg-gray-50/30">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                            </svg>
                         </div>
-
-                        {/* Card Body */}
-                        <div className="card-body p-4">
-                            <h5 className="card-title fw-bold mb-3">{scholarship.name}</h5>
-                            <p className="card-text text-muted mb-3" style={{ fontSize: '0.9rem' }}>
-                                {scholarship.description}
-                            </p>
-
-                            {/* Requirements */}
-                            <div className="mb-3">
-                                <p className="mb-2 fw-semibold" style={{ fontSize: '0.9rem' }}>Requirements:</p>
-                                <ul className="list-unstyled mb-0">
-                                {scholarship.requirements.map((req, index) => (
-                                    <li key={index} className="text-muted d-flex align-items-center mb-1" style={{ fontSize: '0.85rem' }}>
-                                    <span className="me-2" style={{ color: '#667eea' }}>→</span>
-                                    {req}
-                                    </li>
-                                ))}
-                                </ul>
-                            </div>
-
-                            {/* Deadline */}
-                            <p className="text-muted mb-3" style={{ fontSize: '0.85rem' }}>
-                                <span className="fw-semibold">Deadline:</span> {scholarship.deadline}
-                            </p>
-
-                            {/* Apply Button */}
-                            <button
-                                onClick={() => handleApply(scholarship.id)}
-                                className="btn w-100 fw-semibold d-flex align-items-center justify-content-center"
-                                style={{
-                                backgroundColor: 'transparent',
-                                color: '#000',
-                                border: 'none',
-                                padding: '0',
-                                fontSize: '0.9rem'
-                                }}
-                            >
-                                Apply Now
-                                <span className="ms-2">→</span>
-                            </button>
-                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="block w-full pl-10 pr-3 py-2 bg-transparent text-sm focus:outline-none"
+                        />
                     </div>
                 </div>
-                ))}
-            </div>
 
-            {/* No Results Message */}
-            {filteredScholarships.length === 0 && (
-                <div className="alert alert-info" role="alert">
-                    No scholarships found matching your search.
+                {/* Horizontal Scholarship Cards */}
+                <div className="space-y-8">
+                    {filteredScholarships.map((scholarship) => (
+                        <div key={scholarship.id} className="flex flex-col md:flex-row bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                            
+                            {/* Square Image Section */}
+                            <div className="w-full md:w-64 h-64 md:h-auto overflow-hidden">
+                                <img
+                                    src={scholarship.image}
+                                    alt={scholarship.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+
+                            {/* Text Content Section */}
+                            <div className="p-8 flex-1 flex flex-col justify-center">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">{scholarship.name}</h2>
+                                <p className="text-gray-500 text-sm mb-4 leading-relaxed">
+                                    {scholarship.description}
+                                </p>
+
+                                <div className="space-y-1 mb-4">
+                                    <h3 className="text-sm font-semibold text-gray-400">Requirements:</h3>
+                                    <ul className="text-gray-500 text-sm">
+                                        {scholarship.requirements.map((req, index) => (
+                                            <li key={index} className="flex items-center">
+                                                <span className="mr-2">→</span> {req}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <p className="text-gray-500 text-sm mb-6">
+                                    Deadline : <span className="font-medium text-gray-700">{scholarship.deadline}</span>
+                                </p>
+                                
+                                <div>
+                                    <button className="text-gray-900 font-bold border-b-2 border-gray-900 hover:text-blue-700 hover:border-blue-700 transition-all pb-1">
+                                        Apply Now →
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-            )}
+            </main>
         </div>
-    </div>
     );
 }
