@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import ScholarshipCommitteeDashboard from "./pages/ScholarshipCommitteeDashboard";
+import ResetPassword from "./pages/ResetPassword"
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         {/* Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/student-dashboard" element={<div><h1>Welcome Student!</h1></div>} />
         <Route path="/admin-dashboard" element={<div><h1>Welcome Admin!</h1></div>} />

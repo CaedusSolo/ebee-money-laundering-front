@@ -83,7 +83,7 @@ const Login = () => {
               <label className="block text-sm font-bold text-gray-900" htmlFor="password">
                 Password
               </label>
-              <a href="#" className="text-sm font-bold text-blue-700 hover:underline">
+              <a href="/reset-password" className="text-sm font-bold text-blue-700 hover:underline">
                 forgot password
               </a>
             </div>
