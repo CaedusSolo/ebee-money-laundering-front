@@ -21,7 +21,7 @@ export default function ReviewerDashboard() {
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/reviewer/dashboard/${reviewerId}`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/dashboard/${reviewerId}`);
       const data = await response.json();
       setApplications(data.applications || []);
     } catch (err) {

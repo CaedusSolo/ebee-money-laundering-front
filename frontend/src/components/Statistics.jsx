@@ -12,7 +12,7 @@ export default function Statistics() {
   const fetchStatistics = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/reviewer/statistics');
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/statistics`);
       const data = await response.json();
       setStats(data);
     } catch (err) {

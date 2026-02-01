@@ -15,8 +15,8 @@ export default function ApplicationDetails({ applicationId, onBack }) {
     setLoading(true);
     try {
       const [appRes, reviewsRes] = await Promise.all([
-        fetch(`http://localhost:8080/api/reviewer/applications/${applicationId}`),
-        fetch(`http://localhost:8080/api/reviewer/applications/${applicationId}/grades`)
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}`),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`)
       ]);
 
       const appData = await appRes.json();
@@ -36,7 +36,7 @@ export default function ApplicationDetails({ applicationId, onBack }) {
     setSubmitting(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/reviewer/applications/${applicationId}/decision`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/decision`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
