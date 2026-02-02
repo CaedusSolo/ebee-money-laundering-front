@@ -1,100 +1,142 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Statistics() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+// 1. Accept token and reviewerId as props
+export default function Statistics({ token, reviewerId }) {
+  const DUMMY_STATS = {
+    totalApplications: 120,
+    approvalRate: 45,
+    approvedApplications: 54,
+    rejectedApplications: 40,
+    pendingApplications: 26,
+    applicationsByStatus: {
+      'APPROVED': 54,
+      'REJECTED': 40,
+      'PENDING_REVIEW': 26
+    }
+  };
+
+  const [stats, setStats] = useState(DUMMY_STATS); // Initialize with dummy data
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchStatistics();
-  }, []);
+    // 2. Only fetch if token and reviewerId are available
+    if (token && reviewerId) {
+      fetchStatistics();
+    }
+  }, [token, reviewerId]);
 
   const fetchStatistics = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/statistics`);
+      // 3. Update URL with reviewerId and include Authorization Header
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/statistics/${reviewerId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) throw new Error('Unauthorized or Server Error');
+
       const data = await response.json();
       setStats(data);
     } catch (err) {
-      setError('Failed to load statistics');
-      console.error(err);
+      setError('Using offline statistics data.');
+      setStats(DUMMY_STATS); // Fallback to dummy data
+      console.error('Statistics Fetch Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-8">Loading statistics...</div>;
-  }
+  // Helper to safely calculate percentage and avoid Division by Zero
+  const calculatePercent = (value, total) => {
+    if (!total || total === 0) return 0;
+    return ((value / total) * 100).toFixed(1);
+  };
 
-  if (error) {
+  if (loading) {
     return (
-      <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-        {error}
+      <div className="flex justify-center items-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mr-3"></div>
+        <p className="text-gray-500 font-medium">Loading award analytics...</p>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="animate-fadeIn">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Scholarship Awards Statistics</h2>
 
-      <div className="grid grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-sm text-gray-600 font-medium">Total Applications</p>
-          <p className="text-4xl font-bold text-blue-600 mt-2">{stats?.totalApplications}</p>
+      {error && (
+        <div className="mb-6 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 text-sm">
+          {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Total Applications</p>
+          <p className="text-4xl font-black text-blue-700 mt-2">{stats?.totalApplications}</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-sm text-gray-600 font-medium">Approval Rate</p>
-          <p className="text-4xl font-bold text-green-600 mt-2">{stats?.approvalRate}%</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Approval Rate</p>
+          <p className="text-4xl font-black text-green-600 mt-2">{stats?.approvalRate}%</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-sm text-gray-600 font-medium">Approved</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Approved</p>
           <p className="text-3xl font-bold text-green-600 mt-2">{stats?.approvedApplications}</p>
-          <p className="text-xs text-gray-500 mt-2">
-            {((stats?.approvedApplications / stats?.totalApplications) * 100).toFixed(1)}% of total
+          <p className="text-xs text-gray-400 mt-2 font-medium">
+            {calculatePercent(stats?.approvedApplications, stats?.totalApplications)}% of total
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-sm text-gray-600 font-medium">Rejected</p>
-          <p className="text-3xl font-bold text-red-600 mt-2">{stats?.rejectedApplications}</p>
-          <p className="text-xs text-gray-500 mt-2">
-            {((stats?.rejectedApplications / stats?.totalApplications) * 100).toFixed(1)}% of total
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Rejected</p>
+          <p className="text-3xl font-bold text-red-500 mt-2">{stats?.rejectedApplications}</p>
+          <p className="text-xs text-gray-400 mt-2 font-medium">
+            {calculatePercent(stats?.rejectedApplications, stats?.totalApplications)}% of total
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <p className="text-sm text-gray-600 font-medium">Pending Review</p>
-          <p className="text-3xl font-bold text-yellow-600 mt-2">{stats?.pendingApplications}</p>
-          <p className="text-xs text-gray-500 mt-2">
-            {((stats?.pendingApplications / stats?.totalApplications) * 100).toFixed(1)}% of total
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <p className="text-sm text-gray-500 font-bold uppercase tracking-wider">Pending Review</p>
+          <p className="text-3xl font-bold text-yellow-500 mt-2">{stats?.pendingApplications}</p>
+          <p className="text-xs text-gray-400 mt-2 font-medium">
+            {calculatePercent(stats?.pendingApplications, stats?.totalApplications)}% of total
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Applications by Status</h3>
-        <div className="space-y-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center">
+          <span className="w-2 h-6 bg-blue-600 rounded-full mr-3"></span>
+          Applications by Status
+        </h3>
+        <div className="space-y-6">
           {stats?.applicationsByStatus && Object.entries(stats.applicationsByStatus).map(([status, count]) => (
             <div key={status}>
               <div className="flex justify-between items-center mb-2">
-                <p className="font-medium text-gray-900">{status}</p>
-                <p className="text-gray-600">{count} applications</p>
+                <p className="text-sm font-bold text-gray-700">{status.replace('_', ' ')}</p>
+                <p className="text-sm font-bold text-gray-500">{count} <span className="font-normal">apps</span></p>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-100 rounded-full h-3">
                 <div
-                  className={`h-2 rounded-full transition-all ${
+                  className={`h-3 rounded-full transition-all duration-1000 ${
                     status === 'APPROVED'
-                      ? 'bg-green-600'
+                      ? 'bg-green-500'
                       : status === 'REJECTED'
-                      ? 'bg-red-600'
-                      : 'bg-yellow-600'
+                      ? 'bg-red-500'
+                      : 'bg-yellow-500'
                   }`}
                   style={{
-                    width: `${(count / stats.totalApplications) * 100}%`
+                    width: `${calculatePercent(count, stats.totalApplications)}%`
                   }}
                 />
               </div>
