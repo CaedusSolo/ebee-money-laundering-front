@@ -20,6 +20,7 @@ import ManageUsers from "./pages/ManageUsers";
 import EditUser from "./pages/EditUsers";
 import CreateUser from "./pages/CreateUser";
 import ManageScholarship from "./pages/ManageScholarship";
+import ScholarshipDetail from "./pages/ScholarshipDetails";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -93,6 +94,10 @@ function App() {
             </Route>
             <Route path="scholarship">
               <Route index element={<ManageScholarship />} />
+              <Route
+                path="details/:scholarshipId?"
+                element={<ScholarshipDetail />}
+              ></Route>
             </Route>
           </Route>
         </Routes>

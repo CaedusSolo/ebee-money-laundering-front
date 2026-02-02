@@ -76,12 +76,13 @@ function ScholarshipCard({ scholarship }) {
       </div>
 
       <div className="flex-shrink-0">
-        <button
-          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        <Link
+          className="block p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Edit scholarship"
+          to={`details/${scholarship.id}`}
         >
           <Pencil className="w-5 h-5" />
-        </button>
+        </Link>
       </div>
     </div>
   );
@@ -111,7 +112,7 @@ export default function ManageScholarship() {
       {/* Add Scholarship Button */}
       <div className="flex justify-center mb-8">
         <Link
-          to="/scholarship/add"
+          to="details/"
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-full hover:bg-blue-700 transition-colors"
         >
           Add Scholarship
