@@ -14,7 +14,7 @@ export default function Navbar() {
             <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-blue-700">
                 <img src={navbarLogo} alt="Logo" />
             </div>
-            <h1 className="text-2xl font-bold text-white">Further Your Journey</h1>
+            <h1 className="text-2xl font-bold text-white"><a href="/">Further Your Journey</a></h1>
           </div>
 
           {/* Right Side: Logout Button & User Icon */}
