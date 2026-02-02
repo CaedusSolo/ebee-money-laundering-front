@@ -55,8 +55,8 @@ function App() {
           } />
 
           {/* Scholarship/Applications Routes */}
-          <Route path="scholarships-list" element={<ScholarshipsList />} />
-          <Route path="application-form" element={<ApplicationForm />} />
+          <Route path="/student-dashboard" element={<ScholarshipsList />} />
+          <Route path="/application-form" element={<ApplicationForm />} />
 
         </Routes>
       </Router>
