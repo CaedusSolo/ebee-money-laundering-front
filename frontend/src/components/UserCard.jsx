@@ -24,7 +24,7 @@ export default function UserCard({ userId, name, email, accountType }) {
         {/* Edit button */}
         <Link
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-          to="/admin/edit-user/1"
+          to="/admin/users/edit/1"
         >
           Edit
         </Link>
