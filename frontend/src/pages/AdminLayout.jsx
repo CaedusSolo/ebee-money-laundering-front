@@ -10,7 +10,7 @@ const tabs = [
 
 function TabBar({ children }) {
   return (
-    <div className="p-6">
+    <div className="p-6 pt-24">
       {/* Tabs Navigation */}
       <div className="bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full p-2 flex items-center justify-between gap-2 mb-6">
         {tabs.map((tab) => {
