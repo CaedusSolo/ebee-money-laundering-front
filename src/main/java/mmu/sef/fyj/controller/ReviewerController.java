@@ -1,5 +1,6 @@
 package mmu.sef.fyj.controller;
 
+import mmu.sef.fyj.model.Reviewer;
 import mmu.sef.fyj.service.ReviewerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,11 @@ public class ReviewerController {
 
     @Autowired
     private ReviewerService reviewerService;
+
+    @GetMapping("/list")
+    public ResponseEntity<List<Reviewer>> getAllReviewers() {
+        return ResponseEntity.ok(reviewerService.findAll());
+    }
 
     @GetMapping("/dashboard/{reviewerId}")
     public ResponseEntity<?> getDashboard(@PathVariable Integer reviewerId) {

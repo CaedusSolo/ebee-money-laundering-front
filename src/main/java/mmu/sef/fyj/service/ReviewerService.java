@@ -13,6 +13,10 @@ public class ReviewerService {
     @Autowired
     private ReviewerRepository reviewerRepository;
 
+    public List<Reviewer> findAll() {
+        return reviewerRepository.findAll();
+    }
+
     // Dummy data for applications
     public List<Map<String, Object>> getAllAssignedApplications(Integer reviewerId) {
         List<Map<String, Object>> applications = new ArrayList<>();

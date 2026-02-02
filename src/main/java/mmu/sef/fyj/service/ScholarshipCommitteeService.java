@@ -1,10 +1,20 @@
 package mmu.sef.fyj.service;
 
+import mmu.sef.fyj.model.ScholarshipCommittee;
+import mmu.sef.fyj.repository.ScholarshipCommitteeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
 public class ScholarshipCommitteeService {
+
+    @Autowired
+    private ScholarshipCommitteeRepository scholarshipCommitteeRepository;
+
+    public List<ScholarshipCommittee> findAll() {
+        return scholarshipCommitteeRepository.findAll();
+    }
 
     public Map<String, Object> getCommitteeDashboard(Integer committeeId) {
         Map<String, Object> dashboard = new HashMap<>();
