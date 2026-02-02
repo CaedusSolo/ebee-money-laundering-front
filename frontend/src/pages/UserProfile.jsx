@@ -21,7 +21,7 @@ function ApplicationCard({ title, status, submittedDate }) {
   );
 }
 
-export default function EditUser() {
+export default function UserProfile() {
   const user = {
     username: "IZZMINHAL",
     role: "Student",

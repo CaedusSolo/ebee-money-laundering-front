@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Person from "../assets/personPlaceholder.svg";
 import UserService from "../services/UserService";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ROLES = {
   ADMIN: "ADMIN",
@@ -11,7 +11,7 @@ const ROLES = {
   STUDENT: "STUDENT",
 };
 
-export default function CreateUser() {
+export default function UserDetails() {
   const { currentUser } = useAuth();
   const userService = new UserService(currentUser?.token);
   const navigate = useNavigate();
@@ -22,6 +22,22 @@ export default function CreateUser() {
     password: "",
     email: "",
   });
+
+  const { userId } = useParams();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userId) return;
+      try {
+        const data = await userService.getUserById(userId);
+        setFormData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

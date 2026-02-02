@@ -18,8 +18,8 @@ import ScholarshipsList from "./pages/ScholarshipsList";
 import AdminLayout from "./pages/AdminLayout";
 import ManageUsers from "./pages/ManageUsers";
 import EditUser from "./pages/EditUsers";
-import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout"
-import CreateUser from "./pages/CreateUser";
+import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout";
+import UserDetails from "./pages/UserDetails";
 import ManageScholarship from "./pages/ManageScholarship";
 import ScholarshipDetail from "./pages/ScholarshipDetails";
 
@@ -78,18 +78,23 @@ function App() {
           />
 
           {/* Scholarship/Applications Routes */}
-          <Route path="/student-dashboard" element={
-            <ProtectedRoute allowedRoles={["STUDENT"]}>
-              <ScholarshipsList />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/student-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["STUDENT"]}>
+                <ScholarshipsList />
+              </ProtectedRoute>
+            }
+          />
 
-          <Route path="application-form" element={
-            <ProtectedRoute allowedRoles={["STUDENT"]}>
-              <ApplicationForm />
-            </ProtectedRoute>
-          }
-            />
+          <Route
+            path="application-form"
+            element={
+              <ProtectedRoute allowedRoles={["STUDENT"]}>
+                <ApplicationForm />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Admin Routes */}
           <Route
@@ -102,8 +107,7 @@ function App() {
           >
             <Route path="users">
               <Route index element={<ManageUsers />} />
-              <Route path="edit/:userId" element={<EditUser />} />
-              <Route path="create" element={<CreateUser />} />
+              <Route path="edit/:userId?" element={<UserDetails />} />
             </Route>
             <Route path="scholarship">
               <Route index element={<ManageScholarship />} />

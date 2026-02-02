@@ -19,6 +19,11 @@ class UserService {
     return response.data;
   }
 
+  async getUserById(userId) {
+    const response = await this.api.get(`/${userId}`);
+    return response.data;
+  }
+
   async createUser(userData) {
     const response = await this.api.post("", userData);
     return response.data;
