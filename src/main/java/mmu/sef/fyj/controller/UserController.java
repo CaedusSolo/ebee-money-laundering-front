@@ -6,7 +6,10 @@ import org.springframework.web.bind.annotation.*;
 
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.repository.UserRepository;
+import mmu.sef.fyj.dto.NewUser;
+import mmu.sef.fyj.service.UserService;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -14,6 +17,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     // GET all users
     @GetMapping
@@ -31,8 +37,13 @@ public class UserController {
 
     // POST create user
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userRepository.save(user);
+    public ResponseEntity<?> createUser(@RequestBody NewUser newUser) {
+        try {
+            User user = userService.addUser(newUser);
+            return ResponseEntity.ok(Map.of("message", "Student registered successfully", "userId", user.getId()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // PUT update user

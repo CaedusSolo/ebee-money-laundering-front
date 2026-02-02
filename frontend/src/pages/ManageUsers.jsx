@@ -16,7 +16,6 @@ export default function ManageUsers() {
     const fetchUserData = async () => {
       try {
         const data = await userService.getAllUsers();
-        console.log(data);
         setUserData(data);
       } catch (error) {
         console.error("Error fetching user data:", error);

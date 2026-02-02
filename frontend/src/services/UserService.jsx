@@ -20,7 +20,7 @@ class UserService {
   }
 
   async createUser(userData) {
-    const response = await this.api.post("/", userData);
+    const response = await this.api.post("", userData);
     return response.data;
   }
 
