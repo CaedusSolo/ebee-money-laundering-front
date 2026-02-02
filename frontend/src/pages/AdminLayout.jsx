@@ -18,7 +18,7 @@ function TabBar({ children }) {
           return (
             <Link
               key={tab.href}
-              href={tab.href}
+              to={tab.href}
               className={`flex-1 text-center py-2 px-4 rounded-full text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-blue-600 text-white border-2 border-white"
