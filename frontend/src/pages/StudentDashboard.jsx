@@ -116,7 +116,7 @@ export default function StudentDashboard() {
                                 </svg>
                                 <p className="text-gray-500 mb-4">No applications yet</p>
                                 <button 
-                                    onClick={() => navigate('/scholarships')}
+                                    onClick={() => navigate('/scholarships-list')}
                                     className="bg-blue-800 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
                                 >
                                     Browse Scholarships
