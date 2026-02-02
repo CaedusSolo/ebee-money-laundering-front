@@ -6,12 +6,9 @@ export default function UserCard({ user: { id, name, email, role } }) {
     <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       {/* Left section with blue accent bar */}
       <div className="flex items-start gap-3">
-        <div className="w-1 h-20 bg-blue-600 rounded-full" />
+        <div className="w-1 h-16 bg-blue-600 rounded-full" />
         <div>
-          <h3 className="font-bold text-foreground">{id}</h3>
-          <p className="text-sm text-muted-foreground">
-            <strong>Name:</strong> {name}
-          </p>
+          <p className="text-base font-bold text-muted-foreground">{name}</p>
           <p className="text-sm text-muted-foreground">
             <strong>Email:</strong> {email}
           </p>
