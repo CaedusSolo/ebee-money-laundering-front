@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import personPlaceholder from "../assets/personPlaceholder.svg";
 import ApplicationItem from "../components/ApplicationItem";
@@ -6,6 +7,9 @@ import ApplicationItem from "../components/ApplicationItem";
 export default function StudentDashboard() {
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const mockApplications = [
         { applicationId: 1, scholarshipName: "Merit's Scholarship", status: "Under Review", submittedDate: "DD/MM/YYYY" },
@@ -27,7 +31,16 @@ export default function StudentDashboard() {
             }
         };
         fetchDashboardData();
-    }, []);
+
+        // Check if redirected after successful submission
+        if (location.state?.submissionSuccess) {
+            setShowSuccessMessage(true);
+            // Clear the state to prevent showing message on refresh
+            window.history.replaceState({}, document.title);
+            // Hide message after 5 seconds
+            setTimeout(() => setShowSuccessMessage(false), 5000);
+        }
+    }, [location]);
 
     const applications = dashboardData?.applications?.length > 0 ? dashboardData.applications : mockApplications;
 
@@ -39,6 +52,29 @@ export default function StudentDashboard() {
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
                 <div className="space-y-8">
+                    
+                    {/* Success Message */}
+                    {showSuccessMessage && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between animate-fade-in">
+                            <div className="flex items-center space-x-3">
+                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <p className="font-semibold text-green-800">Application Submitted Successfully!</p>
+                                    <p className="text-sm text-green-700">Your scholarship application has been received and is now under review.</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowSuccessMessage(false)}
+                                className="text-green-600 hover:text-green-800"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    )}
 
                     <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
                         <div className="flex items-center space-x-6">
@@ -61,23 +97,43 @@ export default function StudentDashboard() {
                     </div>
 
                     <div className="bg-white p-6 rounded-lg shadow-md">
-                        <div className="flex items-center mb-6 pb-2 border-b border-gray-100">
-                            <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            <h3 className="text-xl font-bold text-gray-800">Application Status</h3>
+                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
+                            <div className="flex items-center">
+                                <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <h3 className="text-xl font-bold text-gray-800">Application Status</h3>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                                {applications.length} {applications.length === 1 ? 'Application' : 'Applications'}
+                            </span>
                         </div>
 
-                        <div className="space-y-4">
-                            {applications.map((app) => (
-                                <ApplicationItem
-                                    key={app.applicationId}
-                                    title={app.scholarshipName}
-                                    status={app.status}
-                                    date={app.submittedDate}
-                                />
-                            ))}
-                        </div>
+                        {applications.length === 0 ? (
+                            <div className="text-center py-12">
+                                <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <p className="text-gray-500 mb-4">No applications yet</p>
+                                <button 
+                                    onClick={() => navigate('/scholarships')}
+                                    className="bg-blue-800 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
+                                >
+                                    Browse Scholarships
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {applications.map((app) => (
+                                    <ApplicationItem
+                                        key={app.applicationId}
+                                        title={app.scholarshipName}
+                                        status={app.status}
+                                        date={app.submittedDate}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end">

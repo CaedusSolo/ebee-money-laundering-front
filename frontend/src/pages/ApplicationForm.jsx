@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import Step1PersonalInfo from "../components/PersonalInfoForm";
-import Step2AcademicInfo from "../components/AcademicInfoForm";
+import PersonalInfoForm from "../components/PersonalInfoForm";
+import AcademicInfoForm from "../components/AcademicInfoForm";
 
 const ScholarshipApplication = () => {
     const location = useLocation();
@@ -188,7 +188,7 @@ const ScholarshipApplication = () => {
 
                     <form onSubmit={handleSubmit}>
                         {step === 1 ? (
-                            <Step1PersonalInfo
+                            <PersonalInfoForm
                                 formData={formData}
                                 errors={errors}
                                 familyMembers={familyMembers}
@@ -199,7 +199,7 @@ const ScholarshipApplication = () => {
                                 handleSave={handleSave}
                             />
                         ) : (
-                            <Step2AcademicInfo
+                            <AcademicInfoForm
                                 formData={formData}
                                 errors={errors}
                                 files={files}
