@@ -3,6 +3,7 @@ package mmu.sef.fyj.controller;
 import jakarta.validation.Valid;
 import mmu.sef.fyj.dto.LoginRequest;
 import mmu.sef.fyj.dto.RegisterRequest;
+import mmu.sef.fyj.dto.ResetPasswordRequest;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.repository.UserRepository;
 import mmu.sef.fyj.service.AuthService;
@@ -40,8 +41,7 @@ public class AuthController {
                     request.getName(),
                     request.getEmail(),
                     request.getPassword(),
-                    request.getStudentId()
-            );
+                    request.getStudentId());
             return ResponseEntity.ok(Map.of("message", "Student registered successfully", "userId", user.getId()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -52,20 +52,28 @@ public class AuthController {
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest request) { // Changed to DTO
         try {
             authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
             User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
             String token = jwtService.generateToken(user);
 
             return ResponseEntity.ok(Map.of(
-                "token", token,
-                "role", user.getRole(),
-                "user", user
-            ));
+                    "token", token,
+                    "role", user.getRole(),
+                    "user", user));
 
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid email or password"));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getEmail(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Password reset successfully. You can now login."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
