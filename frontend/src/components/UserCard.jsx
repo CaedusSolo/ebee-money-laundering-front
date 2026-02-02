@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+import Eye from "../assets/eye.svg";
+
 export default function UserCard({ userId, name, email, accountType }) {
   return (
     <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
@@ -15,13 +18,16 @@ export default function UserCard({ userId, name, email, accountType }) {
       <div className="flex items-center gap-4">
         {/* View button */}
         <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <img src="/icons/eye.png" alt="View" className="w-5 h-5" />
+          <img src={Eye} alt="View" className="w-5 h-5" />
         </button>
 
         {/* Edit button */}
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+        <Link
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          to="/admin/edit-user/1"
+        >
           Edit
-        </button>
+        </Link>
 
         {/* Delete button */}
         <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">

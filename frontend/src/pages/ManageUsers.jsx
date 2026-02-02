@@ -1,4 +1,5 @@
 import UserCard from "../components/UserCard";
+import File from "../assets/file-text.svg";
 
 const users = [
   {
@@ -27,7 +28,7 @@ export default function ManageUsers() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <img src="/icons/clipboard.png" alt="List" className="w-6 h-6" />
+          <img src={File} alt="List" className="w-6 h-6" />
           <h1 className="text-xl font-bold text-foreground">
             List of Accounts
           </h1>
