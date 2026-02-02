@@ -18,6 +18,7 @@ import ScholarshipsList from "./pages/ScholarshipsList";
 import AdminLayout from "./pages/AdminLayout";
 import ManageUsers from "./pages/ManageUsers";
 import EditUser from "./pages/EditUsers";
+import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout"
 import CreateUser from "./pages/CreateUser";
 import ManageScholarship from "./pages/ManageScholarship";
 import ScholarshipDetail from "./pages/ScholarshipDetails";
@@ -56,13 +57,15 @@ function App() {
 
           {/* Committee Routes */}
           <Route
-            path="/scholarship-committee-dashboard"
+            path="scholarship-committee-dashboard"
             element={
               <ProtectedRoute allowedRoles={["COMMITTEE"]}>
-                <ScholarshipCommitteeDashboard />
+                <ScholarshipCommitteeLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<ScholarshipCommitteeDashboard />} />
+          </Route>
 
           {/* reviewer Routes */}
           <Route
@@ -75,8 +78,18 @@ function App() {
           />
 
           {/* Scholarship/Applications Routes */}
-          <Route path="/student-dashboard" element={<ScholarshipsList />} />
-          <Route path="/application-form" element={<ApplicationForm />} />
+          <Route path="/student-dashboard" element={
+            <ProtectedRoute allowedRoles={["STUDENT"]}>
+              <ScholarshipsList />
+            </ProtectedRoute>
+          } />
+
+          <Route path="application-form" element={
+            <ProtectedRoute allowedRoles={["STUDENT"]}>
+              <ApplicationForm />
+            </ProtectedRoute>
+          }
+            />
 
           {/* Admin Routes */}
           <Route

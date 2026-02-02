@@ -27,4 +27,13 @@ public class AuthService {
         User newUser = new User(name, email, encodedPassword, Role.STUDENT, studentId);
         return userRepository.save(newUser);
     }
+
+    public void resetPassword(String email, String newPassword) throws Exception {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new Exception("No account found with this email address."));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
 }
