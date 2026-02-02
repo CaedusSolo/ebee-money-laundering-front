@@ -1,31 +1,47 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import ApplicationsList from '../components/ApplicationsList';
 import Statistics from '../components/Statistics';
 import ApplicationDetails from '../components/ApplicationDetails';
 
 export default function ReviewerDashboard() {
-  const [view, setView] = useState('dashboard'); // dashboard, applications, statistics, details
+
+  const [view, setView] = useState('dashboard');
   const [applications, setApplications] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const reviewerId = 1; // This should come from auth context
+  const { user, token } = useAuth();
 
   useEffect(() => {
-    if (view === 'dashboard') {
+    // Ensure both user and token exist before fetching
+    if (view === 'dashboard' && token && user) {
       fetchDashboard();
     }
-  }, [view]);
+  }, [view, token, user]);
 
   const fetchDashboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/dashboard/${reviewerId}`);
+      const reviewerId = user?.userID || user?.id;
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/dashboard/${reviewerId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to load dashboard');
+
       const data = await response.json();
-      setApplications(data.applications || []);
+      setApplications(data.applications);
     } catch (err) {
-      setError('Failed to load dashboard');
+      setError('Connection failed. Showing offline data.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -36,6 +52,7 @@ export default function ReviewerDashboard() {
     setSelectedApplication(app);
     setView('details');
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
