@@ -47,11 +47,11 @@ export default function StudentDashboard() {
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-gray-800 uppercase">
-                                    {dashboardData?.student?.name || "IZZMINHAL"}
+                                    {dashboardData?.student?.name || "FIRSTNAME LASTNAME"}
                                 </h2>
                                 <p className="text-gray-600">Student</p>
                                 <p className="text-gray-500 text-sm">
-                                    {dashboardData?.student?.email || "jimin@student.fyj.edu.my"}
+                                    {dashboardData?.student?.email || "student1234@student.fyj.edu.my"}
                                 </p>
                             </div>
                         </div>

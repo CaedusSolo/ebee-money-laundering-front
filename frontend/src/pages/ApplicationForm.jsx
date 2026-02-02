@@ -1,31 +1,97 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Step1PersonalInfo from "../components/PersonalInfoForm";
+import Step2AcademicInfo from "../components/AcademicInfoForm";
 
 const ScholarshipApplication = () => {
-
     const location = useLocation();
-    // Extract the name from state, provide a fallback if accessed directly"
-    // fix: added this function too js to avoid confusion on the forms
     const selectedScholarship = location.state?.scholarshipName || "Scholarship";
 
     const [step, setStep] = useState(1);
+    const [errors, setErrors] = useState({});
 
-    // for the table datas
+    // Form state for all fields
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phoneNumber: "",
+        dateOfBirth: "",
+        icNumber: "",
+        nationality: "",
+        bumiputera: "",
+        gender: "",
+        monthlyHouseholdIncome: "",
+        university: "",
+        major: "",
+        year: "",
+        cgpa: "",
+        expectedGraduation: "",
+        highestQualification: "",
+    });
+
+    // File uploads state
+    const [files, setFiles] = useState({
+        transcript: null,
+        payslip: null,
+        ic: null,
+    });
+
+    // Table data state
     const [familyMembers, setFamilyMembers] = useState(
         Array(5).fill({
-        name: "",
-        relationship: "",
-        age: "",
-        occupation: "",
-        income: "",
+            name: "",
+            relationship: "",
+            age: "",
+            occupation: "",
+            income: "",
         }),
     );
+    
     const [activities, setActivities] = useState(
         Array(6).fill({ activity: "", role: "" }),
     );
 
-    // handlers for dynamic inputs
+    // Handle input changes
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        // Clear error when user starts typing
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: undefined
+            }));
+        }
+    };
+
+    // Handle validation errors from components
+    const handleValidationError = (field, error) => {
+        setErrors(prev => ({
+            ...prev,
+            [field]: error
+        }));
+    };
+
+    // Handle file uploads
+    const handleFileChange = (field, file) => {
+        setFiles(prev => ({
+            ...prev,
+            [field]: file
+        }));
+        // Clear error when file is selected
+        if (errors[field]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: undefined
+            }));
+        }
+    };
+
+    // Handlers for dynamic inputs
     const handleFamilyChange = (index, field, value) => {
         const updated = [...familyMembers];
         updated[index] = { ...updated[index], [field]: value };
@@ -38,57 +104,73 @@ const ScholarshipApplication = () => {
         setActivities(updated);
     };
 
-    const handleNext = () => setStep(2);
-    const handleBack = () => setStep(1);
+    // Simple validation - just check if required fields are filled
+    const validateStep1 = () => {
+        const newErrors = {};
+        
+        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+        if (!formData.email.trim()) newErrors.email = "Email is required";
+        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+        if (!formData.dateOfBirth.trim()) newErrors.dateOfBirth = "Date of birth is required";
+        if (!formData.icNumber.trim()) newErrors.icNumber = "IC number is required";
+        if (!formData.nationality.trim()) newErrors.nationality = "Nationality is required";
+        if (!formData.bumiputera.trim()) newErrors.bumiputera = "This field is required";
+        if (!formData.gender || formData.gender === "Select Gender") newErrors.gender = "Please select a gender";
+        if (!formData.monthlyHouseholdIncome.trim()) newErrors.monthlyHouseholdIncome = "Monthly household income is required";
+
+        return newErrors;
+    };
+
+    const validateStep2 = () => {
+        const newErrors = {};
+        
+        if (!formData.university.trim()) newErrors.university = "University/College is required";
+        if (!formData.major.trim()) newErrors.major = "Major is required";
+        if (!formData.year || formData.year === "Select Year") newErrors.year = "Please select a year";
+        if (!formData.cgpa.trim()) newErrors.cgpa = "CGPA is required";
+        if (!formData.expectedGraduation.trim()) newErrors.expectedGraduation = "Expected graduation year is required";
+        if (!formData.highestQualification.trim()) newErrors.highestQualification = "Highest qualification is required";
+        if (!files.transcript) newErrors.transcript = "Transcript is required";
+        if (!files.payslip) newErrors.payslip = "Payslip is required";
+        if (!files.ic) newErrors.ic = "Copy of IC is required";
+
+        return newErrors;
+    };
+
+    // Navigation handlers
+    const handleNext = () => {
+        const newErrors = validateStep1();
+        setErrors(newErrors);
+        
+        if (Object.keys(newErrors).length === 0) {
+            setStep(2);
+        } else {
+            alert("Please fix the errors before proceeding to the next step.");
+        }
+    };
+
+    const handleBack = () => {
+        setStep(1);
+    };
+
     const handleSave = () => {
-        console.log("Saving family data:", familyMembers);
+        console.log("Saving progress:", { formData, familyMembers });
         alert("Progress saved!");
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Final Submission:", { familyMembers, activities });
-        alert("Application submitted successfully!");
+        const newErrors = validateStep2();
+        setErrors(newErrors);
+        
+        if (Object.keys(newErrors).length === 0) {
+            console.log("Final Submission:", { formData, familyMembers, activities, files });
+            alert("Application submitted successfully!");
+        } else {
+            alert("Please fix the errors before submitting.");
+        }
     };
-
-    const InputField = ({ label, type = "text", placeholder = "" }) => (
-        <div className="flex flex-col">
-        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
-            {label}*
-        </label>
-        <input
-            type={type}
-            placeholder={placeholder}
-            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-        />
-        </div>
-    );
-
-    const FileUpload = ({ label }) => (
-        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition cursor-pointer shadow-sm">
-        <p className="text-xs font-bold text-gray-700 uppercase mb-4 text-center">
-            {label}*
-        </p>
-        <div className="bg-black text-white rounded-full p-3 mb-2">
-            <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            />
-            </svg>
-        </div>
-        <span className="text-xs font-semibold text-gray-500 uppercase">
-            Upload
-        </span>
-        </div>
-    );
 
     return (
         <div className="bg-blue-50/30 min-h-screen">
@@ -99,264 +181,39 @@ const ScholarshipApplication = () => {
                         <h1 className="text-3xl font-bold text-gray-900">
                             Scholarship Application
                         </h1>
-                        {/* Display the passed name here */}
                         <p className="text-blue-600 font-semibold mt-1">
                             Applying for: {selectedScholarship}
                         </p>
                     </header>
 
-            <form onSubmit={handleSubmit}>
-                {step === 1 ? (
-                <div className="space-y-12">
-                    {/* Personal Section */}
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Personal Information
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InputField label="First Name" />
-                        <InputField label="Last Name" />
-                        <InputField label="Email" type="email" />
-                        <InputField label="Phone Number" />
-                        <InputField
-                        label="Date of Birth"
-                        placeholder="DD/MM/YYYY"
-                        />
-                        <InputField label="IC Number" />
-                        <InputField label="Nationality" />
-                        <InputField label="Bumiputera (Yes/No)" />
-                        <div className="flex flex-col">
-                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
-                            Gender*
-                        </label>
-                        <select className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
-                            <option>Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                        </select>
-                        </div>
-                    </div>
-                    </section>
-
-                    {/* Family Section */}
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Family Information
-                    </h2>
-                    <div className="mb-6">
-                        <InputField label="Monthly Household Income" />
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300 text-sm">
-                        <thead>
-                            <tr className="bg-gray-50">
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Name of Guardians & Siblings
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Relationship
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Age
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Occupation
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Monthly Income
-                            </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {familyMembers.map((member, i) => (
-                            <tr key={i}>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.name}
-                                    onChange={(e) =>
-                                    handleFamilyChange(i, "name", e.target.value)
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.relationship}
-                                    onChange={(e) =>
-                                    handleFamilyChange(
-                                        i,
-                                        "relationship",
-                                        e.target.value,
-                                    )
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.age}
-                                    onChange={(e) =>
-                                    handleFamilyChange(i, "age", e.target.value)
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.occupation}
-                                    onChange={(e) =>
-                                    handleFamilyChange(
-                                        i,
-                                        "occupation",
-                                        e.target.value,
-                                    )
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.income}
-                                    onChange={(e) =>
-                                    handleFamilyChange(
-                                        i,
-                                        "income",
-                                        e.target.value,
-                                    )
-                                    }
-                                />
-                                </td>
-                            </tr>
-                            ))}
-                        </tbody>
-                        </table>
-                    </div>
-                    </section>
-
-                    <div className="flex justify-center space-x-4 pt-10">
-                    <button
-                        type="button"
-                        onClick={handleNext}
-                        className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                    >
-                        Next
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                    >
-                        Save
-                    </button>
-                    </div>
+                    <form onSubmit={handleSubmit}>
+                        {step === 1 ? (
+                            <Step1PersonalInfo
+                                formData={formData}
+                                errors={errors}
+                                familyMembers={familyMembers}
+                                handleInputChange={handleInputChange}
+                                handleValidationError={handleValidationError}
+                                handleFamilyChange={handleFamilyChange}
+                                handleNext={handleNext}
+                                handleSave={handleSave}
+                            />
+                        ) : (
+                            <Step2AcademicInfo
+                                formData={formData}
+                                errors={errors}
+                                files={files}
+                                activities={activities}
+                                handleInputChange={handleInputChange}
+                                handleValidationError={handleValidationError}
+                                handleFileChange={handleFileChange}
+                                handleActivityChange={handleActivityChange}
+                                handleBack={handleBack}
+                            />
+                        )}
+                    </form>
                 </div>
-                ) : (
-                /* PAGE 2: ACADEMIC INFORMATION */
-                <div className="space-y-12">
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Academic Information
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InputField label="University/College" />
-                        <InputField label="Major" />
-                        <div className="flex flex-col">
-                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
-                            Year*
-                        </label>
-                        <select className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
-                            <option>Select Year</option>
-                            <option>Year 1</option>
-                            <option>Year 2</option>
-                            <option>Year 3</option>
-                        </select>
-                        </div>
-                        <InputField label="CGPA" />
-                        <InputField label="Expected Graduation Year" />
-                        <InputField label="Highest Academic Qualification" />
-                    </div>
-                    </section>
-
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Extracurricular Activities
-                    </h2>
-                    <table className="w-full border-collapse border border-gray-300 text-sm">
-                        <thead>
-                        <tr className="bg-gray-50">
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                            Activities
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                            Roles
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {activities.map((act, i) => (
-                            <tr key={i}>
-                            <td className="border border-gray-300">
-                                <input
-                                className="w-full p-2 outline-none focus:bg-blue-50"
-                                value={act.activity}
-                                onChange={(e) =>
-                                    handleActivityChange(
-                                    i,
-                                    "activity",
-                                    e.target.value,
-                                    )
-                                }
-                                />
-                            </td>
-                            <td className="border border-gray-300">
-                                <input
-                                className="w-full p-2 outline-none focus:bg-blue-50"
-                                value={act.role}
-                                onChange={(e) =>
-                                    handleActivityChange(i, "role", e.target.value)
-                                }
-                                />
-                            </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                    </section>
-
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Supporting Documents
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <FileUpload label="Transcript" />
-                        <FileUpload label="3 Months Payslip" />
-                    </div>
-                    <div className="max-w-xl mx-auto">
-                        <FileUpload label="Copy of IC" />
-                    </div>
-                    </section>
-
-                    <div className="flex justify-center space-x-4 pt-10">
-                    <button
-                        type="button"
-                        onClick={handleBack}
-                        className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                    >
-                        Back
-                    </button>
-                    <button
-                        type="submit"
-                        className="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-16 rounded-xl transition-colors shadow-lg"
-                    >
-                        Submit
-                    </button>
-                    </div>
-                </div>
-                )}
-            </form>
-            </div>
-        </main>
+            </main>
         </div>
     );
 };
