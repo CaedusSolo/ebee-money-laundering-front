@@ -2,9 +2,9 @@ import Navbar from "../components/Navbar";
 import { Link, Outlet } from "react-router-dom";
 
 const tabs = [
-  { label: "Manage Users", href: "/admin/manage-users" },
-  { label: "View Scholarships", href: "/admin/scholarships" },
-  { label: "View Applications", href: "/admin/applications" },
+  { label: "Manage Users", href: "/admin/users" },
+  { label: "Manage Scholarships", href: "/admin/scholarship" },
+  { label: "Manage Applications", href: "/admin/applications" },
   { label: "View Analytics", href: "/admin/analytics" },
 ];
 

@@ -37,7 +37,7 @@ export default function ManageUsers() {
         </div>
         <Link
           className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          to="/admin/create-user"
+          to="/admin/users/create"
         >
           Add New User
         </Link>
