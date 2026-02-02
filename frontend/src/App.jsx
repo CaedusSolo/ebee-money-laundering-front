@@ -49,7 +49,7 @@ function App() {
 
           {/* reviewer Routes */}
           <Route path="/reviewer-dashboard" element={
-            <ProtectedRoute allowedRoles={['COMMITTEE']}>
+            <ProtectedRoute allowedRoles={['REVIEWER']}>
               <ReviewerDashboard />
             </ProtectedRoute>
           } />
