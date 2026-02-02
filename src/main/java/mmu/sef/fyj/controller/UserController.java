@@ -1,7 +1,11 @@
+package mmu.sef.fyj.controller;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import mmu.sef.fyj.model.User;
+import mmu.sef.fyj.repository.UserRepository;
 import java.util.List;
 
 @RestController
@@ -19,7 +23,7 @@ public class UserController {
 
     // GET user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         return userRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -33,7 +37,7 @@ public class UserController {
 
     // PUT update user
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
         return userRepository.findById(id)
                 .map(user -> {
                     user.setName(userDetails.getName());
@@ -45,7 +49,7 @@ public class UserController {
 
     // DELETE user
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         return userRepository.findById(id)
                 .map(user -> {
                     userRepository.delete(user);
