@@ -3,6 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import graduationHat from "../assets/graduationHat.svg";
 
+const ROLE_DASHBOARD_PATHS = {
+  STUDENT: "/student-dashboard",
+  ADMIN: "/admin/manage-users",
+  COMMITTEE: "/scholarship-committee-dashboard",
+  REVIEWER: "/reviewer-dashboard",
+};
+
 const Login = () => {
   const navigate = useNavigate();
   const { login, currentUser } = useAuth();
@@ -13,14 +20,8 @@ const Login = () => {
 
   useEffect(() => {
     if (currentUser) {
-      if (currentUser.role === "STUDENT")
-        navigate("/student-dashboard", { replace: true });
-      else if (currentUser.role === "ADMIN")
-        navigate("/admin-dashboard", { replace: true });
-      else if (currentUser.role === "COMMITTEE")
-        navigate("/scholarship-committee-dashboard", { replace: true });
-      else if (currentUser.role === "REVIEWER")
-        navigate("/reviewer-dashboard", { replace: true });
+      const path = ROLE_DASHBOARD_PATHS[currentUser.role] || "/";
+      navigate(path, { replace: true });
     }
   }, [currentUser, navigate]);
 
@@ -44,16 +45,8 @@ const Login = () => {
 
     try {
       const user = await login(formData.email, formData.password);
-
-      if (user.role === "STUDENT")
-        navigate("/student-dashboard", { replace: true });
-      else if (user.role === "ADMIN")
-        navigate("/admin-dashboard", { replace: true });
-      else if (user.role === "COMMITTEE")
-        navigate("/scholarship-committee-dashboard", { replace: true });
-      else if (user.role === "REVIEWER")
-        navigate("/reviewer-dashboard", { replace: true });
-      else navigate("/", { replace: true });
+      const path = ROLE_DASHBOARD_PATHS[user.role] || "/";
+      navigate(path, { replace: true });
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {

@@ -15,6 +15,8 @@ import ReviewerDashboard from "./pages/ReviewerDashboard";
 import TermsAndPolicy from "./pages/TermsAndPolicy";
 import ApplicationForm from "./pages/ApplicationForm";
 import ScholarshipsList from "./pages/ScholarshipsList";
+import AdminLayout from "./pages/AdminLayout";
+import ManageUsers from "./pages/ManageUsers";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -73,6 +75,16 @@ function App() {
           <Route path="/application-form" element={<ApplicationForm />} />
 
           {/* Admin Routes */}
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="manage-users" element={<ManageUsers />} />
+          </Route>
         </Routes>
       </Router>
     </AuthProvider>
