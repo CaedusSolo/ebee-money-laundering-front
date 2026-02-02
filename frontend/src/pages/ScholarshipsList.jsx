@@ -104,7 +104,7 @@ export default function AvailableScholarships() {
                                 <div>
                                     {/* FIX: changed this to link and pass scholarship name */}
                                     <Link
-                                        to="/application-form"
+                                        to="student-dashboard/application-form"
                                         state={{ scholarshipName: scholarship.name }}
                                         className="text-gray-900 font-bold border-b-2 border-gray-900 hover:text-blue-700 hover:border-blue-700 transition-all pb-1 inline-block"
                                     >
