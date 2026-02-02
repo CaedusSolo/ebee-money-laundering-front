@@ -116,10 +116,9 @@ export default function ApplicationForm() {
         window.scrollTo(0, 0);
     };
 
-    // Handle save (optional - for saving draft)
+    // Handle save 
     const handleSave = async () => {
         try {
-            // Save draft logic here
             console.log('Saving draft...');
             alert('Draft saved successfully!');
         } catch (error) {
