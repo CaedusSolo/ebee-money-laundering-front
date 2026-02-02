@@ -1,20 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Person from "../assets/personPlaceholder.svg";
+import UserService from "../services/UserService";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ROLES = {
-  ADMIN: "admin",
-  COMMITTEE: "committee",
-  REVIEWER: "reviewer",
-  STUDENT: "student",
+  ADMIN: "ADMIN",
+  COMMITTEE: "COMMITTEE",
+  REVIEWER: "REVIEWER",
+  STUDENT: "STUDENT",
 };
 
-export default function CreateUser() {
+export default function UserDetails() {
+  const { currentUser } = useAuth();
+  const userService = new UserService(currentUser?.token);
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
-    title: "",
+    role: "",
     password: "",
     email: "",
   });
+
+  const { userId } = useParams();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userId) return;
+      try {
+        const data = await userService.getUserById(userId);
+        setFormData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,7 +47,22 @@ export default function CreateUser() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Creating user:", formData);
-    // Handle form submission
+    userService
+      .createUser(formData)
+      .then((response) => {
+        console.log("User created successfully:", response);
+        // Optionally, reset the form or redirect the user
+        setFormData({
+          name: "",
+          role: "",
+          password: "",
+          email: "",
+        });
+        navigate("/admin/users");
+      })
+      .catch((error) => {
+        console.error("Error creating user:", error);
+      });
   };
 
   return (
@@ -58,25 +96,25 @@ export default function CreateUser() {
             />
           </div>
 
-          {/* TITLE */}
+          {/* role */}
           <div>
             <label
-              htmlFor="title"
+              htmlFor="role"
               className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-1"
             >
-              Title<span className="text-red-500">*</span>
+              Role<span className="text-red-500">*</span>
             </label>
             <select
-              id="title"
-              name="title"
-              value={formData.title}
+              id="role"
+              name="role"
+              value={formData.role}
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
               {Object.entries(ROLES).map(([key, value]) => (
                 <option key={key} value={value}>
-                  {value.charAt(0).toUpperCase() + value.slice(1)}
+                  {value}
                 </option>
               ))}
             </select>
