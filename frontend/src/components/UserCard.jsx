@@ -1,16 +1,23 @@
 import { Link } from "react-router-dom";
 import Eye from "../assets/eye.svg";
 
-export default function UserCard({ userId, name, email, accountType }) {
+export default function UserCard({ user: { id, name, email, role } }) {
   return (
     <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       {/* Left section with blue accent bar */}
       <div className="flex items-start gap-3">
-        <div className="w-1 h-16 bg-blue-600 rounded-full" />
+        <div className="w-1 h-20 bg-blue-600 rounded-full" />
         <div>
-          <h3 className="font-bold text-foreground">{userId}</h3>
-          <p className="text-sm text-muted-foreground">Name: {name}</p>
-          <p className="text-sm text-muted-foreground">Email: {email}</p>
+          <h3 className="font-bold text-foreground">{id}</h3>
+          <p className="text-sm text-muted-foreground">
+            <strong>Name:</strong> {name}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <strong>Email:</strong> {email}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <strong>Role:</strong> {role}
+          </p>
         </div>
       </div>
 
@@ -24,7 +31,7 @@ export default function UserCard({ userId, name, email, accountType }) {
         {/* Edit button */}
         <Link
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-          to="/admin/users/edit/1"
+          to={`/admin/users/edit/${id}`}
         >
           Edit
         </Link>
@@ -33,13 +40,6 @@ export default function UserCard({ userId, name, email, accountType }) {
         <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
           Delete
         </button>
-
-        {/* Account Type */}
-        <div className="flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground uppercase tracking-wide">
-            {accountType}
-          </span>
-        </div>
       </div>
     </div>
   );

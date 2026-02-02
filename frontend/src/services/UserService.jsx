@@ -1,7 +1,10 @@
 import axios from "axios";
 
 class UserService {
-  constructor(jwtToken, baseUrl = "/api/users") {
+  constructor(
+    jwtToken,
+    baseUrl = `${import.meta.env.VITE_API_BASE_URL}/api/users`,
+  ) {
     this.api = axios.create({
       baseURL: baseUrl,
       headers: {
@@ -12,7 +15,7 @@ class UserService {
   }
 
   async getAllUsers() {
-    const response = await this.api.get("/");
+    const response = await this.api.get("");
     return response.data;
   }
 
