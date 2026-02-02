@@ -11,7 +11,8 @@ const AcademicInfoForm = ({
     handleValidationError,
     handleFileChange,
     handleActivityChange,
-    handleBack 
+    handleBack,
+    handleSubmit
 }) => {
     // Validate activities table (minimum 2 rows filled)
     const validateActivities = () => {
@@ -29,8 +30,10 @@ const AcademicInfoForm = ({
     const handleSubmitClick = (e) => {
         e.preventDefault();
         if (validateActivities()) {
-            // Trigger the parent form's submit
-            e.target.closest('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            // Call the parent's submit handler
+            if (handleSubmit) {
+                handleSubmit();
+            }
         }
     };
 

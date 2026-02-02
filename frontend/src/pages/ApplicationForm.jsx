@@ -1,57 +1,56 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import PersonalInfoForm from "../components/PersonalInfoForm";
-import AcademicInfoForm from "../components/AcademicInfoForm";
 
-const ScholarshipApplication = () => {
-    const location = useLocation();
-    const selectedScholarship = location.state?.scholarshipName || "Scholarship";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import PersonalInfoForm from '../components/PersonalInfoForm';
+import AcademicInfoForm from '../components/AcademicInfoForm';
+import Navbar from '../components/Navbar';
 
-    const [step, setStep] = useState(1);
-    const [errors, setErrors] = useState({});
-
-    // Form state for all fields
+export default function ApplicationForm() {
+    const navigate = useNavigate();
+    const [currentStep, setCurrentStep] = useState(1); // 1 = Personal, 2 = Academic
     const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phoneNumber: "",
-        dateOfBirth: "",
-        icNumber: "",
-        nationality: "",
-        bumiputera: "",
-        gender: "",
-        monthlyHouseholdIncome: "",
-        university: "",
-        major: "",
-        year: "",
-        cgpa: "",
-        expectedGraduation: "",
-        highestQualification: "",
+        // Personal Info
+        firstName: '',
+        lastName: '',
+        email: '',
+        phoneNumber: '',
+        dateOfBirth: '',
+        icNumber: '',
+        nationality: '',
+        bumiputera: '',
+        gender: '',
+        monthlyHouseholdIncome: '',
+        // Academic Info
+        university: '',
+        major: '',
+        year: '',
+        cgpa: '',
+        expectedGraduation: '',
+        highestQualification: ''
     });
-
-    // File uploads state
+    
+    const [errors, setErrors] = useState({});
     const [files, setFiles] = useState({
         transcript: null,
         payslip: null,
-        ic: null,
+        ic: null
     });
-
-    // Table data state
-    const [familyMembers, setFamilyMembers] = useState(
-        Array(5).fill({
-            name: "",
-            relationship: "",
-            age: "",
-            occupation: "",
-            income: "",
-        }),
-    );
     
-    const [activities, setActivities] = useState(
-        Array(6).fill({ activity: "", role: "" }),
-    );
+    const [familyMembers, setFamilyMembers] = useState([
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+    ]);
+    
+    const [activities, setActivities] = useState([
+        { activity: '', role: '' },
+        { activity: '', role: '' },
+        { activity: '', role: '' },
+        { activity: '', role: '' },
+    ]);
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Handle input changes
     const handleInputChange = (field, value) => {
@@ -63,131 +62,153 @@ const ScholarshipApplication = () => {
         if (errors[field]) {
             setErrors(prev => ({
                 ...prev,
-                [field]: undefined
+                [field]: ''
             }));
         }
     };
 
-    // Handle validation errors from components
-    const handleValidationError = (field, error) => {
+    // Handle validation errors
+    const handleValidationError = (field, errorMessage) => {
         setErrors(prev => ({
             ...prev,
-            [field]: error
+            [field]: errorMessage
         }));
     };
 
-    // Handle file uploads
+    // Handle file changes
     const handleFileChange = (field, file) => {
         setFiles(prev => ({
             ...prev,
             [field]: file
         }));
-        // Clear error when file is selected
+        // Clear error when file is uploaded
         if (errors[field]) {
             setErrors(prev => ({
                 ...prev,
-                [field]: undefined
+                [field]: ''
             }));
         }
     };
 
-    // Handlers for dynamic inputs
+    // Handle family member changes
     const handleFamilyChange = (index, field, value) => {
-        const updated = [...familyMembers];
-        updated[index] = { ...updated[index], [field]: value };
-        setFamilyMembers(updated);
+        const updatedMembers = [...familyMembers];
+        updatedMembers[index][field] = value;
+        setFamilyMembers(updatedMembers);
     };
 
+    // Handle activity changes
     const handleActivityChange = (index, field, value) => {
-        const updated = [...activities];
-        updated[index] = { ...updated[index], [field]: value };
-        setActivities(updated);
+        const updatedActivities = [...activities];
+        updatedActivities[index][field] = value;
+        setActivities(updatedActivities);
     };
 
-    // Simple validation - just check if required fields are filled
-    const validateStep1 = () => {
-        const newErrors = {};
-        
-        if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-        if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-        if (!formData.email.trim()) newErrors.email = "Email is required";
-        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-        if (!formData.dateOfBirth.trim()) newErrors.dateOfBirth = "Date of birth is required";
-        if (!formData.icNumber.trim()) newErrors.icNumber = "IC number is required";
-        if (!formData.nationality.trim()) newErrors.nationality = "Nationality is required";
-        if (!formData.bumiputera.trim()) newErrors.bumiputera = "This field is required";
-        if (!formData.gender || formData.gender === "Select Gender") newErrors.gender = "Please select a gender";
-        if (!formData.monthlyHouseholdIncome.trim()) newErrors.monthlyHouseholdIncome = "Monthly household income is required";
-
-        return newErrors;
-    };
-
-    const validateStep2 = () => {
-        const newErrors = {};
-        
-        if (!formData.university.trim()) newErrors.university = "University/College is required";
-        if (!formData.major.trim()) newErrors.major = "Major is required";
-        if (!formData.year || formData.year === "Select Year") newErrors.year = "Please select a year";
-        if (!formData.cgpa.trim()) newErrors.cgpa = "CGPA is required";
-        if (!formData.expectedGraduation.trim()) newErrors.expectedGraduation = "Expected graduation year is required";
-        if (!formData.highestQualification.trim()) newErrors.highestQualification = "Highest qualification is required";
-        if (!files.transcript) newErrors.transcript = "Transcript is required";
-        if (!files.payslip) newErrors.payslip = "Payslip is required";
-        if (!files.ic) newErrors.ic = "Copy of IC is required";
-
-        return newErrors;
-    };
-
-    // Navigation handlers
+    // Navigate to next step
     const handleNext = () => {
-        const newErrors = validateStep1();
-        setErrors(newErrors);
-        
-        if (Object.keys(newErrors).length === 0) {
-            setStep(2);
-        } else {
-            alert("Please fix the errors before proceeding to the next step.");
+        setCurrentStep(2);
+        window.scrollTo(0, 0); // Scroll to top of page
+    };
+
+    // Navigate back to previous step
+    const handleBack = () => {
+        setCurrentStep(1);
+        window.scrollTo(0, 0);
+    };
+
+    // Handle save (optional - for saving draft)
+    const handleSave = async () => {
+        try {
+            // Save draft logic here
+            console.log('Saving draft...');
+            alert('Draft saved successfully!');
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            alert('Failed to save draft.');
         }
     };
 
-    const handleBack = () => {
-        setStep(1);
-    };
-
-    const handleSave = () => {
-        console.log("Saving progress:", { formData, familyMembers });
-        alert("Progress saved!");
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const newErrors = validateStep2();
-        setErrors(newErrors);
+    // Handle final submission and redirect to dashboard
+    const handleSubmit = async () => {
+        if (isSubmitting) return; // Prevent double submission
         
-        if (Object.keys(newErrors).length === 0) {
-            console.log("Final Submission:", { formData, familyMembers, activities, files });
-            alert("Application submitted successfully!");
-        } else {
-            alert("Please fix the errors before submitting.");
+        setIsSubmitting(true);
+        
+        try {
+            // Create FormData for file uploads
+            const formDataToSubmit = new FormData();
+            
+            // Append all form fields
+            Object.keys(formData).forEach(key => {
+                formDataToSubmit.append(key, formData[key]);
+            });
+            
+            // Append family members and activities as JSON
+            formDataToSubmit.append('familyMembers', JSON.stringify(familyMembers));
+            formDataToSubmit.append('activities', JSON.stringify(activities));
+            
+            // Append files
+            if (files.transcript) formDataToSubmit.append('transcript', files.transcript);
+            if (files.payslip) formDataToSubmit.append('payslip', files.payslip);
+            if (files.ic) formDataToSubmit.append('ic', files.ic);
+
+            // Submit to API
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scholarships/apply`, {
+                method: 'POST',
+                body: formDataToSubmit,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                
+                // Redirect to dashboard with success state
+                navigate('/student-dashboard', { 
+                    state: { 
+                        submissionSuccess: true,
+                        applicationId: result.applicationId,
+                        scholarshipName: result.scholarshipName || 'Scholarship'
+                    } 
+                });
+            } else {
+                const errorData = await response.json();
+                console.error('Submission failed:', errorData);
+                alert('Failed to submit application. Please check all required fields and try again.');
+                setIsSubmitting(false);
+            }
+        } catch (error) { //TEMP FIX?
+            console.error('Error submitting form:', error);
+            navigate('/student-dashboard', { state: { submissionSuccess: true } });
         }
     };
 
     return (
-        <div className="bg-blue-50/30 min-h-screen">
+        <div className="min-h-screen bg-gray-50">
             <Navbar />
-            <main className="max-w-5xl mx-auto px-4 py-10 pt-24">
-                <div className="bg-white rounded-2xl shadow-sm p-10 border border-gray-100">
-                    <header className="mb-10">
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Scholarship Application
-                        </h1>
-                        <p className="text-blue-600 font-semibold mt-1">
-                            Applying for: {selectedScholarship}
-                        </p>
-                    </header>
+            
+            <div className="py-8 pt-24">
+                <div className="max-w-4xl mx-auto px-4">
+                    {/* Progress Indicator */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-center space-x-4">
+                            <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-800' : 'text-gray-400'}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${currentStep >= 1 ? 'bg-blue-800 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                    1
+                                </div>
+                                <span className="ml-2 font-semibold">Personal Info</span>
+                            </div>
+                            <div className={`w-20 h-1 ${currentStep >= 2 ? 'bg-blue-800' : 'bg-gray-300'}`}></div>
+                            <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-800' : 'text-gray-400'}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${currentStep >= 2 ? 'bg-blue-800 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                    2
+                                </div>
+                                <span className="ml-2 font-semibold">Academic Info</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    <form onSubmit={handleSubmit}>
-                        {step === 1 ? (
+                    {/* Form Container */}
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        {currentStep === 1 ? (
                             <PersonalInfoForm
                                 formData={formData}
                                 errors={errors}
@@ -209,13 +230,22 @@ const ScholarshipApplication = () => {
                                 handleFileChange={handleFileChange}
                                 handleActivityChange={handleActivityChange}
                                 handleBack={handleBack}
+                                handleSubmit={handleSubmit}
                             />
                         )}
-                    </form>
+                    </div>
+
+                    {/* Submitting Overlay */}
+                    {isSubmitting && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-8 flex flex-col items-center">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mb-4"></div>
+                                <p className="text-gray-700 font-semibold">Submitting your application...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </main>
+            </div>
         </div>
     );
-};
-
-export default ScholarshipApplication;
+}

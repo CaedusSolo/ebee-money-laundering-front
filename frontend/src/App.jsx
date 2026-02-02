@@ -22,6 +22,7 @@ import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout"
 import CreateUser from "./pages/CreateUser";
 import ManageScholarship from "./pages/ManageScholarship";
 import ScholarshipDetail from "./pages/ScholarshipDetails";
+import StudentDashboard from "./pages/StudentDashboard";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -80,7 +81,7 @@ function App() {
           {/* Scholarship/Applications Routes */}
           <Route path="/student-dashboard" element={
             <ProtectedRoute allowedRoles={["STUDENT"]}>
-              <ScholarshipsList />
+              <StudentDashboard />
             </ProtectedRoute>
           } />
 
