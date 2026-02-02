@@ -1,30 +1,30 @@
-import UserCard from "../components/UserCard";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
+import UserCard from "../components/UserCard";
+import UserService from "../services/UserService";
+import { useAuth } from "../context/AuthContext";
 
 import File from "../assets/file-text.svg";
 
-const users = [
-  {
-    userId: "USER_ID1",
-    name: "FIRSTNAME LASTNAME",
-    email: "email@fyj.edu.my",
-    accountType: "STUDENT",
-  },
-  {
-    userId: "USER_ID2",
-    name: "FIRSTNAME LASTNAME",
-    email: "email@fyj.edu.my",
-    accountType: "STUDENT",
-  },
-  {
-    userId: "USER_ID3",
-    name: "FIRSTNAME LASTNAME",
-    email: "email@fyj.edu.my",
-    accountType: "STUDENT",
-  },
-];
-
 export default function ManageUsers() {
+  const { currentUser } = useAuth();
+  const userService = new UserService(currentUser?.token);
+  const [userData, setUserData] = useState([]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const data = await userService.getAllUsers();
+        setUserData(data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   return (
     <div>
       {/* Header */}
@@ -45,14 +45,8 @@ export default function ManageUsers() {
 
       {/* User List */}
       <div className="flex flex-col gap-4">
-        {users.map((user) => (
-          <UserCard
-            key={user.userId}
-            userId={user.userId}
-            name={user.name}
-            email={user.email}
-            accountType={user.accountType}
-          />
+        {userData.map((user) => (
+          <UserCard user={user} key={user.id} />
         ))}
       </div>
     </div>
