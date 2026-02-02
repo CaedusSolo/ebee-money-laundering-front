@@ -1,15 +1,22 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext'; // Import Context
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext"; // Import Context
 
-import Login from './pages/Login';
-import SignUp from './pages/SignUp';
-import ResetPassword from "./pages/ResetPassword"
-import ScholarshipCommitteeDashboard from './pages/ScholarshipCommitteeDashboard';
-import ReviewerDashboard from "./pages/ReviewerDashboard"
-import TermsAndPolicy from "./pages/TermsAndPolicy"
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ResetPassword from "./pages/ResetPassword";
+import ScholarshipCommitteeDashboard from "./pages/ScholarshipCommitteeDashboard";
+import ReviewerDashboard from "./pages/ReviewerDashboard";
+import TermsAndPolicy from "./pages/TermsAndPolicy";
 import ApplicationForm from "./pages/ApplicationForm";
 import ScholarshipsList from "./pages/ScholarshipsList";
+import AdminLayout from "./pages/AdminLayout";
+import ManageUsers from "./pages/ManageUsers";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -21,7 +28,11 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
-    return <div className="p-10 text-center text-red-600 font-bold">Access Denied: Insufficient Permissions</div>;
+    return (
+      <div className="p-10 text-center text-red-600 font-bold">
+        Access Denied: Insufficient Permissions
+      </div>
+    );
   }
 
   return children;
@@ -40,24 +51,40 @@ function App() {
           <Route path="/terms-and-policy" element={<TermsAndPolicy />} />
 
           {/* Committee Routes */}
-          <Route path="/scholarship-committee-dashboard" element={
-            <ProtectedRoute allowedRoles={['COMMITTEE']}>
-              <ScholarshipCommitteeDashboard />
-            </ProtectedRoute>
-          } />
-
+          <Route
+            path="/scholarship-committee-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["COMMITTEE"]}>
+                <ScholarshipCommitteeDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* reviewer Routes */}
-          <Route path="/reviewer-dashboard" element={
-            <ProtectedRoute allowedRoles={['REVIEWER']}>
-              <ReviewerDashboard />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/reviewer-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["REVIEWER"]}>
+                <ReviewerDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Scholarship/Applications Routes */}
           <Route path="/student-dashboard" element={<ScholarshipsList />} />
           <Route path="/application-form" element={<ApplicationForm />} />
 
+          {/* Admin Routes */}
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="manage-users" element={<ManageUsers />} />
+          </Route>
         </Routes>
       </Router>
     </AuthProvider>
