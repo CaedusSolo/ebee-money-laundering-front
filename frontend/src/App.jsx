@@ -19,6 +19,9 @@ import AdminLayout from "./pages/AdminLayout";
 import ManageUsers from "./pages/ManageUsers";
 import EditUser from "./pages/EditUsers";
 import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout"
+import CreateUser from "./pages/CreateUser";
+import ManageScholarship from "./pages/ManageScholarship";
+import ScholarshipDetail from "./pages/ScholarshipDetails";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -97,8 +100,18 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="manage-users" element={<ManageUsers />} />
-            <Route path="edit-user/:userId" element={<EditUser />} />
+            <Route path="users">
+              <Route index element={<ManageUsers />} />
+              <Route path="edit/:userId" element={<EditUser />} />
+              <Route path="create" element={<CreateUser />} />
+            </Route>
+            <Route path="scholarship">
+              <Route index element={<ManageScholarship />} />
+              <Route
+                path="details/:scholarshipId?"
+                element={<ScholarshipDetail />}
+              ></Route>
+            </Route>
           </Route>
         </Routes>
       </Router>

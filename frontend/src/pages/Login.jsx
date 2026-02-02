@@ -5,7 +5,7 @@ import graduationHat from "../assets/graduationHat.svg";
 
 const ROLE_DASHBOARD_PATHS = {
   STUDENT: "/student-dashboard",
-  ADMIN: "/admin/manage-users",
+  ADMIN: "/admin/users",
   COMMITTEE: "/scholarship-committee-dashboard",
   REVIEWER: "/reviewer-dashboard",
 };
