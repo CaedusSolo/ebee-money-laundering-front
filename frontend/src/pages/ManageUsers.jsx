@@ -1,4 +1,6 @@
 import UserCard from "../components/UserCard";
+import { Link } from "react-router-dom";
+
 import File from "../assets/file-text.svg";
 
 const users = [
@@ -33,9 +35,12 @@ export default function ManageUsers() {
             List of Accounts
           </h1>
         </div>
-        <button className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <Link
+          className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          to="/admin/create-user"
+        >
           Add New User
-        </button>
+        </Link>
       </div>
 
       {/* User List */}
