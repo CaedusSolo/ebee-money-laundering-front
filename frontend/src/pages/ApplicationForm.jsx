@@ -93,7 +93,7 @@ const ScholarshipApplication = () => {
     return (
         <div className="bg-blue-50/30 min-h-screen">
             <Navbar />
-            <main className="max-w-5xl mx-auto px-4 py-10">
+            <main className="max-w-5xl mx-auto px-4 py-10 pt-24">
                 <div className="bg-white rounded-2xl shadow-sm p-10 border border-gray-100">
                     <header className="mb-10">
                         <h1 className="text-3xl font-bold text-gray-900">

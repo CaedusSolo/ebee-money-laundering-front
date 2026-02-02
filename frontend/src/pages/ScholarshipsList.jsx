@@ -8,7 +8,7 @@ import scholarship3 from '../assets/images/scholarship3.png';
 export default function AvailableScholarships() {
     const [searchQuery, setSearchQuery] = useState('');
 
-    //stubs rn 
+    //stubs rn
     const scholarships = [
         {
             id: 1,
@@ -44,9 +44,9 @@ export default function AvailableScholarships() {
         <div className="bg-white min-h-screen">
             <Navbar />
 
-            <main className="max-w-5xl mx-auto px-4 py-12">
+            <main className="max-w-5xl mx-auto px-4 py-12 pt-24">
                 <h1 className="text-4xl font-bold text-gray-900 mb-8">Available Scholarships</h1>
-                
+
                 {/* Search Bar matching the image style */}
                 <div className="mb-10">
                     <div className="relative border border-gray-200 rounded shadow-sm bg-gray-50/30">
@@ -69,7 +69,7 @@ export default function AvailableScholarships() {
                 <div className="space-y-8">
                     {filteredScholarships.map((scholarship) => (
                         <div key={scholarship.id} className="flex flex-col md:flex-row bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                            
+
                             {/* Square Image Section */}
                             <div className="w-full md:w-64 h-64 md:h-auto overflow-hidden">
                                 <img
@@ -100,12 +100,12 @@ export default function AvailableScholarships() {
                                 <p className="text-gray-500 text-sm mb-6">
                                     Deadline : <span className="font-medium text-gray-700">{scholarship.deadline}</span>
                                 </p>
-                                
+
                                 <div>
                                     {/* FIX: changed this to link and pass scholarship name */}
-                                    <Link 
-                                        to="/application-form" 
-                                        state={{ scholarshipName: scholarship.name }} 
+                                    <Link
+                                        to="/application-form"
+                                        state={{ scholarshipName: scholarship.name }}
                                         className="text-gray-900 font-bold border-b-2 border-gray-900 hover:text-blue-700 hover:border-blue-700 transition-all pb-1 inline-block"
                                     >
                                         Apply Now →
