@@ -74,7 +74,7 @@ export default function ScholarshipCommitteeDashboard() {
           </svg>
           {committeeInfo?.assignedScholarship} Applications
         </h3>
-        <div className="hidden md:flex items-center space-x-3 text-sm font-semibold text-gray-400 uppercase mr-4">
+        <div className="hidden md:flex items-center space-x-3 text-sm font-semibold text-gray-400 mr-4">
           <span className="w-16 text-center">Academic</span>
           <span className="w-16 text-center">Co-Curric.</span>
           <span className="w-16 text-center">Leadership</span>
