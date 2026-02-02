@@ -17,6 +17,7 @@ import ApplicationForm from "./pages/ApplicationForm";
 import ScholarshipsList from "./pages/ScholarshipsList";
 import AdminLayout from "./pages/AdminLayout";
 import ManageUsers from "./pages/ManageUsers";
+import EditUser from "./pages/EditUsers";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -84,6 +85,7 @@ function App() {
             }
           >
             <Route path="manage-users" element={<ManageUsers />} />
+            <Route path="edit-user/:userId" element={<EditUser />} />
           </Route>
         </Routes>
       </Router>
