@@ -17,7 +17,6 @@ import ApplicationForm from "./pages/ApplicationForm";
 import ScholarshipsList from "./pages/ScholarshipsList";
 import AdminLayout from "./pages/AdminLayout";
 import ManageUsers from "./pages/ManageUsers";
-import EditUser from "./pages/EditUsers";
 import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout";
 import UserDetails from "./pages/UserDetails";
 import ManageScholarship from "./pages/ManageScholarship";
