@@ -7,7 +7,7 @@ import {
   useParams,
   useNavigate,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext"; // Import Context
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -64,14 +64,13 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Navigate to="/login" />} />
-
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/terms-and-policy" element={<TermsAndPolicy />} />
 
-          {/* Committee Routes */}
+          {/* Committee Routes - Added leading slash */}
           <Route
-            path="scholarship-committee-dashboard"
+            path="/scholarship-committee-dashboard"
             element={
               <ProtectedRoute allowedRoles={["COMMITTEE"]}>
                 <ScholarshipCommitteeLayout />
@@ -81,7 +80,6 @@ function App() {
             <Route index element={<ScholarshipCommitteeDashboard />} />
           </Route>
 
-          {/* reviewer Routes */}
           <Route
             path="/reviewer-dashboard"
             element={
@@ -91,7 +89,6 @@ function App() {
             }
           />
 
-          {/* Scholarship/Applications Routes */}
           <Route
             path="/student-dashboard"
             element={
@@ -101,8 +98,9 @@ function App() {
             }
           />
 
+          {/* Added leading slash */}
           <Route
-            path="application-form"
+            path="/application-form"
             element={
               <ProtectedRoute allowedRoles={["STUDENT"]}>
                 <ApplicationForm />
@@ -110,9 +108,9 @@ function App() {
             }
           />
 
-          {/* Admin Routes */}
+          {/* Admin Routes - Added leading slash */}
           <Route
-            path="admin"
+            path="/admin"
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <AdminLayout />
@@ -125,16 +123,16 @@ function App() {
             </Route>
             <Route path="scholarship">
               <Route index element={<ManageScholarship />} />
-              <Route
-                path="details/:scholarshipId?"
-                element={<ScholarshipDetail />}
-              ></Route>
+              <Route path="details/:scholarshipId?" element={<ScholarshipDetail />} />
             </Route>
             <Route path="applications">
               <Route index element={<ManageApplications />} />
               <Route path=":applicationId" element={<ApplicationDetailsWrapper />} />
             </Route>
           </Route>
+
+          {/* Catch-all to prevent rendering random components on 404 */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -24,24 +24,42 @@ const ResetPassword = () => {
     e.preventDefault();
     setStatus({ type: '', message: '' });
 
+    // 1. Password Match Check
     if (formData.newPassword !== formData.confirmPassword) {
       setStatus({ type: 'error', message: 'Passwords do not match.' });
       return;
     }
 
-    const emailRegex = /^[A-Za-z0-9._%+-]+@mmu\.edu\.my$/;
+    // 2. Updated Email Validation (Gmail Domain)
+    const emailRegex = /^[A-Za-z0-9._%+-]+@gmail\.com$/;
     if (!emailRegex.test(formData.email)) {
-      setStatus({ type: 'error', message: 'Please use a valid MMU email address (@mmu.edu.my).' });
+      setStatus({
+        type: 'error',
+        message: 'Please use a valid Gmail email address (@gmail.com).'
+      });
       return;
     }
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).+$/;
-    if (formData.newPassword.length < 8) {
+    // 3. Updated Granular Password Validation
+    const password = formData.newPassword;
+    if (password.length < 8) {
       setStatus({ type: 'error', message: 'Password must be at least 8 characters long.' });
       return;
     }
-    if (!passwordRegex.test(formData.newPassword)) {
-      setStatus({ type: 'error', message: 'Password must contain at least 1 uppercase letter and 1 number.' });
+    if (!/[A-Z]/.test(password)) {
+      setStatus({ type: 'error', message: 'Password must contain at least 1 uppercase letter.' });
+      return;
+    }
+    if (!/\d/.test(password)) {
+      setStatus({ type: 'error', message: 'Password must contain at least 1 number.' });
+      return;
+    }
+    // Enforcing the newest special symbol requirement
+    if (!/[@$!%*?&#.]/.test(password)) {
+      setStatus({
+        type: 'error',
+        message: 'Password must contain at least 1 special symbol (@$!%*?&#.).'
+      });
       return;
     }
 
@@ -82,7 +100,9 @@ const ResetPassword = () => {
       <div className="w-full md:w-1/2 flex flex-col justify-center px-10 md:px-24">
 
         <Link to="/login" className="flex items-center w-fit text-gray-500 hover:text-blue-900 mb-8 transition">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
           Back to Login
         </Link>
 
@@ -106,7 +126,7 @@ const ResetPassword = () => {
               type="email"
               name="email"
               id="email"
-              placeholder="Enter your email"
+              placeholder="Enter your Gmail address (@gmail.com)"
               value={formData.email}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
@@ -122,7 +142,7 @@ const ResetPassword = () => {
               type="password"
               name="newPassword"
               id="newPassword"
-              placeholder="Enter new password"
+              placeholder="Min 8 chars, 1 Cap, 1 Num, 1 Symbol"
               value={formData.newPassword}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
@@ -149,7 +169,7 @@ const ResetPassword = () => {
               required
             />
             {formData.confirmPassword && formData.newPassword !== formData.confirmPassword && (
-              <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+              <p className="text-red-500 text-xs mt-1 font-semibold">Passwords do not match</p>
             )}
           </div>
 
