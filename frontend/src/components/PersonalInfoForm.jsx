@@ -25,39 +25,57 @@ const PersonalInfoForm = ({
         const allFieldsFilled = requiredFields.every(field => {
             const value = formData[field];
             return value && value.toString().trim() !== '' && 
-                    value !== 'Select Gender' && value !== 'Select' && 
-                    value !== 'Select Nationality';
+                   value !== 'Select Gender' && value !== 'Select' && 
+                   value !== 'Select Nationality';
         });
         
-        // Check no validation errors
-        const noErrors = Object.keys(errors).length === 0;
+        // Check no validation errors - only count errors that have actual error messages
+        const hasActualErrors = Object.keys(errors).some(key => {
+            const errorMsg = errors[key];
+            return errorMsg && errorMsg.toString().trim() !== '';
+        });
+        const noErrors = !hasActualErrors;
         
-        // Check family members (second row must be completely filled)
-        const secondRow = familyMembers[1];
-        const familyValid = secondRow && 
-            secondRow.name && secondRow.name.trim() !== '' &&
-            secondRow.relationship && secondRow.relationship.trim() !== '' &&
-            secondRow.age && secondRow.age.trim() !== '' &&
-            secondRow.occupation && secondRow.occupation.trim() !== '' &&
-            secondRow.income && secondRow.income.trim() !== '';
+        // Check family members (at least 2 filled)
+        const filledRows = familyMembers.filter(member => {
+            return Object.values(member).some(value => value && value.toString().trim() !== '');
+        });
+        const familyValid = filledRows.length >= 2;
         
-        setIsFormValid(allFieldsFilled && noErrors && familyValid);
+        // Check that filled family fields meet minimum length requirement
+        let familyFieldsValid = true;
+        filledRows.forEach((member, index) => {
+            ['name', 'relationship', 'occupation'].forEach(field => {
+                const value = member[field];
+                if (value && value.trim().length > 0 && value.trim().length < 3) {
+                    familyFieldsValid = false;
+                }
+            });
+        });
+        
+        const isValid = allFieldsFilled && noErrors && familyValid && familyFieldsValid;
+        console.log('Form validation:', {
+            allFieldsFilled,
+            noErrors,
+            familyValid,
+            familyFieldsValid,
+            errors: errors,
+            isValid
+        });
+        
+        setIsFormValid(isValid);
     }, [formData, errors, familyMembers]);
 
-    // Validate family members table (second row must be completely filled)
+    // Validate family members table (minimum 2 rows filled)
     const validateFamilyMembers = useCallback(() => {
-        // Check if the second row (index 1) is completely filled
-        const secondRow = familyMembers[1];
+        const filledRows = familyMembers.filter(member => {
+            return Object.values(member).some(value => value && value.toString().trim() !== '');
+        });
         
-        if (!secondRow.name || secondRow.name.trim() === '' ||
-            !secondRow.relationship || secondRow.relationship.trim() === '' ||
-            !secondRow.age || secondRow.age.trim() === '' ||
-            !secondRow.occupation || secondRow.occupation.trim() === '' ||
-            !secondRow.income || secondRow.income.trim() === '') {
-            handleValidationError('familyMembers', 'Please fill in all fields in the second row');
+        if (filledRows.length < 2) {
+            handleValidationError('familyMembers', 'Please fill in at least 2 family members');
             return false;
         }
-        
         // Clear error if validation passes
         if (errors.familyMembers) {
             handleValidationError('familyMembers', '');
@@ -71,10 +89,17 @@ const PersonalInfoForm = ({
         }
     }, [validateFamilyMembers, handleNext]);
 
-    // Handle family member income change - only allow numbers
+    // Handle family member income change - only allow numbers, max 1000000 (1 million RM)
     const handleFamilyIncomeChange = useCallback((index, value) => {
-        // Remove all non-numeric characters except decimal point
-        const numericValue = value.replace(/[^\d.]/g, '');
+        // Remove all non-numeric characters
+        const numericValue = value.replace(/[^\d]/g, '');
+        
+        // Limit to 1,000,000
+        const incomeNum = parseInt(numericValue);
+        if (incomeNum > 1000000) {
+            return; // Don't update if over 1 million
+        }
+        
         handleFamilyChange(index, "income", numericValue);
     }, [handleFamilyChange]);
 
@@ -83,17 +108,28 @@ const PersonalInfoForm = ({
         // Only allow letters and spaces
         const textValue = value.replace(/[^a-zA-Z\s]/g, '');
         handleFamilyChange(index, field, textValue);
-    }, [handleFamilyChange]);
+        
+        // Validate minimum length (3 characters) if field has content
+        if (textValue.trim().length > 0 && textValue.trim().length < 3) {
+            handleValidationError(`family_${field}_${index}`, 'Minimum 3 characters required');
+        } else {
+            // Clear error if validation passes
+            handleValidationError(`family_${field}_${index}`, '');
+        }
+    }, [handleFamilyChange, handleValidationError]);
 
-    // Handle family member age change - only allow numbers and limit to 120
+    // Handle family member age change - only allow numbers, max 120
     const handleFamilyAgeChange = useCallback((index, value) => {
         // Remove all non-numeric characters
         const numericValue = value.replace(/[^\d]/g, '');
         
         // Limit to 120
-        if (numericValue === '' || parseInt(numericValue) <= 120) {
-            handleFamilyChange(index, "age", numericValue);
+        const ageNum = parseInt(numericValue);
+        if (ageNum > 120) {
+            return; // Don't update if over 120
         }
+        
+        handleFamilyChange(index, "age", numericValue);
     }, [handleFamilyChange]);
 
     return (
@@ -122,7 +158,6 @@ const PersonalInfoForm = ({
                         error={errors.lastName}
                         validationType="name"
                     />
-                    
                     <InputField 
                         label="Phone Number"
                         field="phoneNumber"
@@ -162,13 +197,14 @@ const PersonalInfoForm = ({
                                     }
                                 }
                             }}
+                            max={new Date().toISOString().split('T')[0]} // Prevent future dates in date picker
+                            min={new Date(new Date().getFullYear() - 100, 0, 1).toISOString().split('T')[0]} // Prevent dates too far in past
                             className={`border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.dateOfBirth ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                         />
                         {errors.dateOfBirth && (
                             <span className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</span>
                         )}
                     </div>
-                    
                     <InputField 
                         label="IC Number"
                         field="icNumber"
@@ -179,7 +215,6 @@ const PersonalInfoForm = ({
                         validationType="icNumber"
                         exampleFormat="123456-12-1234"
                     />
-                    
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Nationality*
@@ -189,15 +224,14 @@ const PersonalInfoForm = ({
                             value={formData.nationality || ""}
                             onChange={(e) => handleInputChange('nationality', e.target.value)}
                         >
-                            <option value="">Select Nationality</option>
+                            <option value="" disabled>Select Nationality</option>
                             <option value="Malaysian">Malaysian</option>
-                            <option value="Other">Other</option>
+                            <option value="Non-Malaysian">Non-Malaysian</option>
                         </select>
                         {errors.nationality && (
                             <span className="text-red-500 text-xs mt-1">{errors.nationality}</span>
                         )}
                     </div>
-                    
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Bumiputera*
@@ -207,7 +241,7 @@ const PersonalInfoForm = ({
                             value={formData.bumiputera || ""}
                             onChange={(e) => handleInputChange('bumiputera', e.target.value)}
                         >
-                            <option value="">Select</option>
+                            <option value="" disabled>Select</option>
                             <option value="Yes">Yes</option>
                             <option value="No">No</option>
                         </select>
@@ -215,7 +249,6 @@ const PersonalInfoForm = ({
                             <span className="text-red-500 text-xs mt-1">{errors.bumiputera}</span>
                         )}
                     </div>
-                    
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Gender*
@@ -225,7 +258,7 @@ const PersonalInfoForm = ({
                             value={formData.gender || ""}
                             onChange={(e) => handleInputChange('gender', e.target.value)}
                         >
-                            <option value="">Select Gender</option>
+                            <option value="" disabled>Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                         </select>
@@ -260,6 +293,13 @@ const PersonalInfoForm = ({
                                 onChange={(e) => {
                                     // Remove all non-numeric characters
                                     const numericValue = e.target.value.replace(/[^\d]/g, '');
+                                    
+                                    // Limit to 5,000,000 (5 million RM)
+                                    const incomeNum = parseInt(numericValue);
+                                    if (incomeNum > 5000000) {
+                                        return; // Don't update if over 5 million
+                                    }
+                                    
                                     handleInputChange('monthlyHouseholdIncome', numericValue);
                                 }}
                                 onBlur={() => {
@@ -277,7 +317,7 @@ const PersonalInfoForm = ({
                 </div>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
-                        *Please fill at least two rows
+                        *Please fill in at least 2 family members
                     </p>
                 </div>
                 <div className="overflow-x-auto">
@@ -306,21 +346,31 @@ const PersonalInfoForm = ({
                                 <tr key={i}>
                                     <td className="border border-gray-300">
                                         <input
-                                            className="w-full p-2 outline-none focus:bg-blue-50"
+                                            className={`w-full p-2 outline-none focus:bg-blue-50 ${errors[`family_name_${i}`] ? 'border-2 border-red-500' : ''}`}
                                             value={member.name}
                                             onChange={(e) =>
                                                 handleFamilyTextChange(i, "name", e.target.value)
                                             }
                                         />
+                                        {errors[`family_name_${i}`] && (
+                                            <div className="text-red-500 text-xs mt-1 px-2">
+                                                {errors[`family_name_${i}`]}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="border border-gray-300">
                                         <input
-                                            className="w-full p-2 outline-none focus:bg-blue-50"
+                                            className={`w-full p-2 outline-none focus:bg-blue-50 ${errors[`family_relationship_${i}`] ? 'border-2 border-red-500' : ''}`}
                                             value={member.relationship}
                                             onChange={(e) =>
                                                 handleFamilyTextChange(i, "relationship", e.target.value)
                                             }
                                         />
+                                        {errors[`family_relationship_${i}`] && (
+                                            <div className="text-red-500 text-xs mt-1 px-2">
+                                                {errors[`family_relationship_${i}`]}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="border border-gray-300">
                                         <input
@@ -333,12 +383,17 @@ const PersonalInfoForm = ({
                                     </td>
                                     <td className="border border-gray-300">
                                         <input
-                                            className="w-full p-2 outline-none focus:bg-blue-50"
+                                            className={`w-full p-2 outline-none focus:bg-blue-50 ${errors[`family_occupation_${i}`] ? 'border-2 border-red-500' : ''}`}
                                             value={member.occupation}
                                             onChange={(e) =>
                                                 handleFamilyTextChange(i, "occupation", e.target.value)
                                             }
                                         />
+                                        {errors[`family_occupation_${i}`] && (
+                                            <div className="text-red-500 text-xs mt-1 px-2">
+                                                {errors[`family_occupation_${i}`]}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="border border-gray-300">
                                         <div className="relative">

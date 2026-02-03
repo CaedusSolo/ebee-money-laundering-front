@@ -14,10 +14,25 @@ const AcademicInfoForm = ({
     handleBack,
     handleSubmit
 }) => {
+    // Handle activity field changes with validation
+    const handleActivityFieldChange = (index, field, value) => {
+        // Call the parent's activity change handler
+        handleActivityChange(index, field, value);
+        
+        // Validate minimum length (3 characters) if field has content
+        if (value.trim().length > 0 && value.trim().length < 3) {
+            handleValidationError(`activity_${field}_${index}`, 'Minimum 3 characters required');
+        } else {
+            // Clear error if validation passes
+            handleValidationError(`activity_${field}_${index}`, '');
+        }
+    };
 
+    // Malaysian Universities list
     const universities = [
         "Universiti Malaya (UM)",
         "Universiti Kebangsaan Malaysia (UKM)",
+        "Universiti Sains Malaysia (USM)",
         "Universiti Putra Malaysia (UPM)",
         "Universiti Teknologi Malaysia (UTM)",
         "Universiti Teknologi MARA (UiTM)",
@@ -25,23 +40,41 @@ const AcademicInfoForm = ({
         "Universiti Utara Malaysia (UUM)",
         "Universiti Malaysia Sarawak (UNIMAS)",
         "Universiti Malaysia Sabah (UMS)",
-        "Universiti Sains Islam Malaysia (USIM)",,
+        "Universiti Pendidikan Sultan Idris (UPSI)",
+        "Universiti Teknikal Malaysia Melaka (UTeM)",
+        "Universiti Tun Hussein Onn Malaysia (UTHM)",
+        "Universiti Malaysia Perlis (UniMAP)",
+        "Universiti Sultan Zainal Abidin (UniSZA)",
+        "Universiti Malaysia Terengganu (UMT)",
+        "Universiti Malaysia Kelantan (UMK)",
+        "Universiti Malaysia Pahang (UMP)",
+        "Universiti Sains Islam Malaysia (USIM)",
+        "Universiti Pertahanan Nasional Malaysia (UPNM)",
         "Taylor's University",
         "Sunway University",
         "INTI International University",
         "Monash University Malaysia",
         "University of Nottingham Malaysia",
         "Heriot-Watt University Malaysia",
+        "Curtin University Malaysia",
+        "Swinburne University of Technology Sarawak",
         "UCSI University",
         "Multimedia University (MMU)",
         "Asia Pacific University (APU)",
         "Management and Science University (MSU)",
+        "Binary University",
+        "Perdana University",
         "Other"
     ];
 
+    // Common majors/fields of study
     const majors = [
         "Computer Science",
         "Information Technology",
+        "Software Engineering",
+        "Data Science",
+        "Artificial Intelligence",
+        "Cybersecurity",
         "Business Administration",
         "Accounting",
         "Finance",
@@ -49,10 +82,25 @@ const AcademicInfoForm = ({
         "Economics",
         "Mechanical Engineering",
         "Electrical Engineering",
+        "Civil Engineering",
+        "Chemical Engineering",
+        "Biomedical Engineering",
+        "Medicine",
+        "Pharmacy",
+        "Dentistry",
+        "Nursing",
         "Law",
-        "Cinematic Arts",
-        "Creative Multimedia",
-        "Communication",
+        "Architecture",
+        "Psychology",
+        "Education",
+        "Mass Communication",
+        "Mathematics",
+        "Physics",
+        "Chemistry",
+        "Biology",
+        "Environmental Science",
+        "Hospitality Management",
+        "Culinary Arts",
         "Other"
     ];
 
@@ -71,17 +119,52 @@ const AcademicInfoForm = ({
         "Other"
     ];
 
-    // Validate activities table (second row must be completely filled)
+    // Validate activities table (minimum 2 rows filled) and file uploads
     const validateActivities = () => {
-        // Check if the second row (index 1) is completely filled
-        const secondRow = activities[1];
+        const filledRows = activities.filter(activity => {
+            return Object.values(activity).some(value => value && value.toString().trim() !== '');
+        });
         
-        if (!secondRow.activity || secondRow.activity.trim() === '' || 
-            !secondRow.role || secondRow.role.trim() === '') {
-            handleValidationError('activities', 'Please fill in all fields in the second row (Activity and Role)');
+        if (filledRows.length < 2) {
+            handleValidationError('activities', 'Please fill in at least 2 activities');
             return false;
         }
         
+        // Check that filled activity fields meet minimum length requirement
+        let activitiesValid = true;
+        filledRows.forEach((activity, index) => {
+            ['activity', 'role'].forEach(field => {
+                const value = activity[field];
+                if (value && value.trim().length > 0 && value.trim().length < 3) {
+                    activitiesValid = false;
+                }
+            });
+        });
+        
+        if (!activitiesValid) {
+            return false;
+        }
+        
+        // Check that all 3 required files are uploaded
+        if (!files.transcript) {
+            handleValidationError('transcript', 'Please upload transcript');
+            return false;
+        }
+        if (!files.payslip) {
+            handleValidationError('payslip', 'Please upload payslip');
+            return false;
+        }
+        if (!files.ic) {
+            handleValidationError('ic', 'Please upload copy of IC');
+            return false;
+        }
+        
+        // Clear the general activities error if validation passes
+        handleValidationError('activities', '');
+        // Clear file errors if validation passes
+        handleValidationError('transcript', '');
+        handleValidationError('payslip', '');
+        handleValidationError('ic', '');
         return true;
     };
 
@@ -111,7 +194,7 @@ const AcademicInfoForm = ({
                             value={formData.university || ""}
                             onChange={(e) => handleInputChange('university', e.target.value)}
                         >
-                            <option value="">Select University/College</option>
+                            <option value="" disabled>Select University/College</option>
                             {universities.map((uni, index) => (
                                 <option key={index} value={uni}>{uni}</option>
                             ))}
@@ -130,7 +213,7 @@ const AcademicInfoForm = ({
                             value={formData.major || ""}
                             onChange={(e) => handleInputChange('major', e.target.value)}
                         >
-                            <option value="">Select Major</option>
+                            <option value="" disabled>Select Major</option>
                             {majors.map((major, index) => (
                                 <option key={index} value={major}>{major}</option>
                             ))}
@@ -149,7 +232,7 @@ const AcademicInfoForm = ({
                             value={formData.year || ""}
                             onChange={(e) => handleInputChange('year', e.target.value)}
                         >
-                            <option value="">Select Year</option>
+                            <option value="" disabled>Select Year</option>
                             <option value="Year 1">Year 1</option>
                             <option value="Year 2">Year 2</option>
                             <option value="Year 3">Year 3</option>
@@ -179,7 +262,7 @@ const AcademicInfoForm = ({
                             value={formData.expectedGraduation || ""}
                             onChange={(e) => handleInputChange('expectedGraduation', e.target.value)}
                         >
-                            <option value="">Select Year</option>
+                            <option value="" disabled>Select Year</option>
                             {graduationYears.map((year) => (
                                 <option key={year} value={year}>{year}</option>
                             ))}
@@ -198,7 +281,7 @@ const AcademicInfoForm = ({
                             value={formData.highestQualification || ""}
                             onChange={(e) => handleInputChange('highestQualification', e.target.value)}
                         >
-                            <option value="">Select Qualification</option>
+                            <option value="" disabled>Select Qualification</option>
                             {qualifications.map((qual, index) => (
                                 <option key={index} value={qual}>{qual}</option>
                             ))}
@@ -216,7 +299,7 @@ const AcademicInfoForm = ({
                 </h2>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
-                        *Please fill at least two rows
+                        *Please fill in at least 2 activities
                     </p>
                 </div>
                 <table className="w-full border-collapse border border-gray-300 text-sm">
@@ -235,25 +318,35 @@ const AcademicInfoForm = ({
                             <tr key={i}>
                                 <td className="border border-gray-300">
                                     <input
-                                        className="w-full p-2 outline-none focus:bg-blue-50"
+                                        className={`w-full p-2 outline-none focus:bg-blue-50 ${errors[`activity_activity_${i}`] ? 'border-2 border-red-500' : ''}`}
                                         value={act.activity}
                                         onChange={(e) =>
-                                            handleActivityChange(
+                                            handleActivityFieldChange(
                                                 i,
                                                 "activity",
                                                 e.target.value,
                                             )
                                         }
                                     />
+                                    {errors[`activity_activity_${i}`] && (
+                                        <div className="text-red-500 text-xs mt-1 px-2">
+                                            {errors[`activity_activity_${i}`]}
+                                        </div>
+                                    )}
                                 </td>
                                 <td className="border border-gray-300">
                                     <input
-                                        className="w-full p-2 outline-none focus:bg-blue-50"
+                                        className={`w-full p-2 outline-none focus:bg-blue-50 ${errors[`activity_role_${i}`] ? 'border-2 border-red-500' : ''}`}
                                         value={act.role}
                                         onChange={(e) =>
-                                            handleActivityChange(i, "role", e.target.value)
+                                            handleActivityFieldChange(i, "role", e.target.value)
                                         }
                                     />
+                                    {errors[`activity_role_${i}`] && (
+                                        <div className="text-red-500 text-xs mt-1 px-2">
+                                            {errors[`activity_role_${i}`]}
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -268,6 +361,11 @@ const AcademicInfoForm = ({
                 <h2 className="text-xl font-bold text-gray-800 mb-6">
                     Supporting Documents
                 </h2>
+                <div className="mb-4">
+                    <p className="text-xs text-gray-600 italic">
+                        *All 3 documents are required
+                    </p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <FileUpload 
                         label="Transcript" 

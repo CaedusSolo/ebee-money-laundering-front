@@ -11,11 +11,6 @@ export default function StudentDashboard() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const mockApplications = [
-        { applicationId: 1, scholarshipName: "Merit's Scholarship", status: "Under Review", submittedDate: "DD/MM/YYYY" },
-        { applicationId: 2, scholarshipName: "President's Scholarship", status: "Accepted", submittedDate: "DD/MM/YYYY" },
-        { applicationId: 3, scholarshipName: "High Achiever's Scholarship", status: "Submitted", submittedDate: "DD/MM/YYYY" },
-    ];
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -26,6 +21,8 @@ export default function StudentDashboard() {
                 setDashboardData(data);
             } catch (error) {
                 console.error("Error fetching dashboard:", error);
+                // Set empty applications on error
+                setDashboardData({ applications: [] });
             } finally {
                 setLoading(false);
             }
@@ -42,7 +39,7 @@ export default function StudentDashboard() {
         }
     }, [location]);
 
-    const applications = dashboardData?.applications?.length > 0 ? dashboardData.applications : mockApplications;
+    const applications = dashboardData?.applications || [];
 
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 

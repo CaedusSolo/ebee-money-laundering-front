@@ -67,7 +67,13 @@ const validators = {
     name: (value) => {
         // Only allow letters and spaces, no numbers or special characters
         const re = /^[a-zA-Z\s]+$/;
-        return re.test(value) ? null : "Name can only contain letters";
+        if (!re.test(value)) {
+            return "Name can only contain letters";
+        }
+        if (value.trim().length < 3) {
+            return "Name must be at least 3 characters";
+        }
+        return null;
     }
 };
 

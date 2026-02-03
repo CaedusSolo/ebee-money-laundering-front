@@ -70,10 +70,19 @@ export default function ApplicationForm() {
 
     // Handle validation errors - memoized
     const handleValidationError = useCallback((field, errorMessage) => {
-        setErrors(prev => ({
-            ...prev,
-            [field]: errorMessage
-        }));
+        setErrors(prev => {
+            // If error message is empty, remove the key entirely
+            if (!errorMessage || errorMessage.trim() === '') {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            }
+            // Otherwise, set the error
+            return {
+                ...prev,
+                [field]: errorMessage
+            };
+        });
     }, []);
 
     // Handle file changes - memoized
