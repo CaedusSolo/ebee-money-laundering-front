@@ -216,7 +216,7 @@ const AcademicInfoForm = ({
                 </h2>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
-                        *Please fill in all fields in the second row (Activity and Role are required)
+                        *Please fill at least two rows
                     </p>
                 </div>
                 <table className="w-full border-collapse border border-gray-300 text-sm">

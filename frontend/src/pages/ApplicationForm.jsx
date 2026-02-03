@@ -12,7 +12,6 @@ export default function ApplicationForm() {
         // Personal Info
         firstName: '',
         lastName: '',
-        email: '',
         phoneNumber: '',
         dateOfBirth: '',
         icNumber: '',

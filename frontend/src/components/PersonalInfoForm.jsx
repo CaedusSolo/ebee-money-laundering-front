@@ -16,7 +16,7 @@ const PersonalInfoForm = ({
     // Check form validity only when key fields change
     useEffect(() => {
         const requiredFields = [
-            'firstName', 'lastName', 'email', 'phoneNumber', 
+            'firstName', 'lastName', 'phoneNumber', 
             'dateOfBirth', 'icNumber', 'nationality', 'bumiputera', 
             'gender', 'monthlyHouseholdIncome'
         ];
@@ -85,11 +85,15 @@ const PersonalInfoForm = ({
         handleFamilyChange(index, field, textValue);
     }, [handleFamilyChange]);
 
-    // Handle family member age change - only allow numbers
+    // Handle family member age change - only allow numbers and limit to 120
     const handleFamilyAgeChange = useCallback((index, value) => {
         // Remove all non-numeric characters
         const numericValue = value.replace(/[^\d]/g, '');
-        handleFamilyChange(index, "age", numericValue);
+        
+        // Limit to 120
+        if (numericValue === '' || parseInt(numericValue) <= 120) {
+            handleFamilyChange(index, "age", numericValue);
+        }
     }, [handleFamilyChange]);
 
     return (
@@ -118,16 +122,7 @@ const PersonalInfoForm = ({
                         error={errors.lastName}
                         validationType="name"
                     />
-                    <InputField 
-                        label="Email" 
-                        type="email"
-                        field="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.email}
-                        validationType="email"
-                    />
+                    
                     <InputField 
                         label="Phone Number"
                         field="phoneNumber"
@@ -167,14 +162,13 @@ const PersonalInfoForm = ({
                                     }
                                 }
                             }}
-                            max={new Date().toISOString().split('T')[0]} // Prevent future dates in date picker
-                            min={new Date(new Date().getFullYear() - 100, 0, 1).toISOString().split('T')[0]} // Prevent dates too far in past
                             className={`border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.dateOfBirth ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                         />
                         {errors.dateOfBirth && (
                             <span className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</span>
                         )}
                     </div>
+                    
                     <InputField 
                         label="IC Number"
                         field="icNumber"
@@ -185,6 +179,7 @@ const PersonalInfoForm = ({
                         validationType="icNumber"
                         exampleFormat="123456-12-1234"
                     />
+                    
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Nationality*
@@ -196,12 +191,13 @@ const PersonalInfoForm = ({
                         >
                             <option value="">Select Nationality</option>
                             <option value="Malaysian">Malaysian</option>
-                            <option value="Non-Malaysian">Non-Malaysian</option>
+                            <option value="Other">Other</option>
                         </select>
                         {errors.nationality && (
                             <span className="text-red-500 text-xs mt-1">{errors.nationality}</span>
                         )}
                     </div>
+                    
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Bumiputera*
@@ -219,6 +215,7 @@ const PersonalInfoForm = ({
                             <span className="text-red-500 text-xs mt-1">{errors.bumiputera}</span>
                         )}
                     </div>
+                    
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Gender*
@@ -280,7 +277,7 @@ const PersonalInfoForm = ({
                 </div>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
-                        *Please fill in all fields in the second row (Name, Relationship, Age, Occupation, and Monthly Income are required)
+                        *Please fill at least two rows
                     </p>
                 </div>
                 <div className="overflow-x-auto">
