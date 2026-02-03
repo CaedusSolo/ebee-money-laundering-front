@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import InputField from "./InputField";
 
 const PersonalInfoForm = ({ 
@@ -11,16 +11,53 @@ const PersonalInfoForm = ({
     handleNext,
     handleSave 
 }) => {
-    // Validate family members table (minimum 2 rows filled)
-    const validateFamilyMembers = useCallback(() => {
-        const filledRows = familyMembers.filter(member => {
-            return Object.values(member).some(value => value && value.toString().trim() !== '');
+    const [isFormValid, setIsFormValid] = useState(false);
+
+    // Check form validity only when key fields change
+    useEffect(() => {
+        const requiredFields = [
+            'firstName', 'lastName', 'email', 'phoneNumber', 
+            'dateOfBirth', 'icNumber', 'nationality', 'bumiputera', 
+            'gender', 'monthlyHouseholdIncome'
+        ];
+        
+        // Check all required fields are filled
+        const allFieldsFilled = requiredFields.every(field => {
+            const value = formData[field];
+            return value && value.toString().trim() !== '' && 
+                    value !== 'Select Gender' && value !== 'Select' && 
+                    value !== 'Select Nationality';
         });
         
-        if (filledRows.length < 2) {
-            handleValidationError('familyMembers', 'Please fill in at least 2 family members');
+        // Check no validation errors
+        const noErrors = Object.keys(errors).length === 0;
+        
+        // Check family members (second row must be completely filled)
+        const secondRow = familyMembers[1];
+        const familyValid = secondRow && 
+            secondRow.name && secondRow.name.trim() !== '' &&
+            secondRow.relationship && secondRow.relationship.trim() !== '' &&
+            secondRow.age && secondRow.age.trim() !== '' &&
+            secondRow.occupation && secondRow.occupation.trim() !== '' &&
+            secondRow.income && secondRow.income.trim() !== '';
+        
+        setIsFormValid(allFieldsFilled && noErrors && familyValid);
+    }, [formData, errors, familyMembers]);
+
+    // Validate family members table (second row must be completely filled)
+    const validateFamilyMembers = useCallback(() => {
+        // Check if the second row (index 1) is completely filled
+        const secondRow = familyMembers[1];
+        
+        if (!secondRow.name || secondRow.name.trim() === '' ||
+            !secondRow.relationship || secondRow.relationship.trim() === '' ||
+            !secondRow.age || secondRow.age.trim() === '' ||
+            !secondRow.occupation || secondRow.occupation.trim() === '' ||
+            !secondRow.income || secondRow.income.trim() === '') {
+            handleValidationError('familyMembers', 'Please fill in all fields in the second row');
             return false;
         }
+        
         // Clear error if validation passes
         if (errors.familyMembers) {
             handleValidationError('familyMembers', '');
@@ -29,15 +66,10 @@ const PersonalInfoForm = ({
     }, [familyMembers, handleValidationError, errors.familyMembers]);
 
     const handleNextClick = useCallback(() => {
-        console.log('Next button clicked');
-        console.log('Family members:', familyMembers);
         if (validateFamilyMembers()) {
-            console.log('Validation passed, calling handleNext');
             handleNext();
-        } else {
-            console.log('Validation failed');
         }
-    }, [validateFamilyMembers, handleNext, familyMembers]);
+    }, [validateFamilyMembers, handleNext]);
 
     // Handle family member income change - only allow numbers
     const handleFamilyIncomeChange = useCallback((index, value) => {
@@ -248,7 +280,7 @@ const PersonalInfoForm = ({
                 </div>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
-                        *Please fill in at least 2 family members
+                        *Please fill in all fields in the second row (Name, Relationship, Age, Occupation, and Monthly Income are required)
                     </p>
                 </div>
                 <div className="overflow-x-auto">
@@ -341,7 +373,12 @@ const PersonalInfoForm = ({
                 <button
                     type="button"
                     onClick={handleNextClick}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-12 rounded-xl transition-colors"
+                    disabled={!isFormValid}
+                    className={`font-bold py-3 px-12 rounded-xl transition-colors ${
+                        !isFormValid 
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                            : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+                    }`}
                 >
                     Next
                 </button>

@@ -15,9 +15,6 @@ const AcademicInfoForm = ({
     handleSubmit
 }) => {
 
-    console.log('AcademicInfoForm rendering');
-    console.log('formData:', formData);
-
     const universities = [
         "Universiti Malaya (UM)",
         "Universiti Kebangsaan Malaysia (UKM)",
@@ -74,16 +71,17 @@ const AcademicInfoForm = ({
         "Other"
     ];
 
-    // Validate activities table (minimum 2 rows filled)
+    // Validate activities table (second row must be completely filled)
     const validateActivities = () => {
-        const filledRows = activities.filter(activity => {
-            return Object.values(activity).some(value => value && value.toString().trim() !== '');
-        });
+        // Check if the second row (index 1) is completely filled
+        const secondRow = activities[1];
         
-        if (filledRows.length < 2) {
-            handleValidationError('activities', 'Please fill in at least 2 activities');
+        if (!secondRow.activity || secondRow.activity.trim() === '' || 
+            !secondRow.role || secondRow.role.trim() === '') {
+            handleValidationError('activities', 'Please fill in all fields in the second row (Activity and Role)');
             return false;
         }
+        
         return true;
     };
 
@@ -218,7 +216,7 @@ const AcademicInfoForm = ({
                 </h2>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
-                        *Please fill in at least 2 activities
+                        *Please fill in all fields in the second row (Activity and Role are required)
                     </p>
                 </div>
                 <table className="w-full border-collapse border border-gray-300 text-sm">

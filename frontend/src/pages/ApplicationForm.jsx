@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 export default function ApplicationForm() {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1); // 1 = Personal, 2 = Academic
+    
     const [formData, setFormData] = useState({
         // Personal Info
         firstName: '',
@@ -50,7 +51,6 @@ export default function ApplicationForm() {
     ]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isTransitioning, setIsTransitioning] = useState(false);
 
     // Handle input changes - memoized to prevent re-renders
     const handleInputChange = useCallback((field, value) => {
@@ -114,23 +114,14 @@ export default function ApplicationForm() {
 
     // Navigate to next step - memoized
     const handleNext = useCallback(() => {
-        setIsTransitioning(true);
-        // Small delay to show feedback, then transition
-        setTimeout(() => {
-            setCurrentStep(2);
-            window.scrollTo(0, 0);
-            setIsTransitioning(false);
-        }, 100);
+        setCurrentStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
 
     // Navigate back to previous step - memoized
     const handleBack = useCallback(() => {
-        setIsTransitioning(true);
-        setTimeout(() => {
-            setCurrentStep(1);
-            window.scrollTo(0, 0);
-            setIsTransitioning(false);
-        }, 100);
+        setCurrentStep(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, []);
 
     // Handle save - memoized
@@ -257,16 +248,6 @@ export default function ApplicationForm() {
                             <div className="bg-white rounded-lg p-8 flex flex-col items-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mb-4"></div>
                                 <p className="text-gray-700 font-semibold">Submitting your application...</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Transitioning Overlay */}
-                    {isTransitioning && (
-                        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-lg p-6 flex flex-col items-center">
-                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-500 mb-3"></div>
-                                <p className="text-gray-700 font-semibold">Loading...</p>
                             </div>
                         </div>
                     )}
