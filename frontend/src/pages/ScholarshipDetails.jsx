@@ -23,8 +23,8 @@ export default function ScholarshipDetailPage() {
     description:
       "Call out a feature, benefit, or value of your site or product that can stand on its own.",
     deadline: "2024-12-31",
-    reviewerId: "",
-    committeeIds: [],
+    reviewer: "",
+    scholarshipCommittees: [],
   });
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -62,9 +62,9 @@ export default function ScholarshipDetailPage() {
 
   const handleCommitteeChange = (index, value) => {
     setFormData((prev) => {
-      const updatedCommitteeIds = [...prev.committeeIds];
+      const updatedCommitteeIds = [...prev.scholarshipCommittees];
       updatedCommitteeIds[index] = value;
-      return { ...prev, committeeIds: updatedCommitteeIds };
+      return { ...prev, scholarshipCommittees: updatedCommitteeIds };
     });
   };
 
@@ -144,8 +144,8 @@ export default function ScholarshipDetailPage() {
                     Reviewer
                   </label>
                   <select
-                    value={formData.reviewerId}
-                    onChange={(e) => handleChange("reviewerId", e.target.value)}
+                    value={formData.reviewer}
+                    onChange={(e) => handleChange("reviewer", e.target.value)}
                     className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     disabled={loadingOptions}
                   >
@@ -166,7 +166,7 @@ export default function ScholarshipDetailPage() {
                   <div className="grid gap-3 sm:grid-cols-1">
                     {[1, 2, 3].map((i) => (
                       <select
-                        value={formData.committeeIds[i]}
+                        value={formData.scholarshipCommittees[i]}
                         key={i}
                         onChange={(e) => {
                           handleCommitteeChange(i - 1, e.target.value);
