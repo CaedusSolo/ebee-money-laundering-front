@@ -1,21 +1,29 @@
 package mmu.sef.fyj;
 
 import mmu.sef.fyj.model.Role;
+import mmu.sef.fyj.model.Scholarship;
 import mmu.sef.fyj.model.User;
+import mmu.sef.fyj.repository.ScholarshipRepository;
 import mmu.sef.fyj.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final ScholarshipRepository scholarshipRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(UserRepository userRepository,
+            ScholarshipRepository scholarshipRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.scholarshipRepository = scholarshipRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -24,6 +32,7 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("--- Starting Secure Data Seeding ---");
 
         seedUsers();
+        seedScholarships();
 
         System.out.println("--- Data Seeding Completed ---");
     }
@@ -71,6 +80,36 @@ public class DataSeeder implements CommandLineRunner {
             User user = new User(name, email, encodedPassword, role, studentId);
             userRepository.save(user);
             System.out.println("Created User: " + email + " [" + role + "]");
+        }
+    }
+
+    private void seedScholarships() {
+        if (scholarshipRepository.count() > 0) {
+            return;
+        }
+
+        List<Scholarship> scholarships = List.of(
+                new Scholarship(
+                        "Merit's Scholarship",
+                        "Awarded to students who demonstrate outstanding academic achievement and leadership. Applicants must have a minimum GPA of 3.5 and be enrolled full-time in an accredited programme.",
+                        LocalDate.now().plusMonths(3)),
+                new Scholarship(
+                        "President's Scholarship",
+                        "The highest honour for incoming students, covering full tuition and a living stipend. Open to top performers in academics, extracurricular activities, and community service.",
+                        LocalDate.now().plusMonths(4)),
+                new Scholarship(
+                        "High Achiever's Scholarship",
+                        "Designed for students with strong academic records (GPA 3.7+) and evidence of research or innovation. Recipients receive partial tuition support and mentorship opportunities.",
+                        LocalDate.now().plusMonths(2)),
+                new Scholarship(
+                        "Excellence in STEM Scholarship",
+                        "Supports students pursuing degrees in Science, Technology, Engineering, or Mathematics. Criteria include academic merit, project portfolio, and recommendation letters.",
+                        LocalDate.now().plusMonths(5))
+        );
+
+        for (Scholarship s : scholarships) {
+            scholarshipRepository.save(s);
+            System.out.println("Created Scholarship: " + s.getName());
         }
     }
 
