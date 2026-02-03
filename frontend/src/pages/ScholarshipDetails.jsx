@@ -23,7 +23,11 @@ export default function ScholarshipDetailPage() {
     description: "Scholarship Description",
     applicationDeadline: "1999-12-31",
     reviewer: "",
-    scholarshipCommittees: [],
+    scholarshipCommittees: [null, null, null],
+    minCGPA: "",
+    maxFamilyIncome: "",
+    mustBumiputera: false,
+    minGraduationYear: "",
   });
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -165,17 +169,17 @@ export default function ScholarshipDetailPage() {
                     Scholarship Committee
                   </label>
                   <div className="grid gap-3 sm:grid-cols-1">
-                    {[1, 2, 3].map((i) => (
+                    {[0, 1, 2].map((i) => (
                       <select
                         value={formData.scholarshipCommittees[i]}
                         key={i}
                         onChange={(e) => {
-                          handleCommitteeChange(i - 1, e.target.value);
+                          handleCommitteeChange(i, e.target.value);
                         }}
                         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         disabled={loadingOptions}
                       >
-                        <option value="">Committee member {i}</option>
+                        <option value="">Committee member {i + 1}</option>
                         {committeeMembers.map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.name} {c.email ? `(${c.email})` : ""}
@@ -183,6 +187,94 @@ export default function ScholarshipDetailPage() {
                         ))}
                       </select>
                     ))}
+                  </div>
+                </div>
+
+                {/* Eligibility Criteria */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700">
+                    Eligibility Criteria
+                  </label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {/* Min CGPA */}
+                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                      <span className="text-sm text-gray-500">Min CGPA:</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="4"
+                        value={formData.minCGPA ?? ""}
+                        onChange={(e) =>
+                          handleChange(
+                            "minCGPA",
+                            e.target.value ? parseFloat(e.target.value) : null,
+                          )
+                        }
+                        placeholder="e.g. 3.0"
+                        className="flex-1 bg-transparent text-sm text-gray-900 outline-none"
+                      />
+                    </div>
+
+                    {/* Max Family Income */}
+                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                      <span className="text-sm text-gray-500">
+                        Max Income (RM):
+                      </span>
+                      <input
+                        type="number"
+                        step="100"
+                        min="0"
+                        value={formData.maxFamilyIncome ?? ""}
+                        onChange={(e) =>
+                          handleChange(
+                            "maxFamilyIncome",
+                            e.target.value ? parseFloat(e.target.value) : null,
+                          )
+                        }
+                        placeholder="e.g. 5000"
+                        className="flex-1 bg-transparent text-sm text-gray-900 outline-none"
+                      />
+                    </div>
+
+                    {/* Min Graduation Year */}
+                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                      <span className="text-sm text-gray-500">
+                        Min Grad Year:
+                      </span>
+                      <input
+                        type="number"
+                        min="2024"
+                        value={formData.minGraduationYear ?? ""}
+                        onChange={(e) =>
+                          handleChange(
+                            "minGraduationYear",
+                            e.target.value ? parseInt(e.target.value) : null,
+                          )
+                        }
+                        placeholder="e.g. 2025"
+                        className="flex-1 bg-transparent text-sm text-gray-900 outline-none"
+                      />
+                    </div>
+
+                    {/* Must Bumiputera */}
+                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        id="mustBumiputera"
+                        checked={formData.mustBumiputera ?? false}
+                        onChange={(e) =>
+                          handleChange("mustBumiputera", e.target.checked)
+                        }
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="mustBumiputera"
+                        className="text-sm text-gray-700"
+                      >
+                        Bumiputera Only
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
