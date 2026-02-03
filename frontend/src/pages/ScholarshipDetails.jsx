@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AuthService from "../services/AuthService";
+import ScholarshipService from "../services/ScholarshipService";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export default function ScholarshipDetailPage() {
   const { scholarshipId } = useParams();
-  useAuth();
+  const { currentUser } = useAuth();
+  const scholarshipService = new ScholarshipService(currentUser?.token);
 
   const [reviewers, setReviewers] = useState([]);
   const [committeeMembers, setCommitteeMembers] = useState([]);
@@ -22,22 +24,35 @@ export default function ScholarshipDetailPage() {
       "Call out a feature, benefit, or value of your site or product that can stand on its own.",
     deadline: "2024-12-31",
     reviewerId: "",
-    committeeMember1: "",
-    committeeMember2: "",
-    committeeMember3: "",
+    committeeIds: [],
   });
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
   useEffect(() => {
-    const headers = { "Content-Type": "application/json", ...AuthService.getAuthHeader() };
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${currentUser?.token}`,
+    };
+
     Promise.all([
-      fetch(`${API_BASE}/api/reviewer/list`, { headers }).then((r) => (r.ok ? r.json() : [])),
-      fetch(`${API_BASE}/api/committee/list`, { headers }).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_BASE}/api/users?role=REVIEWER`, { headers }).then((r) =>
+        r.ok ? r.json() : [],
+      ),
+      fetch(`${API_BASE}/api/users?role=COMMITTEE`, { headers }).then((r) =>
+        r.ok ? r.json() : [],
+      ),
+      scholarshipService.getScholarshipById(scholarshipId),
     ])
-      .then(([reviewersList, committeeList]) => {
+      .then(([reviewersList, committeeList, data]) => {
         setReviewers(reviewersList);
         setCommitteeMembers(committeeList);
+        setFormData(data);
+        console.log(data);
       })
-      .catch(() => {})
+      .catch((e) => {
+        console.error("Error fetching options:", e);
+      })
       .finally(() => setLoadingOptions(false));
   }, []);
 
@@ -45,10 +60,36 @@ export default function ScholarshipDetailPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleCommitteeChange = (index, value) => {
+    setFormData((prev) => {
+      const updatedCommitteeIds = [...prev.committeeIds];
+      updatedCommitteeIds[index] = value;
+      return { ...prev, committeeIds: updatedCommitteeIds };
+    });
+  };
+
   const handleApplyChanges = (e) => {
     e.preventDefault();
-    // Handle saving changes
     console.log("Saving:", formData);
+    if (scholarshipId) {
+      scholarshipService
+        .updateScholarship(scholarshipId, formData)
+        .then((response) => {
+          console.log("Scholarship updated successfully:", response);
+        })
+        .catch((error) => {
+          console.error("Error updating scholarship:", error);
+        });
+    } else {
+      scholarshipService
+        .createScholarship(formData)
+        .then((response) => {
+          console.log("Scholarship created successfully:", response);
+        })
+        .catch((error) => {
+          console.error("Error creating scholarship:", error);
+        });
+    }
   };
 
   const handleDelete = () => {
@@ -99,7 +140,9 @@ export default function ScholarshipDetailPage() {
 
                 {/* Reviewer Dropdown */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-gray-700">Reviewer</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Reviewer
+                  </label>
                   <select
                     value={formData.reviewerId}
                     onChange={(e) => handleChange("reviewerId", e.target.value)}
@@ -108,7 +151,7 @@ export default function ScholarshipDetailPage() {
                   >
                     <option value="">Select reviewer</option>
                     {reviewers.map((r) => (
-                      <option key={r.reviewerId} value={r.reviewerId}>
+                      <option key={r.id} value={r.id}>
                         {r.name} {r.email ? `(${r.email})` : ""}
                       </option>
                     ))}
@@ -117,19 +160,23 @@ export default function ScholarshipDetailPage() {
 
                 {/* Scholarship Committee Dropdowns */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-gray-700">Scholarship Committee</label>
+                  <label className="text-sm font-medium text-gray-700">
+                    Scholarship Committee
+                  </label>
                   <div className="grid gap-3 sm:grid-cols-1">
                     {[1, 2, 3].map((i) => (
                       <select
+                        value={formData.committeeIds[i]}
                         key={i}
-                        value={formData[`committeeMember${i}`]}
-                        onChange={(e) => handleChange(`committeeMember${i}`, e.target.value)}
+                        onChange={(e) => {
+                          handleCommitteeChange(i - 1, e.target.value);
+                        }}
                         className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         disabled={loadingOptions}
                       >
                         <option value="">Committee member {i}</option>
                         {committeeMembers.map((c) => (
-                          <option key={c.committeeId} value={c.committeeId}>
+                          <option key={c.id} value={c.id}>
                             {c.name} {c.email ? `(${c.email})` : ""}
                           </option>
                         ))}
