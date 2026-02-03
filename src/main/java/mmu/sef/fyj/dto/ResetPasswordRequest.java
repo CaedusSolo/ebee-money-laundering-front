@@ -6,12 +6,12 @@ import jakarta.validation.constraints.Size;
 
 public class ResetPasswordRequest {
     @NotBlank(message = "Email is required")
-    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@mmu\\.edu\\.my$", message = "Must be a valid MMU email (@mmu.edu.my)")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@gmail\\.com$", message = "Must be a valid Gmail address (@gmail.com)")
     private String email;
 
     @NotBlank(message = "New password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d).+$", message = "Password must contain at least 1 Uppercase letter and 1 Number")
+    @Size(min = 8, message = "Password must be at least 8 characters")
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#.]).+$", message = "Password must contain at least 1 Uppercase letter, 1 Number, and 1 Special Symbol (@$!%*?&#.)")
     private String newPassword;
 
     // Getters and Setters

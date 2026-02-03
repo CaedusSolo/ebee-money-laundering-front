@@ -1,7 +1,7 @@
 import React from 'react';
 import navbarLogo from "../assets/navbarLogo.svg"
 import { useAuth } from "../context/AuthContext"
-import { useNavigate } from 'react-router-dom';
+import {Link} from 'react-router-dom'
 
 export default function Navbar({ showBrowse = false }) {
   const { logout } = useAuth();
@@ -15,7 +15,7 @@ export default function Navbar({ showBrowse = false }) {
             <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-blue-700">
                 <img src={navbarLogo} alt="Logo" />
             </div>
-            <h1 className="text-2xl font-bold text-white"><a href="/">Further Your Journey</a></h1>
+            <h1 className="text-2xl font-bold text-white"><Link to="/">Further Your Journey</Link></h1>
           </div>
 
           <div className="flex items-center space-x-4">

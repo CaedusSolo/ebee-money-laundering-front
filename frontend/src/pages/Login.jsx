@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import graduationHat from "../assets/graduationHat.svg";
 
+
 const ROLE_DASHBOARD_PATHS = {
   STUDENT: "/scholarships-list",
   ADMIN: "/admin/users",
@@ -104,12 +105,12 @@ const Login = () => {
               >
                 Password
               </label>
-              <a
-                href="/reset-password"
+              <Link
+                to="/reset-password"
                 className="text-sm font-bold text-blue-700 hover:underline"
               >
                 forgot password
-              </a>
+              </Link>
             </div>
             <input
               type="password"

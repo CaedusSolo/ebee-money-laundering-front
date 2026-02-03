@@ -1,64 +1,60 @@
 package mmu.sef.fyj.service;
 
-import mmu.sef.fyj.model.ScholarshipCommittee;
-import mmu.sef.fyj.repository.ScholarshipCommitteeRepository;
+import mmu.sef.fyj.model.Application;
+import mmu.sef.fyj.repository.ApplicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ScholarshipCommitteeService {
 
     @Autowired
-    private ScholarshipCommitteeRepository scholarshipCommitteeRepository;
-
-    public List<ScholarshipCommittee> findAll() {
-        return scholarshipCommitteeRepository.findAll();
-    }
+    private ApplicationRepository applicationRepository;
 
     public Map<String, Object> getCommitteeDashboard(Integer committeeId) {
+        List<Application> allApps = applicationRepository.findAll();
+
+        List<Map<String, Object>> pending = allApps.stream()
+                .filter(app -> "SUBMITTED".equals(app.getStatus().name()))
+                .map(this::mapToSummary)
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> graded = allApps.stream()
+                .filter(app -> "GRADED".equals(app.getStatus().name()))
+                .map(this::mapToSummary)
+                .collect(Collectors.toList());
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalAssigned", allApps.size());
+        stats.put("pendingEvaluation", pending.size());
+        stats.put("completed", graded.size());
+
         Map<String, Object> dashboard = new HashMap<>();
-
-        // Profile data (In a real app, you would fetch this from
-        // ScholarshipCommitteeRepository)
-        Map<String, Object> profile = new HashMap<>();
-        profile.put("id", committeeId);
-        profile.put("assignedScholarship", "Merit's Scholarship");
-        profile.put("assignedScholarshipId", 1);
-
-        // Dummy applications assigned to this committee's scholarship
-        List<Map<String, Object>> applications = new ArrayList<>();
-
-        Map<String, Object> app1 = new HashMap<>();
-        app1.put("id", "APP-2026-001");
-        app1.put("status", "Pending");
-        app1.put("submittedDate", "15/01/2026");
-        app1.put("scores", new HashMap<String, Object>() {
-            {
-                put("academic", null);
-                put("curriculum", null);
-                put("leadership", null);
-            }
-        });
-        applications.add(app1);
-
-        Map<String, Object> app2 = new HashMap<>();
-        app2.put("id", "APP-2026-002");
-        app2.put("status", "Graded");
-        app2.put("submittedDate", "16/01/2026");
-        app2.put("scores", new HashMap<String, Object>() {
-            {
-                put("academic", 18);
-                put("curriculum", 15);
-                put("leadership", 17);
-            }
-        });
-        app2.put("totalScore", 83);
-        applications.add(app2);
-
-        dashboard.put("profile", profile);
-        dashboard.put("applications", applications);
+        dashboard.put("stats", stats);
+        dashboard.put("pendingApplications", pending);
+        dashboard.put("gradedApplications", graded);
 
         return dashboard;
+    }
+
+    public Application getFullApplicationDetails(Integer applicationId) {
+        return applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Application not found with ID: " + applicationId));
+    }
+
+    private Map<String, Object> mapToSummary(Application app) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", app.getApplicationId());
+        map.put("studentName", app.getFirstName() + " " + app.getLastName());
+        map.put("status", app.getStatus().name());
+        map.put("submittedAt", app.getSubmittedAt());
+        // Map existing grades if available
+        map.put("scores", app.getGrades());
+        return map;
     }
 }

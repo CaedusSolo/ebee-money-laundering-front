@@ -43,14 +43,14 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedUsers() {
         // 1. Admin Account (1 Account)
-        seedUser("System Admin", "admin@mmu.edu.my", "admin123", Role.ADMIN, null);
+        seedUser("System Admin", "admin@gmail.com", "Admin123!", Role.ADMIN, null);
 
         // 2. Student Accounts (5 Accounts)
         for (int i = 1; i <= 5; i++) {
             seedUser(
                     "Student " + i,
-                    "student" + i + "@mmu.edu.my",
-                    "student123",
+                    "student" + i + "@gmail.com",
+                    "Student123!",
                     Role.STUDENT,
                     "11000" + i);
         }
@@ -59,8 +59,8 @@ public class DataSeeder implements CommandLineRunner {
         for (int i = 1; i <= 6; i++) {
             seedUser(
                     "Committee Member " + i,
-                    "committee" + i + "@mmu.edu.my",
-                    "committee123",
+                    "committee" + i + "@gmail.com",
+                    "Committee123!",
                     Role.COMMITTEE,
                     null);
         }
@@ -69,8 +69,8 @@ public class DataSeeder implements CommandLineRunner {
         for (int i = 1; i <= 3; i++) {
             seedUser(
                     "Reviewer " + i,
-                    "reviewer" + i + "@mmu.edu.my",
-                    "reviewer123",
+                    "reviewer" + i + "@gmail.com",
+                    "Reviewer123!",
                     Role.REVIEWER,
                     null);
         }
@@ -108,8 +108,7 @@ public class DataSeeder implements CommandLineRunner {
                 new Scholarship(
                         "Excellence in STEM Scholarship",
                         "Supports students pursuing degrees in Science, Technology, Engineering, or Mathematics. Criteria include academic merit, project portfolio, and recommendation letters.",
-                        LocalDate.now().plusMonths(5))
-        );
+                        LocalDate.now().plusMonths(5)));
 
         for (Scholarship s : scholarships) {
             scholarshipRepository.save(s);
@@ -131,11 +130,13 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         Random random = new Random(42);
-        String[] firstNames = {"Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling", "Muhammad", "Priya"};
-        String[] lastNames = {"Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong", "Hassan", "Raj"};
-        String[] majors = {"Computer Science", "Data Science", "Software Engineering", "Cybersecurity", "Information Technology"};
-        String[] colleges = {"Faculty of Computing", "Faculty of Engineering", "Faculty of Information Science"};
-        ApplicationStatus[] statuses = {ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW, ApplicationStatus.GRADED, ApplicationStatus.APPROVED, ApplicationStatus.REJECTED};
+        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling", "Muhammad", "Priya" };
+        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong", "Hassan", "Raj" };
+        String[] majors = { "Computer Science", "Data Science", "Software Engineering", "Cybersecurity",
+                "Information Technology" };
+        String[] colleges = { "Faculty of Computing", "Faculty of Engineering", "Faculty of Information Science" };
+        ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW,
+                ApplicationStatus.GRADED, ApplicationStatus.APPROVED, ApplicationStatus.REJECTED };
 
         int applicationCount = 0;
         for (Scholarship scholarship : scholarships) {
@@ -152,9 +153,11 @@ public class DataSeeder implements CommandLineRunner {
                 app.setLastName(lastNames[random.nextInt(lastNames.length)]);
                 app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
                 app.setNationality("Malaysian");
-                app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(5), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+                app.setDateOfBirth(
+                        LocalDate.of(2000 + random.nextInt(5), 1 + random.nextInt(12), 1 + random.nextInt(28)));
                 app.setPhoneNumber("01" + (random.nextInt(9) + 1) + "-" + (1000000 + random.nextInt(9000000)));
-                app.setNricNumber("00010" + (1000 + random.nextInt(9000)) + "-" + (10 + random.nextInt(90)) + "-" + (1000 + random.nextInt(9000)));
+                app.setNricNumber("00010" + (1000 + random.nextInt(9000)) + "-" + (10 + random.nextInt(90)) + "-"
+                        + (1000 + random.nextInt(9000)));
                 app.setMonthlyFamilyIncome(2000f + random.nextFloat() * 8000f);
                 app.setBumiputera(random.nextBoolean());
 
@@ -179,7 +182,8 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
-        System.out.println("Created " + applicationCount + " Applications across " + scholarships.size() + " scholarships");
+        System.out.println(
+                "Created " + applicationCount + " Applications across " + scholarships.size() + " scholarships");
     }
 
 }
