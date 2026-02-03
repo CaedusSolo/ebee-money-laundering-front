@@ -1,12 +1,10 @@
 package mmu.sef.fyj.controller;
 
-import mmu.sef.fyj.model.ScholarshipCommittee;
 import mmu.sef.fyj.service.ScholarshipCommitteeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -17,18 +15,17 @@ public class ScholarshipCommitteeController {
     @Autowired
     private ScholarshipCommitteeService committeeService;
 
-    @GetMapping("/list")
-    public ResponseEntity<List<ScholarshipCommittee>> getAllCommitteeMembers() {
-        return ResponseEntity.ok(committeeService.findAll());
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard(@RequestParam Integer committeeId) {
+        return ResponseEntity.ok(committeeService.getCommitteeDashboard(committeeId));
     }
 
-    @GetMapping("/dashboard/{committeeId}")
-    public ResponseEntity<?> getDashboard(@PathVariable Integer committeeId) {
+    @GetMapping("/application/{id}")
+    public ResponseEntity<?> getApplication(@PathVariable Integer id) {
         try {
-            Map<String, Object> data = committeeService.getCommitteeDashboard(committeeId);
-            return ResponseEntity.ok(data);
+            return ResponseEntity.ok(committeeService.getFullApplicationDetails(id));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }

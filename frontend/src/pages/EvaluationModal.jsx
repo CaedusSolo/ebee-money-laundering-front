@@ -1,120 +1,132 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    academic: '',
-    curriculum: '',
-    leadership: '',
-    comments: '',
-  });
+  const { currentUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('profile');
+  const [details, setDetails] = useState(null);
+  const [localError, setLocalError] = useState('');
+  const [formData, setFormData] = useState({ academic: '', curriculum: '', leadership: '', comments: '' });
 
   useEffect(() => {
-    if (application) {
+    if (application && isOpen) {
+      // Pull scores from main branch ElementCollection structure
+      const findScore = (cat) => application.scores?.find(s => s.category === cat)?.score || '';
+      const findRemarks = () => application.scores?.[0]?.remarks || '';
+
       setFormData({
-        academic: application.scores.academic !== null ? application.scores.academic : '',
-        curriculum: application.scores.curriculum !== null ? application.scores.curriculum : '',
-        leadership: application.scores.leadership !== null ? application.scores.leadership : '',
-        comments: application.comments || '',
+        academic: findScore('ACADEMIC'),
+        curriculum: findScore('CURRICULUM'),
+        leadership: findScore('LEADERSHIP'),
+        comments: findRemarks(),
       });
+      fetchDetails();
     }
+    setLocalError('');
+    setActiveTab('profile');
   }, [application, isOpen]);
 
-  if (!isOpen || !application) {
-    return null;
-  }
+  const fetchDetails = async () => {
+    try {
+      const id = application?.id || 1;
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/committee/application/${id}`, {
+        headers: { 'Authorization': `Bearer ${currentUser?.token}` }
+      });
+      const data = await response.json();
+      setDetails(data);
+    } catch (err) { console.error("Failed to load details", err); }
+  };
 
   const handleChange = (field, value) => {
+    setLocalError('');
     if (field === 'comments') {
       setFormData({ ...formData, [field]: value });
     } else {
-      const score = value === '' ? '' : Math.max(0, Math.min(20, parseInt(value, 10)));
+      // 1. SYMBOL DETECTION: Prevent non-numeric entry
+      if (/[^0-9]/.test(value) && value !== '') {
+        setLocalError(`Numbers only for ${field}.`);
+        return;
+      }
+      // 2. ZERO TRUNCATION: parse to integer handles '07' or '00'
+      const num = value === '' ? '' : parseInt(value, 10);
+      const score = num === '' ? '' : Math.max(0, Math.min(20, num));
       setFormData({ ...formData, [field]: score });
     }
   };
 
-  const handleDocumentAction = (action, docName) => {
-    alert(`${action} triggered for: ${docName}`);
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
+    // 3. MANDATORY COMMENTS check
+    if (!formData.comments.trim()) {
+      setLocalError("Please provide an assessment justification.");
+      return;
+    }
     onSubmit(formData);
   };
 
+  if (!isOpen || !application) return null;
+
   return (
-    // UPDATED: Used bg-black/60 for transparency and backdrop-blur-sm for the blur effect
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="bg-blue-800 text-white px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Evaluate: {application.id}</h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white transition">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 font-sans">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+        <div className="bg-[#1e3a8a] text-white px-6 pt-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold uppercase tracking-tight">App ID: {application.id}</h2>
+            <button onClick={onClose} className="text-blue-200 hover:text-white transition text-2xl">&times;</button>
+          </div>
+          <div className="flex space-x-8 text-[11px] font-bold uppercase tracking-widest">
+            <button onClick={() => setActiveTab('profile')} className={`pb-3 border-b-2 transition-colors ${activeTab === 'profile' ? 'border-white' : 'border-transparent text-blue-300'}`}>Profile</button>
+            <button onClick={() => setActiveTab('evaluate')} className={`pb-3 border-b-2 transition-colors ${activeTab === 'evaluate' ? 'border-white' : 'border-transparent text-blue-300'}`}>Grading</button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6">
-          {/* Document Preview Section */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="font-semibold text-gray-700 mb-3">Submitted Documents</h3>
-            <div className="flex space-x-4">
-              <div className="flex flex-col space-y-2">
-                <span className="text-sm font-medium text-gray-600">Transcript.pdf</span>
-                <div className="flex space-x-2">
-                  <button type="button" onClick={() => handleDocumentAction('Preview', 'Transcript.pdf')} className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded">Preview</button>
-                  <button type="button" onClick={() => handleDocumentAction('Download', 'Transcript.pdf')} className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded">Download</button>
-                </div>
+        <div className="p-6 overflow-y-auto">
+          {activeTab === 'profile' ? (
+            <div className="space-y-6">
+              {/* Applicant view is displayed here if component exists */}
+              <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+                Viewing profile for Application {application.id}...
               </div>
-              <div className="flex flex-col space-y-2">
-                <span className="text-sm font-medium text-gray-600">IC_Copy.pdf</span>
-                <div className="flex space-x-2">
-                  <button type="button" onClick={() => handleDocumentAction('Preview', 'IC_Copy.pdf')} className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded">Preview</button>
-                  <button type="button" onClick={() => handleDocumentAction('Download', 'IC_Copy.pdf')} className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded">Download</button>
-                </div>
-              </div>
+              <button onClick={() => setActiveTab('evaluate')} className="w-full py-3 bg-blue-50 text-[#1e3a8a] font-bold rounded-xl hover:bg-blue-100 transition shadow-sm border border-blue-100">Proceed to Grade →</button>
             </div>
-          </div>
-
-          {/* Rubrics Section */}
-          <div>
-            <h3 className="font-semibold text-gray-700 mb-3 border-b pb-2">Rubric Evaluation (0 - 20 pts)</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Academic Excellence</label>
-                <input type="number" required min="0" max="20" value={formData.academic} onChange={(e) => handleChange('academic', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0 - 20" />
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
+                {['academic', 'curriculum', 'leadership'].map((key) => (
+                  <div key={key}>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">{key}</label>
+                    <input
+                      type="text" inputMode="numeric" required
+                      value={formData[key]}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none transition font-semibold"
+                      placeholder="0-20"
+                    />
+                  </div>
+                ))}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Extra-curricular</label>
-                <input type="number" required min="0" max="20" value={formData.curriculum} onChange={(e) => handleChange('curriculum', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0 - 20" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Leadership Quality</label>
-                <input type="number" required min="0" max="20" value={formData.leadership} onChange={(e) => handleChange('leadership', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0 - 20" />
-              </div>
-            </div>
-          </div>
 
-          {/* Comments Section */}
-          <div>
-            <h3 className="font-semibold text-gray-700 mb-3 border-b pb-2">Committee Comments</h3>
-            <textarea
-              rows="4"
-              value={formData.comments}
-              onChange={(e) => handleChange('comments', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your qualitative assessment and recommendation here..."
-            />
-          </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 tracking-wider">Remarks</label>
+                <textarea
+                  rows="4" required
+                  value={formData.comments}
+                  onChange={(e) => handleChange('comments', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none transition text-sm"
+                  placeholder="Justify scores here..."
+                />
+              </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 shadow-sm">
-              Submit Evaluation
-            </button>
-          </div>
-        </form>
+              {localError && <div className="p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs font-bold rounded animate-pulse">{localError}</div>}
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
+                <button type="button" onClick={onClose} className="px-6 py-2 text-gray-400 font-bold hover:text-gray-600 transition">Cancel</button>
+                <button type="submit" className="px-8 py-2 bg-[#1e3a8a] text-white font-bold rounded-xl hover:bg-blue-800 shadow-lg transition transform active:scale-95">Submit Grade</button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );
