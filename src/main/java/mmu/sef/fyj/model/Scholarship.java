@@ -1,6 +1,9 @@
 package mmu.sef.fyj.model;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "scholarships")
@@ -25,19 +28,11 @@ public class Scholarship {
 
     @ManyToMany
     @JoinTable(
-        name = "scholarship_committees",
+        name = "scholarship_committee_assignments",
         joinColumns = @JoinColumn(name = "scholarship_id"),
         inverseJoinColumns = @JoinColumn(name = "committee_id")
     )
-    private Set<Committee> scholarshipCommittees = new HashSet<>();
-
-    @ManyToMany
-    @JoinTable(
-        name = "scholarship_applications",
-        joinColumns = @JoinColumn(name = "scholarship_id"),
-        inverseJoinColumns = @JoinColumn(name = "application_id")
-    )
-    private Set<Application> applications = new HashSet<>();
+    private Set<ScholarshipCommittee> scholarshipCommittees = new HashSet<>();
 
     // Constructors
     public Scholarship() {}
@@ -48,11 +43,52 @@ public class Scholarship {
         this.applicationDeadline = applicationDeadline;
     }
 
-    // Business method
-    public void applyScholarship(Application application) {
-        this.applications.add(application);
+    // Getters and Setters
+    public int getId() {
+        return id;
     }
 
-    // Getters and Setters
-    // ... (generate as needed)
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDate getApplicationDeadline() {
+        return applicationDeadline;
+    }
+
+    public void setApplicationDeadline(LocalDate applicationDeadline) {
+        this.applicationDeadline = applicationDeadline;
+    }
+
+    public Reviewer getReviewer() {
+        return reviewer;
+    }
+
+    public void setReviewer(Reviewer reviewer) {
+        this.reviewer = reviewer;
+    }
+
+    public Set<ScholarshipCommittee> getScholarshipCommittees() {
+        return scholarshipCommittees;
+    }
+
+    public void setScholarshipCommittees(Set<ScholarshipCommittee> scholarshipCommittees) {
+        this.scholarshipCommittees = scholarshipCommittees;
+    }
 }
