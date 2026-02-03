@@ -25,8 +25,8 @@ const PersonalInfoForm = ({
         const allFieldsFilled = requiredFields.every(field => {
             const value = formData[field];
             return value && value.toString().trim() !== '' && 
-                   value !== 'Select Gender' && value !== 'Select' && 
-                   value !== 'Select Nationality';
+                    value !== 'Select Gender' && value !== 'Select' && 
+                    value !== 'Select Nationality';
         });
         
         // Check no validation errors - only count errors that have actual error messages
@@ -36,11 +36,27 @@ const PersonalInfoForm = ({
         });
         const noErrors = !hasActualErrors;
         
-        // Check family members (at least 2 filled)
+        // Check family members (at least 2 COMPLETELY filled rows)
         const filledRows = familyMembers.filter(member => {
-            return Object.values(member).some(value => value && value.toString().trim() !== '');
+            // A row is considered filled only if ALL fields have values
+            return member.name && member.name.trim() !== '' &&
+                    member.relationship && member.relationship.trim() !== '' &&
+                    member.age && member.age.trim() !== '' &&
+                    member.occupation && member.occupation.trim() !== '' &&
+                    member.income && member.income.trim() !== '';
         });
         const familyValid = filledRows.length >= 2;
+        
+        // Check for partially filled rows (any field filled but not all fields filled)
+        const hasPartiallyFilledRows = familyMembers.some(member => {
+            const hasAnyValue = Object.values(member).some(value => value && value.toString().trim() !== '');
+            const hasAllValues = member.name && member.name.trim() !== '' &&
+                                member.relationship && member.relationship.trim() !== '' &&
+                                member.age && member.age.trim() !== '' &&
+                                member.occupation && member.occupation.trim() !== '' &&
+                                member.income && member.income.trim() !== '';
+            return hasAnyValue && !hasAllValues;
+        });
         
         // Check that filled family fields meet minimum length requirement
         let familyFieldsValid = true;
@@ -53,12 +69,13 @@ const PersonalInfoForm = ({
             });
         });
         
-        const isValid = allFieldsFilled && noErrors && familyValid && familyFieldsValid;
+        const isValid = allFieldsFilled && noErrors && familyValid && familyFieldsValid && !hasPartiallyFilledRows;
         console.log('Form validation:', {
             allFieldsFilled,
             noErrors,
             familyValid,
             familyFieldsValid,
+            hasPartiallyFilledRows,
             errors: errors,
             isValid
         });
@@ -66,10 +83,15 @@ const PersonalInfoForm = ({
         setIsFormValid(isValid);
     }, [formData, errors, familyMembers]);
 
-    // Validate family members table (minimum 2 rows filled)
+    // Validate family members table (minimum 2 rows with ALL fields filled)
     const validateFamilyMembers = useCallback(() => {
         const filledRows = familyMembers.filter(member => {
-            return Object.values(member).some(value => value && value.toString().trim() !== '');
+            // A row is considered filled only if ALL fields have values
+            return member.name && member.name.trim() !== '' &&
+                    member.relationship && member.relationship.trim() !== '' &&
+                    member.age && member.age.trim() !== '' &&
+                    member.occupation && member.occupation.trim() !== '' &&
+                    member.income && member.income.trim() !== '';
         });
         
         if (filledRows.length < 2) {
@@ -421,26 +443,68 @@ const PersonalInfoForm = ({
                 )}
             </section>
 
-            <div className="flex justify-center space-x-4 pt-10">
-                <button
-                    type="button"
-                    onClick={handleNextClick}
-                    disabled={!isFormValid}
-                    className={`font-bold py-3 px-12 rounded-xl transition-colors ${
-                        !isFormValid 
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                            : 'bg-cyan-500 hover:bg-cyan-600 text-white'
-                    }`}
-                >
-                    Next
-                </button>
-                <button
-                    type="button"
-                    onClick={handleSave}
-                    className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                >
-                    Save
-                </button>
+            <div className="flex flex-col items-center pt-10">
+                {/* Validation Message */}
+                {!isFormValid && (
+                    <div className="mb-4 text-red-600 text-sm font-semibold text-center">
+                        {(!formData.gender || formData.gender === 'Select Gender') && (
+                            <div>Please select a gender</div>
+                        )}
+                        {(!formData.nationality || formData.nationality === 'Select Nationality') && (
+                            <div>Please select a nationality</div>
+                        )}
+                        {(!formData.bumiputera || formData.bumiputera === 'Select') && (
+                            <div>Please select Bumiputera status</div>
+                        )}
+                        {familyMembers.some(member => {
+                            const hasAnyValue = Object.values(member).some(value => value && value.toString().trim() !== '');
+                            const hasAllValues = member.name && member.name.trim() !== '' &&
+                                                member.relationship && member.relationship.trim() !== '' &&
+                                                member.age && member.age.trim() !== '' &&
+                                                member.occupation && member.occupation.trim() !== '' &&
+                                                member.income && member.income.trim() !== '';
+                            return hasAnyValue && !hasAllValues;
+                        }) && (
+                            <div>Please fill in the whole row</div>
+                        )}
+                        {(formData.gender && formData.gender !== 'Select Gender' && 
+                            formData.nationality && formData.nationality !== 'Select Nationality' && 
+                            formData.bumiputera && formData.bumiputera !== 'Select' &&
+                            !familyMembers.some(member => {
+                                const hasAnyValue = Object.values(member).some(value => value && value.toString().trim() !== '');
+                                const hasAllValues = member.name && member.name.trim() !== '' &&
+                                                    member.relationship && member.relationship.trim() !== '' &&
+                                                    member.age && member.age.trim() !== '' &&
+                                                    member.occupation && member.occupation.trim() !== '' &&
+                                                    member.income && member.income.trim() !== '';
+                                return hasAnyValue && !hasAllValues;
+                            })) && (
+                            <div>Please fill in all required fields</div>
+                        )}
+                    </div>
+                )}
+                
+                <div className="flex space-x-4">
+                    <button
+                        type="button"
+                        onClick={handleNextClick}
+                        disabled={!isFormValid}
+                        className={`font-bold py-3 px-12 rounded-xl transition-colors ${
+                            !isFormValid 
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+                        }`}
+                    >
+                        Next
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-12 rounded-xl transition-colors"
+                    >
+                        Save
+                    </button>
+                </div>
             </div>
         </div>
     );

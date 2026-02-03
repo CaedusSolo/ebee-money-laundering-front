@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import InputField from "./InputField";
 import FileUpload from "./FileUpload";
 
@@ -14,6 +14,99 @@ const AcademicInfoForm = ({
     handleBack,
     handleSubmit
 }) => {
+    const [isFormValid, setIsFormValid] = useState(false);
+    const [validationMessages, setValidationMessages] = useState([]);
+
+    // Check form validity
+    useEffect(() => {
+        const messages = [];
+        
+        // Check required text fields
+        const requiredFields = ['university', 'major', 'cgpa'];
+        const allTextFieldsFilled = requiredFields.every(field => {
+            const value = formData[field];
+            return value && value.toString().trim() !== '';
+        });
+        
+        // Add message for partially filled activities
+        const hasPartialActivities = activities.some(activity => {
+            const hasAnyValue = Object.values(activity).some(value => value && value.toString().trim() !== '');
+            const hasAllValues = activity.activity && activity.activity.trim() !== '' &&
+                                 activity.role && activity.role.trim() !== '';
+            return hasAnyValue && !hasAllValues;
+        });
+        
+        if (hasPartialActivities) {
+            messages.push('Please fill in the whole row');
+        }
+        
+        // Check dropdowns
+        if (!formData.year || formData.year === '') {
+            messages.push('Please select a year');
+        }
+        if (!formData.expectedGraduation || formData.expectedGraduation === '') {
+            messages.push('Please select expected graduation year');
+        }
+        if (!formData.highestQualification || formData.highestQualification === '') {
+            messages.push('Please select highest qualification');
+        }
+        
+        // Check CGPA validity
+        const cgpaValue = parseFloat(formData.cgpa);
+        if (formData.cgpa && (isNaN(cgpaValue) || cgpaValue <= 0 || cgpaValue > 4.0)) {
+            messages.push('CGPA must be between 0.01 and 4.00');
+        }
+        
+        // Check activities (at least 2 COMPLETELY filled rows)
+        const filledActivities = activities.filter(activity => {
+            // A row is considered filled only if ALL fields have values
+            return activity.activity && activity.activity.trim() !== '' &&
+                   activity.role && activity.role.trim() !== '';
+        });
+        
+        // Check for partially filled rows (any field filled but not all fields filled)
+        const hasPartiallyFilledActivities = activities.some(activity => {
+            const hasAnyValue = Object.values(activity).some(value => value && value.toString().trim() !== '');
+            const hasAllValues = activity.activity && activity.activity.trim() !== '' &&
+                                 activity.role && activity.role.trim() !== '';
+            return hasAnyValue && !hasAllValues;
+        });
+        
+        // Check that filled activity fields meet minimum length requirement
+        let activitiesValid = true;
+        filledActivities.forEach((activity, index) => {
+            ['activity', 'role'].forEach(field => {
+                const value = activity[field];
+                if (value && value.trim().length > 0 && value.trim().length < 3) {
+                    activitiesValid = false;
+                }
+            });
+        });
+        
+        // Check files
+        const allFilesUploaded = files.transcript && files.payslip && files.ic;
+        
+        // Check no validation errors
+        const hasActualErrors = Object.keys(errors).some(key => {
+            const errorMsg = errors[key];
+            return errorMsg && errorMsg.toString().trim() !== '';
+        });
+        
+        const isValid = allTextFieldsFilled && 
+                       formData.year && 
+                       formData.expectedGraduation && 
+                       formData.highestQualification &&
+                       !isNaN(cgpaValue) && cgpaValue > 0 && cgpaValue <= 4.0 &&
+                       filledActivities.length >= 2 &&
+                       activitiesValid &&
+                       !hasPartiallyFilledActivities &&
+                       allFilesUploaded &&
+                       !hasActualErrors;
+        
+        setIsFormValid(isValid);
+        setValidationMessages(messages);
+    }, [formData, errors, activities, files]);
+
     // Handle activity field changes with validation
     const handleActivityFieldChange = (index, field, value) => {
         // Call the parent's activity change handler
@@ -119,11 +212,26 @@ const AcademicInfoForm = ({
         "Other"
     ];
 
-    // Validate activities table (minimum 2 rows filled) and file uploads
+    // Validate activities table (minimum 2 rows with ALL fields filled) and file uploads
     const validateActivities = () => {
         const filledRows = activities.filter(activity => {
-            return Object.values(activity).some(value => value && value.toString().trim() !== '');
+            // A row is considered filled only if ALL fields have values
+            return activity.activity && activity.activity.trim() !== '' &&
+                    activity.role && activity.role.trim() !== '';
         });
+        
+        // Check for partially filled rows
+        const hasPartiallyFilledRows = activities.some(activity => {
+            const hasAnyValue = Object.values(activity).some(value => value && value.toString().trim() !== '');
+            const hasAllValues = activity.activity && activity.activity.trim() !== '' &&
+                                activity.role && activity.role.trim() !== '';
+            return hasAnyValue && !hasAllValues;
+        });
+        
+        if (hasPartiallyFilledRows) {
+            handleValidationError('activities', 'Please fill in the whole row');
+            return false;
+        }
         
         if (filledRows.length < 2) {
             handleValidationError('activities', 'Please fill in at least 2 activities');
@@ -247,8 +355,30 @@ const AcademicInfoForm = ({
                         label="CGPA"
                         field="cgpa"
                         value={formData.cgpa}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
+                        onChange={(field, value) => {
+                            // Only allow numbers and one decimal point
+                            const numericValue = value.replace(/[^\d.]/g, '');
+                            
+                            // Prevent multiple decimal points
+                            const parts = numericValue.split('.');
+                            if (parts.length > 2) return;
+                            
+                            // Limit to 4.00
+                            const cgpaNum = parseFloat(numericValue);
+                            if (!isNaN(cgpaNum) && cgpaNum > 4.0) return;
+                            
+                            handleInputChange(field, numericValue);
+                        }}
+                        onValidate={(field, error) => {
+                            const cgpaValue = parseFloat(formData.cgpa);
+                            if (formData.cgpa && (isNaN(cgpaValue) || cgpaValue <= 0)) {
+                                handleValidationError(field, 'CGPA must be greater than 0');
+                            } else if (formData.cgpa && cgpaValue > 4.0) {
+                                handleValidationError(field, 'CGPA cannot exceed 4.00');
+                            } else {
+                                handleValidationError(field, error);
+                            }
+                        }}
                         error={errors.cgpa}
                         validationType="cgpa"
                     />
@@ -299,7 +429,7 @@ const AcademicInfoForm = ({
                 </h2>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
-                        *Please fill in at least 2 activities
+                        *Please fill in at least 2 activities (all columns required for each row)
                     </p>
                 </div>
                 <table className="w-full border-collapse border border-gray-300 text-sm">
@@ -399,21 +529,42 @@ const AcademicInfoForm = ({
                 </div>
             </section>
 
-            <div className="flex justify-center space-x-4 pt-10">
-                <button
-                    type="button"
-                    onClick={handleBack}
-                    className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                >
-                    Back
-                </button>
-                <button
-                    type="button"
-                    onClick={handleSubmitClick}
-                    className="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-16 rounded-xl transition-colors shadow-lg"
-                >
-                    Submit
-                </button>
+            <div className="flex flex-col items-center pt-10">
+                {/* Validation Messages */}
+                {!isFormValid && validationMessages.length > 0 && (
+                    <div className="mb-4 text-red-600 text-sm font-semibold text-center">
+                        {validationMessages.map((message, index) => (
+                            <div key={index}>{message}</div>
+                        ))}
+                    </div>
+                )}
+                {!isFormValid && validationMessages.length === 0 && (
+                    <div className="mb-4 text-red-600 text-sm font-semibold text-center">
+                        Please fill in all required fields and upload all documents
+                    </div>
+                )}
+                
+                <div className="flex space-x-4">
+                    <button
+                        type="button"
+                        onClick={handleBack}
+                        className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-12 rounded-xl transition-colors"
+                    >
+                        Back
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleSubmitClick}
+                        disabled={!isFormValid}
+                        className={`font-bold py-3 px-16 rounded-xl transition-colors shadow-lg ${
+                            !isFormValid
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-blue-800 hover:bg-blue-900 text-white'
+                        }`}
+                    >
+                        Submit
+                    </button>
+                </div>
             </div>
         </div>
     );
