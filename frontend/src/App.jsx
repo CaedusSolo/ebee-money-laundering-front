@@ -23,6 +23,7 @@ import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout";
 import UserDetails from "./pages/UserDetails";
 import ManageScholarship from "./pages/ManageScholarship";
 import ScholarshipDetail from "./pages/ScholarshipDetails";
+import StudentDashboard from "./pages/StudentDashboard";
 import ManageApplications from "./pages/ManageApplications";
 import ApplicationDetails from "./components/ApplicationDetails";
 
@@ -89,14 +90,18 @@ function App() {
             }
           />
 
-          <Route
-            path="/student-dashboard"
-            element={
-              <ProtectedRoute allowedRoles={["STUDENT"]}>
-                <ScholarshipsList />
-              </ProtectedRoute>
-            }
-          />
+          {/* Scholarship/Applications Routes */}
+          <Route path="/student-dashboard" element={
+            <ProtectedRoute allowedRoles={["STUDENT"]}>
+              <StudentDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/scholarships-list" element={
+            <ProtectedRoute allowedRoles={["STUDENT"]}>
+              <ScholarshipsList />
+            </ProtectedRoute>
+          } />
 
           {/* Added leading slash */}
           <Route

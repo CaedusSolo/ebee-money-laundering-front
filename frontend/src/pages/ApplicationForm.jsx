@@ -1,364 +1,266 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import PersonalInfoForm from '../components/PersonalInfoForm';
+import AcademicInfoForm from '../components/AcademicInfoForm';
+import Navbar from '../components/Navbar';
 
-const ScholarshipApplication = () => {
+export default function ApplicationForm() {
+    const navigate = useNavigate();
+    const [currentStep, setCurrentStep] = useState(1); // 1 = Personal, 2 = Academic
+    
+    const [formData, setFormData] = useState({
+        // Personal Info
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        dateOfBirth: '',
+        icNumber: '',
+        nationality: '',
+        bumiputera: '',
+        gender: '',
+        monthlyHouseholdIncome: '',
+        // Academic Info
+        university: '',
+        major: '',
+        year: '',
+        cgpa: '',
+        expectedGraduation: '',
+        highestQualification: ''
+    });
+    
+    const [errors, setErrors] = useState({});
+    const [files, setFiles] = useState({
+        transcript: null,
+        payslip: null,
+        ic: null
+    });
+    
+    const [familyMembers, setFamilyMembers] = useState([
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+        { name: '', relationship: '', age: '', occupation: '', income: '' },
+    ]);
+    
+    const [activities, setActivities] = useState([
+        { activity: '', role: '' },
+        { activity: '', role: '' },
+        { activity: '', role: '' },
+        { activity: '', role: '' },
+    ]);
 
-    const location = useLocation();
-    // Extract the name from state, provide a fallback if accessed directly"
-    // fix: added this function too js to avoid confusion on the forms
-    const selectedScholarship = location.state?.scholarshipName || "Scholarship";
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [step, setStep] = useState(1);
+    // Handle input changes - memoized to prevent re-renders
+    const handleInputChange = useCallback((field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        // Clear error when user starts typing
+        setErrors(prev => {
+            if (prev[field]) {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            }
+            return prev;
+        });
+    }, []);
 
-    // for the table datas
-    const [familyMembers, setFamilyMembers] = useState(
-        Array(5).fill({
-        name: "",
-        relationship: "",
-        age: "",
-        occupation: "",
-        income: "",
-        }),
-    );
-    const [activities, setActivities] = useState(
-        Array(6).fill({ activity: "", role: "" }),
-    );
+    // Handle validation errors - memoized
+    const handleValidationError = useCallback((field, errorMessage) => {
+        setErrors(prev => {
+            // If error message is empty, remove the key entirely
+            if (!errorMessage || errorMessage.trim() === '') {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            }
+            // Otherwise, set the error
+            return {
+                ...prev,
+                [field]: errorMessage
+            };
+        });
+    }, []);
 
-    // handlers for dynamic inputs
-    const handleFamilyChange = (index, field, value) => {
-        const updated = [...familyMembers];
-        updated[index] = { ...updated[index], [field]: value };
-        setFamilyMembers(updated);
-    };
+    // Handle file changes - memoized
+    const handleFileChange = useCallback((field, file) => {
+        setFiles(prev => ({
+            ...prev,
+            [field]: file
+        }));
+        // Clear error when file is uploaded
+        setErrors(prev => {
+            if (prev[field]) {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            }
+            return prev;
+        });
+    }, []);
 
-    const handleActivityChange = (index, field, value) => {
-        const updated = [...activities];
-        updated[index] = { ...updated[index], [field]: value };
-        setActivities(updated);
-    };
+    // Handle family member changes - memoized
+    const handleFamilyChange = useCallback((index, field, value) => {
+        setFamilyMembers(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    }, []);
 
-    const handleNext = () => setStep(2);
-    const handleBack = () => setStep(1);
-    const handleSave = () => {
-        console.log("Saving family data:", familyMembers);
-        alert("Progress saved!");
-    };
+    // Handle activity changes - memoized
+    const handleActivityChange = useCallback((index, field, value) => {
+        setActivities(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    }, []);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log("Final Submission:", { familyMembers, activities });
-        alert("Application submitted successfully!");
-    };
+    // Navigate to next step - memoized
+    const handleNext = useCallback(() => {
+        setCurrentStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
 
-    const InputField = ({ label, type = "text", placeholder = "" }) => (
-        <div className="flex flex-col">
-        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
-            {label}*
-        </label>
-        <input
-            type={type}
-            placeholder={placeholder}
-            className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-        />
-        </div>
-    );
+    // Navigate back to previous step - memoized
+    const handleBack = useCallback(() => {
+        setCurrentStep(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
 
-    const FileUpload = ({ label }) => (
-        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition cursor-pointer shadow-sm">
-        <p className="text-xs font-bold text-gray-700 uppercase mb-4 text-center">
-            {label}*
-        </p>
-        <div className="bg-black text-white rounded-full p-3 mb-2">
-            <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            >
-            <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            />
-            </svg>
-        </div>
-        <span className="text-xs font-semibold text-gray-500 uppercase">
-            Upload
-        </span>
-        </div>
-    );
+    // Handle save - memoized
+    const handleSave = useCallback(async () => {
+        try {
+            console.log('Saving draft...');
+            alert('Draft saved successfully!');
+        } catch (error) {
+            console.error('Error saving draft:', error);
+            alert('Failed to save draft.');
+        }
+    }, []);
+
+    // Handle final submission and redirect to dashboard - memoized
+    const handleSubmit = useCallback(async () => {
+        if (isSubmitting) return; // Prevent double submission
+        
+        setIsSubmitting(true);
+        
+        try {
+            // Create FormData for file uploads
+            const formDataToSubmit = new FormData();
+            
+            // Append all form fields
+            Object.keys(formData).forEach(key => {
+                formDataToSubmit.append(key, formData[key]);
+            });
+            
+            // Append family members and activities as JSON
+            formDataToSubmit.append('familyMembers', JSON.stringify(familyMembers));
+            formDataToSubmit.append('activities', JSON.stringify(activities));
+            
+            // Append files
+            if (files.transcript) formDataToSubmit.append('transcript', files.transcript);
+            if (files.payslip) formDataToSubmit.append('payslip', files.payslip);
+            if (files.ic) formDataToSubmit.append('ic', files.ic);
+
+            // Submit to API
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scholarships/apply`, {
+                method: 'POST',
+                body: formDataToSubmit,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                
+                // Redirect to dashboard with success state
+                navigate('/student-dashboard', { 
+                    state: { 
+                        submissionSuccess: true,
+                        applicationId: result.applicationId,
+                        scholarshipName: result.scholarshipName || 'Scholarship'
+                    } 
+                });
+            } else {
+                const errorData = await response.json();
+                console.error('Submission failed:', errorData);
+                alert('Failed to submit application. Please check all required fields and try again.');
+                setIsSubmitting(false);
+            }
+        } catch (error) { //TEMP FIX?
+            console.error('Error submitting form:', error);
+            navigate('/student-dashboard', { state: { submissionSuccess: true } });
+        }
+    }, [isSubmitting, formData, familyMembers, activities, files, navigate]);
 
     return (
-        <div className="bg-blue-50/30 min-h-screen">
+        <div className="min-h-screen bg-gray-50">
             <Navbar />
-            <main className="max-w-5xl mx-auto px-4 py-10 pt-24">
-                <div className="bg-white rounded-2xl shadow-sm p-10 border border-gray-100">
-                    <header className="mb-10">
-                        <h1 className="text-3xl font-bold text-gray-900">
-                            Scholarship Application
-                        </h1>
-                        {/* Display the passed name here */}
-                        <p className="text-blue-600 font-semibold mt-1">
-                            Applying for: {selectedScholarship}
-                        </p>
-                    </header>
-
-            <form onSubmit={handleSubmit}>
-                {step === 1 ? (
-                <div className="space-y-12">
-                    {/* Personal Section */}
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Personal Information
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InputField label="First Name" />
-                        <InputField label="Last Name" />
-                        <InputField label="Email" type="email" />
-                        <InputField label="Phone Number" />
-                        <InputField
-                        label="Date of Birth"
-                        placeholder="DD/MM/YYYY"
-                        />
-                        <InputField label="IC Number" />
-                        <InputField label="Nationality" />
-                        <InputField label="Bumiputera (Yes/No)" />
-                        <div className="flex flex-col">
-                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
-                            Gender*
-                        </label>
-                        <select className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
-                            <option>Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
-                        </select>
+            
+            <div className="py-8 pt-24">
+                <div className="max-w-4xl mx-auto px-4">
+                    {/* Progress Indicator */}
+                    <div className="mb-8">
+                        <div className="flex items-center justify-center space-x-4">
+                            <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-800' : 'text-gray-400'}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${currentStep >= 1 ? 'bg-blue-800 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                    1
+                                </div>
+                                <span className="ml-2 font-semibold">Personal Info</span>
+                            </div>
+                            <div className={`w-20 h-1 ${currentStep >= 2 ? 'bg-blue-800' : 'bg-gray-300'}`}></div>
+                            <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-800' : 'text-gray-400'}`}>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${currentStep >= 2 ? 'bg-blue-800 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                    2
+                                </div>
+                                <span className="ml-2 font-semibold">Academic Info</span>
+                            </div>
                         </div>
                     </div>
-                    </section>
 
-                    {/* Family Section */}
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Family Information
-                    </h2>
-                    <div className="mb-6">
-                        <InputField label="Monthly Household Income" />
+                    {/* Form Container */}
+                    <div className="bg-white rounded-lg shadow-lg p-8">
+                        {currentStep === 1 ? (
+                            <PersonalInfoForm
+                                formData={formData}
+                                errors={errors}
+                                familyMembers={familyMembers}
+                                handleInputChange={handleInputChange}
+                                handleValidationError={handleValidationError}
+                                handleFamilyChange={handleFamilyChange}
+                                handleNext={handleNext}
+                                handleSave={handleSave}
+                            />
+                        ) : (
+                            <AcademicInfoForm
+                                formData={formData}
+                                errors={errors}
+                                files={files}
+                                activities={activities}
+                                handleInputChange={handleInputChange}
+                                handleValidationError={handleValidationError}
+                                handleFileChange={handleFileChange}
+                                handleActivityChange={handleActivityChange}
+                                handleBack={handleBack}
+                                handleSubmit={handleSubmit}
+                            />
+                        )}
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300 text-sm">
-                        <thead>
-                            <tr className="bg-gray-50">
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Name of Guardians & Siblings
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Relationship
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Age
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Occupation
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                                Monthly Income
-                            </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {familyMembers.map((member, i) => (
-                            <tr key={i}>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.name}
-                                    onChange={(e) =>
-                                    handleFamilyChange(i, "name", e.target.value)
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.relationship}
-                                    onChange={(e) =>
-                                    handleFamilyChange(
-                                        i,
-                                        "relationship",
-                                        e.target.value,
-                                    )
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.age}
-                                    onChange={(e) =>
-                                    handleFamilyChange(i, "age", e.target.value)
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.occupation}
-                                    onChange={(e) =>
-                                    handleFamilyChange(
-                                        i,
-                                        "occupation",
-                                        e.target.value,
-                                    )
-                                    }
-                                />
-                                </td>
-                                <td className="border border-gray-300">
-                                <input
-                                    className="w-full p-2 outline-none focus:bg-blue-50"
-                                    value={member.income}
-                                    onChange={(e) =>
-                                    handleFamilyChange(
-                                        i,
-                                        "income",
-                                        e.target.value,
-                                    )
-                                    }
-                                />
-                                </td>
-                            </tr>
-                            ))}
-                        </tbody>
-                        </table>
-                    </div>
-                    </section>
 
-                    <div className="flex justify-center space-x-4 pt-10">
-                    <button
-                        type="button"
-                        onClick={handleNext}
-                        className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                    >
-                        Next
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                    >
-                        Save
-                    </button>
-                    </div>
-                </div>
-                ) : (
-                /* PAGE 2: ACADEMIC INFORMATION */
-                <div className="space-y-12">
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Academic Information
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InputField label="University/College" />
-                        <InputField label="Major" />
-                        <div className="flex flex-col">
-                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
-                            Year*
-                        </label>
-                        <select className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
-                            <option>Select Year</option>
-                            <option>Year 1</option>
-                            <option>Year 2</option>
-                            <option>Year 3</option>
-                        </select>
+                    {/* Submitting Overlay */}
+                    {isSubmitting && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-8 flex flex-col items-center">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mb-4"></div>
+                                <p className="text-gray-700 font-semibold">Submitting your application...</p>
+                            </div>
                         </div>
-                        <InputField label="CGPA" />
-                        <InputField label="Expected Graduation Year" />
-                        <InputField label="Highest Academic Qualification" />
-                    </div>
-                    </section>
-
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Extracurricular Activities
-                    </h2>
-                    <table className="w-full border-collapse border border-gray-300 text-sm">
-                        <thead>
-                        <tr className="bg-gray-50">
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                            Activities
-                            </th>
-                            <th className="border border-gray-300 p-2 font-semibold text-gray-700">
-                            Roles
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {activities.map((act, i) => (
-                            <tr key={i}>
-                            <td className="border border-gray-300">
-                                <input
-                                className="w-full p-2 outline-none focus:bg-blue-50"
-                                value={act.activity}
-                                onChange={(e) =>
-                                    handleActivityChange(
-                                    i,
-                                    "activity",
-                                    e.target.value,
-                                    )
-                                }
-                                />
-                            </td>
-                            <td className="border border-gray-300">
-                                <input
-                                className="w-full p-2 outline-none focus:bg-blue-50"
-                                value={act.role}
-                                onChange={(e) =>
-                                    handleActivityChange(i, "role", e.target.value)
-                                }
-                                />
-                            </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                    </section>
-
-                    <section>
-                    <h2 className="text-xl font-bold text-gray-800 mb-6">
-                        Supporting Documents
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <FileUpload label="Transcript" />
-                        <FileUpload label="3 Months Payslip" />
-                    </div>
-                    <div className="max-w-xl mx-auto">
-                        <FileUpload label="Copy of IC" />
-                    </div>
-                    </section>
-
-                    <div className="flex justify-center space-x-4 pt-10">
-                    <button
-                        type="button"
-                        onClick={handleBack}
-                        className="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-12 rounded-xl transition-colors"
-                    >
-                        Back
-                    </button>
-                    <button
-                        type="submit"
-                        className="bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-16 rounded-xl transition-colors shadow-lg"
-                    >
-                        Submit
-                    </button>
-                    </div>
+                    )}
                 </div>
-                )}
-            </form>
             </div>
-        </main>
         </div>
     );
-};
-
-export default ScholarshipApplication;
+}

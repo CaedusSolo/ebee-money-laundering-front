@@ -13,24 +13,24 @@ export default function AvailableScholarships() {
         {
             id: 1,
             name: "Merit's Scholarship",
-            description: "Awarded to students with exceptional academic performance and standardized test scores.",
-            requirements: ["Minimum 3.67 CGPA", "Requirement 2", "Requirement 3"],
+            description: "Awarded to undergraduate students who would consistently deliver outstanding results in their degree programme. Benefits include 30% discount of programme fee.",
+            requirements: ["CGPA 3.75", "OR SPTM A-level 5A's", "OR UEC 5A's"],
             deadline: "15 March 2026",
             image: scholarship1
         },
         {
             id: 2,
             name: "President's Scholarship",
-            description: "Our most prestigious award for students who demonstrate holistic excellence and vision.",
-            requirements: ["Minimum 3.9 CGPA", "Req 2", "Req 3"],
+            description: "Awarded to high-flying, well-rounded students with outstanding academic results. Benefits include 100% discount of programme fee.",
+            requirements: ["CGPA 3.90 and above", "OR SPTM A-level 9A's", "OR UEC 8A's"],
             deadline: "15 March 2026",
             image: scholarship2
         },
         {
             id: 3,
-            name: "High Achiever's Scholarship",
-            description: "Supporting students who have achieved significant milestones in specialized fields.",
-            requirements: ["Req 1", "Req 2", "Req 3"],
+            name: "Chancellor's Scholarship",
+            description: "Awarded to high-flying, well-rounded students with outstanding academic results. Benefits include 100% discount of programme fee and monthly allowance.",
+            requirements: ["CGPA 3.90 and above", "OR SPTM A-level 9A's", "OR UEC 8A's"],
             deadline: "15 March 2026",
             image: scholarship3
         }
