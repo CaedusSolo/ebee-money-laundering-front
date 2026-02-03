@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback } from "react";
 import InputField from "./InputField";
 
 const PersonalInfoForm = ({ 
@@ -12,7 +12,7 @@ const PersonalInfoForm = ({
     handleSave 
 }) => {
     // Validate family members table (minimum 2 rows filled)
-    const validateFamilyMembers = () => {
+    const validateFamilyMembers = useCallback(() => {
         const filledRows = familyMembers.filter(member => {
             return Object.values(member).some(value => value && value.toString().trim() !== '');
         });
@@ -21,54 +21,44 @@ const PersonalInfoForm = ({
             handleValidationError('familyMembers', 'Please fill in at least 2 family members');
             return false;
         }
+        // Clear error if validation passes
+        if (errors.familyMembers) {
+            handleValidationError('familyMembers', '');
+        }
         return true;
-    };
+    }, [familyMembers, handleValidationError, errors.familyMembers]);
 
-    // Validate all required fields on page 1
-    const validatePage1 = () => {
-        const requiredFields = [
-            'firstName', 'lastName', 'email', 'phoneNumber', 
-            'dateOfBirth', 'icNumber', 'nationality', 'bumiputera', 
-            'gender', 'monthlyHouseholdIncome'
-        ];
-        
-        let isValid = true;
-        
-        // Check all required fields are filled
-        requiredFields.forEach(field => {
-            if (!formData[field] || formData[field].toString().trim() === '' || formData[field] === 'Select Gender' || formData[field] === 'Select') {
-                isValid = false;
-            }
-        });
-        
-        // Check if there are any validation errors
-        if (Object.keys(errors).length > 0) {
-            isValid = false;
-        }
-        
-        // Check family members
-        if (!validateFamilyMembers()) {
-            isValid = false;
-        }
-        
-        return isValid;
-    };
-
-    const handleNextClick = () => {
+    const handleNextClick = useCallback(() => {
+        console.log('Next button clicked');
+        console.log('Family members:', familyMembers);
         if (validateFamilyMembers()) {
+            console.log('Validation passed, calling handleNext');
             handleNext();
+        } else {
+            console.log('Validation failed');
         }
-    };
+    }, [validateFamilyMembers, handleNext, familyMembers]);
 
     // Handle family member income change - only allow numbers
-    const handleFamilyIncomeChange = (index, value) => {
+    const handleFamilyIncomeChange = useCallback((index, value) => {
         // Remove all non-numeric characters except decimal point
         const numericValue = value.replace(/[^\d.]/g, '');
         handleFamilyChange(index, "income", numericValue);
-    };
+    }, [handleFamilyChange]);
 
-    // Check if Next button should be disabled
-    const isNextDisabled = !validatePage1();
+    // Handle family member name/relationship/occupation change - only allow letters and spaces
+    const handleFamilyTextChange = useCallback((index, field, value) => {
+        // Only allow letters and spaces
+        const textValue = value.replace(/[^a-zA-Z\s]/g, '');
+        handleFamilyChange(index, field, textValue);
+    }, [handleFamilyChange]);
+
+    // Handle family member age change - only allow numbers
+    const handleFamilyAgeChange = useCallback((index, value) => {
+        // Remove all non-numeric characters
+        const numericValue = value.replace(/[^\d]/g, '');
+        handleFamilyChange(index, "age", numericValue);
+    }, [handleFamilyChange]);
 
     return (
         <div className="space-y-12">
@@ -133,7 +123,7 @@ const PersonalInfoForm = ({
                                     minDate.setFullYear(today.getFullYear() - 100);
                                     
                                     if (selectedDate > today) {
-                                        handleValidationError('dateOfBirth', 'Please enter a valid date of birth');
+                                        handleValidationError('dateOfBirth', 'Date of birth cannot be in the future');
                                     } else if (selectedDate < minDate) {
                                         handleValidationError('dateOfBirth', 'Please enter a valid date of birth');
                                     } else {
@@ -223,15 +213,38 @@ const PersonalInfoForm = ({
                     Family Information
                 </h2>
                 <div className="mb-6">
-                    <InputField 
-                        label="Monthly Household Income"
-                        field="monthlyHouseholdIncome"
-                        value={formData.monthlyHouseholdIncome}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.monthlyHouseholdIncome}
-                        validationType="number"
-                    />
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
+                            Monthly Household Income*
+                            <span className="text-gray-500 font-normal normal-case ml-1">
+                                (e.g., RM5000)
+                            </span>
+                        </label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-600 font-semibold">
+                                RM
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="0"
+                                value={formData.monthlyHouseholdIncome || ""}
+                                onChange={(e) => {
+                                    // Remove all non-numeric characters
+                                    const numericValue = e.target.value.replace(/[^\d]/g, '');
+                                    handleInputChange('monthlyHouseholdIncome', numericValue);
+                                }}
+                                onBlur={() => {
+                                    if (formData.monthlyHouseholdIncome && parseFloat(formData.monthlyHouseholdIncome) < 0) {
+                                        handleValidationError('monthlyHouseholdIncome', 'Please enter a valid amount');
+                                    }
+                                }}
+                                className={`border ${errors.monthlyHouseholdIncome ? 'border-red-500' : 'border-gray-300'} rounded pl-12 pr-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.monthlyHouseholdIncome ? 'focus:ring-red-500' : 'focus:ring-blue-500'} w-full`}
+                            />
+                        </div>
+                        {errors.monthlyHouseholdIncome && (
+                            <span className="text-red-500 text-xs mt-1">{errors.monthlyHouseholdIncome}</span>
+                        )}
+                    </div>
                 </div>
                 <div className="mb-2">
                     <p className="text-xs text-gray-600 italic">
@@ -267,7 +280,7 @@ const PersonalInfoForm = ({
                                             className="w-full p-2 outline-none focus:bg-blue-50"
                                             value={member.name}
                                             onChange={(e) =>
-                                                handleFamilyChange(i, "name", e.target.value)
+                                                handleFamilyTextChange(i, "name", e.target.value)
                                             }
                                         />
                                     </td>
@@ -276,11 +289,7 @@ const PersonalInfoForm = ({
                                             className="w-full p-2 outline-none focus:bg-blue-50"
                                             value={member.relationship}
                                             onChange={(e) =>
-                                                handleFamilyChange(
-                                                    i,
-                                                    "relationship",
-                                                    e.target.value,
-                                                )
+                                                handleFamilyTextChange(i, "relationship", e.target.value)
                                             }
                                         />
                                     </td>
@@ -289,7 +298,7 @@ const PersonalInfoForm = ({
                                             className="w-full p-2 outline-none focus:bg-blue-50"
                                             value={member.age}
                                             onChange={(e) =>
-                                                handleFamilyChange(i, "age", e.target.value)
+                                                handleFamilyAgeChange(i, e.target.value)
                                             }
                                         />
                                     </td>
@@ -298,24 +307,25 @@ const PersonalInfoForm = ({
                                             className="w-full p-2 outline-none focus:bg-blue-50"
                                             value={member.occupation}
                                             onChange={(e) =>
-                                                handleFamilyChange(
-                                                    i,
-                                                    "occupation",
-                                                    e.target.value,
-                                                )
+                                                handleFamilyTextChange(i, "occupation", e.target.value)
                                             }
                                         />
                                     </td>
                                     <td className="border border-gray-300">
-                                        <input
-                                            type="text"
-                                            className="w-full p-2 outline-none focus:bg-blue-50"
-                                            value={member.income}
-                                            onChange={(e) =>
-                                                handleFamilyIncomeChange(i, e.target.value)
-                                            }
-                                            placeholder="0.00"
-                                        />
+                                        <div className="relative">
+                                            <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-sm text-gray-600">
+                                                RM
+                                            </span>
+                                            <input
+                                                type="text"
+                                                className="w-full p-2 pl-10 outline-none focus:bg-blue-50"
+                                                value={member.income}
+                                                onChange={(e) =>
+                                                    handleFamilyIncomeChange(i, e.target.value)
+                                                }
+                                                placeholder="0"
+                                            />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -331,12 +341,7 @@ const PersonalInfoForm = ({
                 <button
                     type="button"
                     onClick={handleNextClick}
-                    disabled={isNextDisabled}
-                    className={`font-bold py-3 px-12 rounded-xl transition-colors ${
-                        isNextDisabled 
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                            : 'bg-cyan-500 hover:bg-cyan-600 text-white'
-                    }`}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-12 rounded-xl transition-colors"
                 >
                     Next
                 </button>

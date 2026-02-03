@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PersonalInfoForm from '../components/PersonalInfoForm';
 import AcademicInfoForm from '../components/AcademicInfoForm';
@@ -51,73 +50,91 @@ export default function ApplicationForm() {
     ]);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
-    // Handle input changes
-    const handleInputChange = (field, value) => {
+    // Handle input changes - memoized to prevent re-renders
+    const handleInputChange = useCallback((field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
         // Clear error when user starts typing
-        if (errors[field]) {
-            setErrors(prev => ({
-                ...prev,
-                [field]: ''
-            }));
-        }
-    };
+        setErrors(prev => {
+            if (prev[field]) {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            }
+            return prev;
+        });
+    }, []);
 
-    // Handle validation errors
-    const handleValidationError = (field, errorMessage) => {
+    // Handle validation errors - memoized
+    const handleValidationError = useCallback((field, errorMessage) => {
         setErrors(prev => ({
             ...prev,
             [field]: errorMessage
         }));
-    };
+    }, []);
 
-    // Handle file changes
-    const handleFileChange = (field, file) => {
+    // Handle file changes - memoized
+    const handleFileChange = useCallback((field, file) => {
         setFiles(prev => ({
             ...prev,
             [field]: file
         }));
         // Clear error when file is uploaded
-        if (errors[field]) {
-            setErrors(prev => ({
-                ...prev,
-                [field]: ''
-            }));
-        }
-    };
+        setErrors(prev => {
+            if (prev[field]) {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            }
+            return prev;
+        });
+    }, []);
 
-    // Handle family member changes
-    const handleFamilyChange = (index, field, value) => {
-        const updatedMembers = [...familyMembers];
-        updatedMembers[index][field] = value;
-        setFamilyMembers(updatedMembers);
-    };
+    // Handle family member changes - memoized
+    const handleFamilyChange = useCallback((index, field, value) => {
+        setFamilyMembers(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    }, []);
 
-    // Handle activity changes
-    const handleActivityChange = (index, field, value) => {
-        const updatedActivities = [...activities];
-        updatedActivities[index][field] = value;
-        setActivities(updatedActivities);
-    };
+    // Handle activity changes - memoized
+    const handleActivityChange = useCallback((index, field, value) => {
+        setActivities(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    }, []);
 
-    // Navigate to next step
-    const handleNext = () => {
-        setCurrentStep(2);
-        window.scrollTo(0, 0); // Scroll to top of page
-    };
+    // Navigate to next step - memoized
+    const handleNext = useCallback(() => {
+        setIsTransitioning(true);
+        // Small delay to show feedback, then transition
+        setTimeout(() => {
+            setCurrentStep(2);
+            window.scrollTo(0, 0);
+            setIsTransitioning(false);
+        }, 100);
+    }, []);
 
-    // Navigate back to previous step
-    const handleBack = () => {
-        setCurrentStep(1);
-        window.scrollTo(0, 0);
-    };
+    // Navigate back to previous step - memoized
+    const handleBack = useCallback(() => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+            setCurrentStep(1);
+            window.scrollTo(0, 0);
+            setIsTransitioning(false);
+        }, 100);
+    }, []);
 
-    // Handle save 
-    const handleSave = async () => {
+    // Handle save - memoized
+    const handleSave = useCallback(async () => {
         try {
             console.log('Saving draft...');
             alert('Draft saved successfully!');
@@ -125,10 +142,10 @@ export default function ApplicationForm() {
             console.error('Error saving draft:', error);
             alert('Failed to save draft.');
         }
-    };
+    }, []);
 
-    // Handle final submission and redirect to dashboard
-    const handleSubmit = async () => {
+    // Handle final submission and redirect to dashboard - memoized
+    const handleSubmit = useCallback(async () => {
         if (isSubmitting) return; // Prevent double submission
         
         setIsSubmitting(true);
@@ -178,7 +195,7 @@ export default function ApplicationForm() {
             console.error('Error submitting form:', error);
             navigate('/student-dashboard', { state: { submissionSuccess: true } });
         }
-    };
+    }, [isSubmitting, formData, familyMembers, activities, files, navigate]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -240,6 +257,16 @@ export default function ApplicationForm() {
                             <div className="bg-white rounded-lg p-8 flex flex-col items-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mb-4"></div>
                                 <p className="text-gray-700 font-semibold">Submitting your application...</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Transitioning Overlay */}
+                    {isTransitioning && (
+                        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 flex flex-col items-center">
+                                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-500 mb-3"></div>
+                                <p className="text-gray-700 font-semibold">Loading...</p>
                             </div>
                         </div>
                     )}

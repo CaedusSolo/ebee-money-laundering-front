@@ -15,6 +15,9 @@ const AcademicInfoForm = ({
     handleSubmit
 }) => {
 
+    console.log('AcademicInfoForm rendering');
+    console.log('formData:', formData);
+
     const universities = [
         "Universiti Malaya (UM)",
         "Universiti Kebangsaan Malaysia (UKM)",
