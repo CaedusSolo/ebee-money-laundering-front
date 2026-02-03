@@ -12,18 +12,30 @@ import java.util.*;
 public class StudentService {
     
     @Autowired
-    private StudentRepository StudentRepository;
+    private StudentRepository studentRepository;
 
     public Map<String, Object> getStudentDashboard(Integer studentId) {
         Map<String, Object> dashboard = new HashMap<>();
 
-        // dummy student data for now  
+        // Fetch actual student from database
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        
+        if (studentOpt.isEmpty()) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+        
+        Student student = studentOpt.get();
+        
+        // Build student data
         Map<String, Object> studentData = new HashMap<>();
-        studentData.put("studentId", studentId);
-        studentData.put("name", "Izzminhal");
-        studentData.put("email", "izzminhal@student.mmu.edu.my");
-        studentData.put("profileImage", "user.jpg"); // default icon image
+        studentData.put("studentId", student.getStudentId());
+        studentData.put("name", student.getName());
+        studentData.put("studentUniId", student.getStudentUniId());
+        studentData.put("email", student.getEmail());
+        studentData.put("profileImage", student.getProfileImage() != null ? student.getProfileImage() : "user.jpg");
 
+        // TODO: Fetch actual applications from database when Application entity is ready
+        // For now, using dummy data
         List<Map<String, Object>> applications = new ArrayList<>();
         
         Map<String, Object> app1 = new HashMap<>();
@@ -57,8 +69,13 @@ public class StudentService {
     public Map<String, Object> deleteStudentAccount(Integer studentId) {
         Map<String, Object> response = new HashMap<>();
         
-        // stub for now
-        System.out.println("Deleting student account: " + studentId);
+        // Check if student exists
+        if (!studentRepository.existsById(studentId)) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+        
+        // Delete the student
+        studentRepository.deleteById(studentId);
         
         response.put("success", true);
         response.put("message", "Account deleted successfully");
@@ -70,14 +87,31 @@ public class StudentService {
     public Map<String, Object> updateProfileImage(Integer studentId, String imageUrl) {
         Map<String, Object> response = new HashMap<>();
         
-        // stub for now 
-        System.out.println("Updating profile image for student: " + studentId);
-        System.out.println("New image URL: " + imageUrl);
+        // Fetch student from database
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        
+        if (studentOpt.isEmpty()) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+        
+        Student student = studentOpt.get();
+        student.setProfileImage(imageUrl);
+        studentRepository.save(student);
         
         response.put("success", true);
         response.put("message", "Profile image updated successfully");
         response.put("imageUrl", imageUrl);
         
         return response;
+    }
+
+    // Additional helper method to get student by email
+    public Optional<Student> findByEmail(String email) {
+        return studentRepository.findByEmail(email);
+    }
+
+    // Additional helper method to check if email exists
+    public boolean emailExists(String email) {
+        return studentRepository.existsByEmail(email);
     }
 }
