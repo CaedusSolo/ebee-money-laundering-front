@@ -1,123 +1,199 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
-const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
+const ResetPassword = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    academic: '',
-    curriculum: '',
-    leadership: '',
-    comments: '',
+    email: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
-  useEffect(() => {
-    if (application) {
-      setFormData({
-        academic: application.scores.academic !== null ? application.scores.academic : '',
-        curriculum: application.scores.curriculum !== null ? application.scores.curriculum : '',
-        leadership: application.scores.leadership !== null ? application.scores.leadership : '',
-        comments: application.comments || '',
-      });
-    }
-  }, [application, isOpen]);
+  const [status, setStatus] = useState({ type: '', message: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (!isOpen || !application) {
-    return null;
-  }
-
-  const handleChange = (field, value) => {
-    if (field === 'comments') {
-      setFormData({ ...formData, [field]: value });
-    } else {
-      const score = value === '' ? '' : Math.max(0, Math.min(20, parseInt(value, 10)));
-      setFormData({ ...formData, [field]: score });
-    }
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-  const handleDocumentAction = (action, docName) => {
-    alert(`${action} triggered for: ${docName}`);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setStatus({ type: '', message: '' });
+
+    // 1. Password Match Check
+    if (formData.newPassword !== formData.confirmPassword) {
+      setStatus({ type: 'error', message: 'Passwords do not match.' });
+      return;
+    }
+
+    // 2. Updated Email Validation (Gmail Domain)
+    const emailRegex = /^[A-Za-z0-9._%+-]+@gmail\.com$/;
+    if (!emailRegex.test(formData.email)) {
+      setStatus({
+        type: 'error',
+        message: 'Please use a valid Gmail email address (@gmail.com).'
+      });
+      return;
+    }
+
+    // 3. Updated Granular Password Validation
+    const password = formData.newPassword;
+    if (password.length < 8) {
+      setStatus({ type: 'error', message: 'Password must be at least 8 characters long.' });
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setStatus({ type: 'error', message: 'Password must contain at least 1 uppercase letter.' });
+      return;
+    }
+    if (!/\d/.test(password)) {
+      setStatus({ type: 'error', message: 'Password must contain at least 1 number.' });
+      return;
+    }
+    // Enforcing the newest special symbol requirement
+    if (!/[@$!%*?&#.]/.test(password)) {
+      setStatus({
+        type: 'error',
+        message: 'Password must contain at least 1 special symbol (@$!%*?&#.).'
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          newPassword: formData.newPassword
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update password.');
+      }
+
+      setStatus({ type: 'success', message: data.message });
+
+      // Redirect to login after success
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (error) {
+      setStatus({ type: 'error', message: error.message });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    // UPDATED: Used bg-black/60 for transparency and backdrop-blur-sm for the blur effect
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="bg-blue-800 text-white px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Evaluate: {application.id}</h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white transition">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+    <div className="flex h-screen w-full bg-white">
+      {/* LEFT SIDE - FORM */}
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-10 md:px-24">
+
+        <Link to="/login" className="flex items-center w-fit text-gray-500 hover:text-blue-900 mb-8 transition">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Login
+        </Link>
+
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Reset Password</h1>
+          <p className="text-gray-600 font-medium">Enter your email and new password to update your credentials.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6">
-          {/* Document Preview Section */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="font-semibold text-gray-700 mb-3">Submitted Documents</h3>
-            <div className="flex space-x-4">
-              <div className="flex flex-col space-y-2">
-                <span className="text-sm font-medium text-gray-600">Transcript.pdf</span>
-                <div className="flex space-x-2">
-                  <button type="button" onClick={() => handleDocumentAction('Preview', 'Transcript.pdf')} className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded">Preview</button>
-                  <button type="button" onClick={() => handleDocumentAction('Download', 'Transcript.pdf')} className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded">Download</button>
-                </div>
-              </div>
-              <div className="flex flex-col space-y-2">
-                <span className="text-sm font-medium text-gray-600">IC_Copy.pdf</span>
-                <div className="flex space-x-2">
-                  <button type="button" onClick={() => handleDocumentAction('Preview', 'IC_Copy.pdf')} className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded">Preview</button>
-                  <button type="button" onClick={() => handleDocumentAction('Download', 'IC_Copy.pdf')} className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded">Download</button>
-                </div>
-              </div>
-            </div>
+        {status.message && (
+          <div className={`p-4 mb-6 rounded-lg text-sm font-bold ${status.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {status.message}
           </div>
+        )}
 
-          {/* Rubrics Section */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <h3 className="font-semibold text-gray-700 mb-3 border-b pb-2">Rubric Evaluation (0 - 20 pts)</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Academic Excellence</label>
-                <input type="number" required min="0" max="20" value={formData.academic} onChange={(e) => handleChange('academic', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0 - 20" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Extra-curricular</label>
-                <input type="number" required min="0" max="20" value={formData.curriculum} onChange={(e) => handleChange('curriculum', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0 - 20" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Leadership Quality</label>
-                <input type="number" required min="0" max="20" value={formData.leadership} onChange={(e) => handleChange('leadership', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0 - 20" />
-              </div>
-            </div>
-          </div>
-
-          {/* Comments Section */}
-          <div>
-            <h3 className="font-semibold text-gray-700 mb-3 border-b pb-2">Committee Comments</h3>
-            <textarea
-              rows="4"
-              value={formData.comments}
-              onChange={(e) => handleChange('comments', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter your qualitative assessment and recommendation here..."
+            <label className="block text-sm font-bold text-gray-900 mb-2" htmlFor="email">
+              Email address
+            </label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Enter your Gmail address (@gmail.com)"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
+              required
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50">
-              Cancel
-            </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 shadow-sm">
-              Submit Evaluation
-            </button>
+          <div>
+            <label className="block text-sm font-bold text-gray-900 mb-2" htmlFor="newPassword">
+              New Password
+            </label>
+            <input
+              type="password"
+              name="newPassword"
+              id="newPassword"
+              placeholder="Min 8 chars, 1 Cap, 1 Num, 1 Symbol"
+              value={formData.newPassword}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition placeholder-gray-300"
+              required
+            />
           </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-900 mb-2" htmlFor="confirmPassword">
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              name="confirmPassword"
+              id="confirmPassword"
+              placeholder="Confirm new password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 transition placeholder-gray-300 ${
+                formData.confirmPassword && formData.newPassword !== formData.confirmPassword
+                  ? 'border-red-500 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-blue-900 focus:border-transparent'
+              }`}
+              required
+            />
+            {formData.confirmPassword && formData.newPassword !== formData.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1 font-semibold">Passwords do not match</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full bg-[#1e3a8a] cursor-pointer text-white font-bold py-3 rounded-lg hover:bg-blue-900 transition duration-300 shadow-md mt-4 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {isLoading ? 'Updating...' : 'Reset Password'}
+          </button>
         </form>
+      </div>
+
+      {/* RIGHT SIDE - VISUAL */}
+      <div className="hidden md:flex w-1/2 relative bg-gradient-to-br from-[#4ade80] to-[#1e3a8a]">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#6ee7b7] via-[#3b82f6] to-[#1e3a8a]"></div>
+        <div className="relative w-full h-full flex items-center justify-center rounded-tl-[100px] rounded-bl-[100px] overflow-hidden z-10">
+           <svg className="w-2/3 h-auto text-gray-100 opacity-90 drop-shadow-xl" fill="currentColor" viewBox="0 0 24 24">
+             <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+           </svg>
+        </div>
       </div>
     </div>
   );
 };
 
-export default EvaluationModal;
+export default ResetPassword;
