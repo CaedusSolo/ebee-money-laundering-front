@@ -1,5 +1,6 @@
 package mmu.sef.fyj.service;
 
+import mmu.sef.fyj.dto.ApplicationSummaryDTO;
 import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.ApplicationStatus;
 import mmu.sef.fyj.model.Grade;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ApplicationService {
@@ -71,6 +73,18 @@ public class ApplicationService {
     @Transactional
     public void delete(Integer id) {
         applicationRepository.deleteById(id);
+    }
+
+    public List<ApplicationSummaryDTO> findSummariesByScholarship(Integer scholarshipId) {
+        return applicationRepository.findByScholarshipID(scholarshipId).stream()
+                .map(app -> new ApplicationSummaryDTO(
+                        app.getApplicationID(),
+                        app.getFirstName() + " " + app.getLastName(),
+                        app.getCreatedAt(),
+                        app.getSubmittedAt(),
+                        app.getStatus()
+                ))
+                .collect(Collectors.toList());
     }
 }
 

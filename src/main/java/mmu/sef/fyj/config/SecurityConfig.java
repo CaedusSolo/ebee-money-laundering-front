@@ -37,6 +37,8 @@ public class SecurityConfig {
                         .requestMatchers(
                             "/api/auth/**",
                             "/api/users/**",
+                            "/api/applications/**",
+                            "/api/scholarships/**",
                             "/api/committee/**",
                             "/api/reviewer/**",
                             "/h2-console/**"
