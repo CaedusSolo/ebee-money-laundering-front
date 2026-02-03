@@ -25,6 +25,11 @@ public class Student {
     @Column
     private String profileImage;
 
+    // Default constructor 
+    public Student() {
+    }
+
+    // Parameterized constructor
     public Student(String name, String studentUniId, String email, String password) {
         this.name = name;
         this.studentUniId = studentUniId;
@@ -32,7 +37,7 @@ public class Student {
         this.password = password;
     }
 
-    // getters and setters
+    // Getters and setters
     public Integer getStudentId() {
         return studentId;
     }
@@ -41,19 +46,19 @@ public class Student {
         this.studentId = studentId;
     }
 
-    public Integer getStudentUniId() {
-        return studentId;
+    public String getStudentUniId() {
+        return studentUniId;
     }
 
     public void setStudentUniId(String studentUniId) {
         this.studentUniId = studentUniId;
     }
 
-    public String getname() {
+    public String getName() {
         return name;
     }
 
-    public void setFirstName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -63,6 +68,14 @@ public class Student {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getProfileImage() {
