@@ -16,6 +16,11 @@ const validators = {
         const re = /^[0-9]{6}-[0-9]{2}-[0-9]{4}$/;
         return re.test(value) ? null : "Please enter IC number in format: 123456-12-1234";
     },
+    passportNumber: (value) => {
+        // Format: A12345678 (1 letter followed by 8 digits, common for many countries)
+        const re = /^[A-Z][0-9]{8}$/;
+        return re.test(value) ? null : "Please enter passport number in format: A12345678";
+    },
     dateOfBirth: (value) => {
         if (!value) return "Date of birth is required";
         
@@ -45,8 +50,8 @@ const validators = {
     },
     cgpa: (value) => {
         const num = parseFloat(value);
-        if (isNaN(num) || num < 0 || num > 4.0) {
-            return "Please enter a valid CGPA (0.0 - 4.0)";
+        if (isNaN(num) || num < 2.0 || num > 4.0) {
+            return "Please enter a valid CGPA (2.0 - 4.0)";
         }
         return null;
     },
@@ -116,6 +121,18 @@ const InputField = React.memo(({
                 } else {
                     newValue = newValue.slice(0, 6) + '-' + newValue.slice(6, 8);
                 }
+            }
+        }
+        
+        // For passport numbers, format as uppercase letter + digits
+        if (validationType === 'passportNumber') {
+            // Convert to uppercase
+            newValue = newValue.toUpperCase();
+            // Remove all non-alphanumeric characters
+            newValue = newValue.replace(/[^A-Z0-9]/g, '');
+            // Limit to 1 letter + 8 digits (9 characters total)
+            if (newValue.length > 9) {
+                newValue = newValue.slice(0, 9);
             }
         }
         

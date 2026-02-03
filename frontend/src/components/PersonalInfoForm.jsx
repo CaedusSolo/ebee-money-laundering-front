@@ -227,16 +227,6 @@ const PersonalInfoForm = ({
                             <span className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</span>
                         )}
                     </div>
-                    <InputField 
-                        label="IC Number"
-                        field="icNumber"
-                        value={formData.icNumber}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.icNumber}
-                        validationType="icNumber"
-                        exampleFormat="123456-12-1234"
-                    />
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Nationality*
@@ -244,7 +234,18 @@ const PersonalInfoForm = ({
                         <select 
                             className={`border ${errors.nationality ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.nationality ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                             value={formData.nationality || ""}
-                            onChange={(e) => handleInputChange('nationality', e.target.value)}
+                            onChange={(e) => {
+                                const newNationality = e.target.value;
+                                handleInputChange('nationality', newNationality);
+                                
+                                // Clear IC/Passport field when nationality changes
+                                handleInputChange('icNumber', '');
+                                
+                                // If changing to Non-Malaysian, set Bumiputera to No
+                                if (newNationality === 'Non-Malaysian') {
+                                    handleInputChange('bumiputera', 'No');
+                                }
+                            }}
                         >
                             <option value="" disabled>Select Nationality</option>
                             <option value="Malaysian">Malaysian</option>
@@ -254,6 +255,16 @@ const PersonalInfoForm = ({
                             <span className="text-red-500 text-xs mt-1">{errors.nationality}</span>
                         )}
                     </div>
+                    <InputField 
+                        label={formData.nationality === 'Non-Malaysian' ? 'Passport Number' : 'IC Number'}
+                        field="icNumber"
+                        value={formData.icNumber}
+                        onChange={handleInputChange}
+                        onValidate={handleValidationError}
+                        error={errors.icNumber}
+                        validationType={formData.nationality === 'Non-Malaysian' ? 'passportNumber' : 'icNumber'}
+                        exampleFormat={formData.nationality === 'Non-Malaysian' ? 'A12345678' : '123456-12-1234'}
+                    />
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Bumiputera*
@@ -262,9 +273,10 @@ const PersonalInfoForm = ({
                             className={`border ${errors.bumiputera ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.bumiputera ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                             value={formData.bumiputera || ""}
                             onChange={(e) => handleInputChange('bumiputera', e.target.value)}
+                            disabled={formData.nationality === 'Non-Malaysian'}
                         >
                             <option value="" disabled>Select</option>
-                            <option value="Yes">Yes</option>
+                            <option value="Yes" disabled={formData.nationality === 'Non-Malaysian'}>Yes</option>
                             <option value="No">No</option>
                         </select>
                         {errors.bumiputera && (

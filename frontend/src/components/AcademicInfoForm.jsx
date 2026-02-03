@@ -53,8 +53,8 @@ const AcademicInfoForm = ({
         
         // Check CGPA validity
         const cgpaValue = parseFloat(formData.cgpa);
-        if (formData.cgpa && (isNaN(cgpaValue) || cgpaValue <= 0 || cgpaValue > 4.0)) {
-            messages.push('CGPA must be between 0.01 and 4.00');
+        if (formData.cgpa && (isNaN(cgpaValue) || cgpaValue < 2.0 || cgpaValue > 4.0)) {
+            messages.push('CGPA must be between 2.0 and 4.0');
         }
         
         // Check activities (at least 2 COMPLETELY filled rows)
@@ -96,7 +96,7 @@ const AcademicInfoForm = ({
                        formData.year && 
                        formData.expectedGraduation && 
                        formData.highestQualification &&
-                       !isNaN(cgpaValue) && cgpaValue > 0 && cgpaValue <= 4.0 &&
+                       !isNaN(cgpaValue) && cgpaValue >= 2.0 && cgpaValue <= 4.0 &&
                        filledActivities.length >= 2 &&
                        activitiesValid &&
                        !hasPartiallyFilledActivities &&
@@ -371,10 +371,10 @@ const AcademicInfoForm = ({
                         }}
                         onValidate={(field, error) => {
                             const cgpaValue = parseFloat(formData.cgpa);
-                            if (formData.cgpa && (isNaN(cgpaValue) || cgpaValue <= 0)) {
-                                handleValidationError(field, 'CGPA must be greater than 0');
+                            if (formData.cgpa && (isNaN(cgpaValue) || cgpaValue < 2.0)) {
+                                handleValidationError(field, 'CGPA must be at least 2.0');
                             } else if (formData.cgpa && cgpaValue > 4.0) {
-                                handleValidationError(field, 'CGPA cannot exceed 4.00');
+                                handleValidationError(field, 'CGPA cannot exceed 4.0');
                             } else {
                                 handleValidationError(field, error);
                             }
