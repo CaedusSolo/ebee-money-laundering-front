@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import mmu.sef.fyj.model.Role;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.repository.UserRepository;
 import mmu.sef.fyj.dto.NewUser;
@@ -21,9 +22,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    // GET all users
+    // GET all users (optional query param: role=ADMIN|STUDENT|COMMITTEE|REVIEWER)
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers(@RequestParam(required = false) Role role) {
+        if (role != null) {
+            return userRepository.findByRole(role);
+        }
         return userRepository.findAll();
     }
 

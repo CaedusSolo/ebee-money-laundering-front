@@ -1,10 +1,12 @@
 package mmu.sef.fyj.controller;
 
+import mmu.sef.fyj.model.ScholarshipCommittee;
 import mmu.sef.fyj.service.ScholarshipCommitteeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -14,6 +16,11 @@ public class ScholarshipCommitteeController {
 
     @Autowired
     private ScholarshipCommitteeService committeeService;
+
+    @GetMapping("/list")
+    public ResponseEntity<List<ScholarshipCommittee>> getAllCommitteeMembers() {
+        return ResponseEntity.ok(committeeService.findAll());
+    }
 
     @GetMapping("/dashboard/{committeeId}")
     public ResponseEntity<?> getDashboard(@PathVariable Integer committeeId) {
