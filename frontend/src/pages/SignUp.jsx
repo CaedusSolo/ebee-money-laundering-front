@@ -27,6 +27,8 @@ const SignUp = () => {
         newErrors.name = "Full Name is required";
     } else if (formData.name.trim().length < 4) {
         newErrors.name = "Full Name must be at least 4 characters";
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.name.trim())) {
+        newErrors.name = "Full Name must contain only letters and spaces";
     }
 
     // 2. Student ID Validation
