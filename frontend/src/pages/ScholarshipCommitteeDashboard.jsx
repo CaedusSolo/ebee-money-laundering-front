@@ -13,36 +13,40 @@ export default function ScholarshipCommitteeDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAppIndex, setCurrentAppIndex] = useState(null);
 
-  useEffect(() => {
-    const fetchApps = async () => {
-      try {
-        const id = currentUser?.user?.id || currentUser?.id;
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/committee/dashboard/${id}`, {
-          headers: { 'Authorization': `Bearer ${currentUser?.token}` }
-        });
-        const data = await response.json();
+const fetchApps = async () => {
+  try {
+    setLoading(true);
+    const id = currentUser?.user?.id || currentUser?.id;
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/committee/dashboard/${id}`, {
+      headers: { 'Authorization': `Bearer ${currentUser?.token}` }
+    });
+    const data = await response.json();
 
-        if (response.ok) {
-          const combined = [
-            ...(data.pendingApplications || []),
-            ...(data.gradedApplications || [])
-          ].map(app => ({
-            ...app,
-            scores: {
-              academic: app.scores?.find(s => s.category === 'ACADEMIC')?.score,
-              curriculum: app.scores?.find(s => s.category === 'CURRICULUM')?.score,
-              leadership: app.scores?.find(s => s.category === 'LEADERSHIP')?.score,
-              remarks: app.scores?.[0]?.remarks || ''
-            }
-          }));
-          setApplications(combined);
+    if (response.ok) {
+      // Merge the two lists from the backend
+      const combined = [
+        ...(data.pendingApplications || []),
+        ...(data.gradedApplications || [])
+      ].map(app => ({
+        ...app,
+        scores: {
+          academic: app.scores?.academic,
+          curriculum: app.scores?.curriculum,
+          leadership: app.scores?.leadership,
+          // Fallback for remarks if needed
+          remarks: app.scores?.remarks || ''
         }
-      } catch (error) {
-        console.error("Dashboard fetch failed:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      }));
+      setApplications(combined);
+    }
+  } catch (error) {
+    console.error("Dashboard fetch failed:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => {
     if (currentUser) fetchApps();
   }, [currentUser]);
 
@@ -56,12 +60,31 @@ export default function ScholarshipCommitteeDashboard() {
     setCurrentAppIndex(null);
   };
 
-  const handleSubmitEvaluation = (modalData) => {
-    const newApps = [...applications];
-    newApps[currentAppIndex].scores = { ...modalData };
-    newApps[currentAppIndex].status = 'GRADED';
-    setApplications(newApps);
-    handleCloseModal();
+  const handleSubmitEvaluation = async (modalData) => {
+    const applicationId = applications[currentAppIndex].id;
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/committee/evaluate/${applicationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentUser?.token}`
+        },
+        body: JSON.stringify(modalData),
+      });
+
+      if (response.ok) {
+        alert("Evaluation submitted and saved successfully.");
+        handleCloseModal();
+        fetchApps(); // Refresh the list to show updated scores/status
+      } else {
+        const errorData = await response.json();
+        alert("Failed to save evaluation: " + (errorData.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Evaluation submission error:", err);
+      alert("Network error while saving evaluation.");
+    }
   };
 
   if (loading) return <div className="text-center py-20 text-gray-500">Loading...</div>;
