@@ -97,7 +97,7 @@ public class ScholarshipService {
     }
 
     // @Transactional
-    // public Optional<Scholarship> applyScholarship(Long scholarshipId, Long applicationId) {
+    // public Optional<Scholarship> applyScholarship(Integer scholarshipId, Integer applicationId) {
     //     return scholarshipRepository.findById(scholarshipId)
     //         .map(scholarship -> {
     //             Application application = applicationRepository.findById(applicationId)
@@ -107,7 +107,7 @@ public class ScholarshipService {
     //         });
     // }
     //
-    // public Optional<Set<Application>> getApplications(Long id) {
+    // public Optional<Set<Application>> getApplications(Integer id) {
     //     return scholarshipRepository.findById(id)
     //         .map(Scholarship::getApplications);
     // }

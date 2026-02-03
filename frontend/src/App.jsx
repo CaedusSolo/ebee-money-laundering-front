@@ -4,6 +4,8 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
+  useNavigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext"; // Import Context
 
@@ -22,6 +24,8 @@ import UserDetails from "./pages/UserDetails";
 import ManageScholarship from "./pages/ManageScholarship";
 import ScholarshipDetail from "./pages/ScholarshipDetails";
 import StudentDashboard from "./pages/StudentDashboard";
+import ManageApplications from "./pages/ManageApplications";
+import ApplicationDetails from "./components/ApplicationDetails";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -41,6 +45,17 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   return children;
+};
+
+const ApplicationDetailsWrapper = () => {
+  const { applicationId } = useParams();
+  const navigate = useNavigate();
+  return (
+    <ApplicationDetails
+      applicationId={applicationId}
+      onBack={() => navigate("/admin/applications")}
+    />
+  );
 };
 
 function App() {
@@ -118,6 +133,10 @@ function App() {
                 path="details/:scholarshipId?"
                 element={<ScholarshipDetail />}
               ></Route>
+            </Route>
+            <Route path="applications">
+              <Route index element={<ManageApplications />} />
+              <Route path=":applicationId" element={<ApplicationDetailsWrapper />} />
             </Route>
           </Route>
         </Routes>
