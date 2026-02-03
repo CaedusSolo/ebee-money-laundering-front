@@ -26,13 +26,13 @@ public class ReviewerController {
     public ResponseEntity<?> getDashboard(@PathVariable Integer reviewerId) {
         try {
             List<Map<String, Object>> applications = reviewerService.getAllAssignedApplications(reviewerId);
-            
+
             Map<String, Object> dashboard = Map.of(
                 "reviewerId", reviewerId,
                 "totalAssignedApplications", applications.size(),
                 "applications", applications
             );
-            
+
             return ResponseEntity.ok(dashboard);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
@@ -96,7 +96,7 @@ public class ReviewerController {
             Integer applicationId = (Integer) payload.get("applicationId");
             String subject = (String) payload.get("subject");
             String message = (String) payload.get("message");
-            
+
             Map<String, Object> result = reviewerService.sendEmailNotification(applicationId, subject, message);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
