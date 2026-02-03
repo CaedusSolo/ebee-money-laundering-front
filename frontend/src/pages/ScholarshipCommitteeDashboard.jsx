@@ -16,13 +16,26 @@ export default function ScholarshipCommitteeDashboard() {
   useEffect(() => {
     const fetchApps = async () => {
       try {
-        const id = currentUser?.user?.id || currentUser?.id || 1;
+        const id = currentUser?.user?.id || currentUser?.id;
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/committee/dashboard/${id}`, {
           headers: { 'Authorization': `Bearer ${currentUser?.token}` }
         });
         const data = await response.json();
-        if (response.ok && data.applications) {
-          setApplications(data.applications);
+
+        if (response.ok) {
+          const combined = [
+            ...(data.pendingApplications || []),
+            ...(data.gradedApplications || [])
+          ].map(app => ({
+            ...app,
+            scores: {
+              academic: app.scores?.find(s => s.category === 'ACADEMIC')?.score,
+              curriculum: app.scores?.find(s => s.category === 'CURRICULUM')?.score,
+              leadership: app.scores?.find(s => s.category === 'LEADERSHIP')?.score,
+              remarks: app.scores?.[0]?.remarks || ''
+            }
+          }));
+          setApplications(combined);
         }
       } catch (error) {
         console.error("Dashboard fetch failed:", error);
@@ -44,48 +57,25 @@ export default function ScholarshipCommitteeDashboard() {
   };
 
   const handleSubmitEvaluation = (modalData) => {
-    const newApplications = [...applications];
-    const appIndex = currentAppIndex;
-
-    const academic = modalData.academic === '' ? null : modalData.academic;
-    const curriculum = modalData.curriculum === '' ? null : modalData.curriculum;
-    const leadership = modalData.leadership === '' ? null : modalData.leadership;
-
-    newApplications[appIndex].scores = { academic, curriculum, leadership };
-    newApplications[appIndex].status = 'Graded';
-
-    if (academic !== null && curriculum !== null && leadership !== null) {
-      const totalRaw = academic + curriculum + leadership;
-      newApplications[appIndex].totalScore = Math.round((totalRaw / 60) * 100);
-    }
-
-    setApplications(newApplications);
+    const newApps = [...applications];
+    newApps[currentAppIndex].scores = { ...modalData };
+    newApps[currentAppIndex].status = 'GRADED';
+    setApplications(newApps);
     handleCloseModal();
   };
 
-  if (loading) return <div className="text-center py-20 text-gray-500">Loading applications...</div>;
+  if (loading) return <div className="text-center py-20 text-gray-500">Loading...</div>;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-      <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-50">
-        <h3 className="text-xl font-bold text-gray-800 flex items-center">
-          <svg className="w-6 h-6 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          {committeeInfo?.assignedScholarship} Applications
-        </h3>
-        <div className="hidden md:flex items-center space-x-3 text-sm font-semibold text-gray-400 mr-4">
-          <span className="w-16 text-center">Academic</span>
-          <span className="w-16 text-center">Co-Curric.</span>
-          <span className="w-16 text-center">Leadership</span>
-          <span className="w-16 text-center">Total</span>
-        </div>
-      </div>
+      <h3 className="text-xl font-bold text-gray-800 mb-6 pb-2 border-b">
+        {committeeInfo?.assignedScholarship || "Scholarship"} Applications
+      </h3>
 
       <div className="space-y-4">
         {applications.length > 0 ? (
           applications.map((app, index) => (
-            <ApplicationItem key={app.id} title={app.id} status={app.status} date={app.submittedDate}>
+            <ApplicationItem key={app.id} title={app.id} status={app.status} date={app.submittedAt}>
               <button onClick={() => handleOpenModal(index)} className="text-gray-400 hover:text-blue-600 transition">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -99,7 +89,7 @@ export default function ScholarshipCommitteeDashboard() {
             </ApplicationItem>
           ))
         ) : (
-          <p className="text-gray-500 text-center py-10">No applications assigned yet.</p>
+          <p className="text-gray-500 text-center py-10">No applications assigned.</p>
         )}
       </div>
 

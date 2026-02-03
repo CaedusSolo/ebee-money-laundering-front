@@ -15,8 +15,8 @@ public class ScholarshipCommitteeController {
     @Autowired
     private ScholarshipCommitteeService committeeService;
 
-    @GetMapping("/dashboard")
-    public ResponseEntity<?> getDashboard(@RequestParam Integer committeeId) {
+    @GetMapping("/dashboard/{committeeId}")
+    public ResponseEntity<?> getDashboard(@PathVariable Integer committeeId) {
         return ResponseEntity.ok(committeeService.getCommitteeDashboard(committeeId));
     }
 
