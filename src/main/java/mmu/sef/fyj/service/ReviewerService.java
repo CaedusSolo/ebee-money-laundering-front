@@ -13,6 +13,10 @@ public class ReviewerService {
     @Autowired
     private ReviewerRepository reviewerRepository;
 
+    public List<Reviewer> findAll() {
+        return reviewerRepository.findAll();
+    }
+
     // Dummy data for applications
     public List<Map<String, Object>> getAllAssignedApplications(Integer reviewerId) {
         List<Map<String, Object>> applications = new ArrayList<>();
@@ -81,34 +85,122 @@ public class ReviewerService {
     public Map<String, Object> getApplicationDetails(Integer applicationId) {
         Map<String, Object> application = new HashMap<>();
         application.put("applicationID", applicationId);
-        application.put("firstName", "John");
-        application.put("lastName", "Doe");
-        application.put("email", "john.doe@example.com");
-        application.put("phoneNumber", "+60123456789");
-        application.put("nricNumber", "950101-12-1234");
-        application.put("gender", "MALE");
-        application.put("nationality", "Malaysian");
-        application.put("dateOfBirth", "1995-01-01");
-        application.put("monthlyFamilyIncome", 5000.00);
-        application.put("isBumiputera", true);
         
-        Map<String, Object> address = new HashMap<>();
-        address.put("homeAddress", "123 Jalan Merdeka");
-        address.put("city", "Kuala Lumpur");
-        address.put("zipCode", "50000");
-        address.put("state", "Wilayah Persekutuan");
-        application.put("address", address);
+        // Return different applicant data based on applicationId
+        if (applicationId == 1) {
+            application.put("firstName", "John");
+            application.put("lastName", "Doe");
+            application.put("email", "john.doe@example.com");
+            application.put("phoneNumber", "+60123456789");
+            application.put("nricNumber", "950101-12-1234");
+            application.put("gender", "MALE");
+            application.put("nationality", "Malaysian");
+            application.put("dateOfBirth", "1995-01-01");
+            application.put("monthlyFamilyIncome", 5000.00);
+            application.put("isBumiputera", true);
+            application.put("status", "PENDING REVIEW");
+            application.put("submittedAt", "2026-01-25");
+            
+            Map<String, Object> address = new HashMap<>();
+            address.put("homeAddress", "123 Jalan Merdeka");
+            address.put("city", "Kuala Lumpur");
+            address.put("zipCode", "50000");
+            address.put("state", "Wilayah Persekutuan");
+            application.put("address", address);
 
-        Map<String, Object> education = new HashMap<>();
-        education.put("college", "University of Malaya");
-        education.put("currentYearOfStudy", 2);
-        education.put("expectedGraduationYear", 2027);
-        education.put("major", "Computer Science");
-        education.put("studyLevel", "UNDERGRADUATE");
-        application.put("education", education);
+            Map<String, Object> education = new HashMap<>();
+            education.put("college", "University of Malaya");
+            education.put("currentYearOfStudy", 2);
+            education.put("expectedGraduationYear", 2027);
+            education.put("major", "Computer Science");
+            education.put("studyLevel", "UNDERGRADUATE");
+            application.put("education", education);
+        } else if (applicationId == 2) {
+            application.put("firstName", "Jane");
+            application.put("lastName", "Smith");
+            application.put("email", "jane.smith@example.com");
+            application.put("phoneNumber", "+60198765432");
+            application.put("nricNumber", "960515-14-5678");
+            application.put("gender", "FEMALE");
+            application.put("nationality", "Malaysian");
+            application.put("dateOfBirth", "1996-05-15");
+            application.put("monthlyFamilyIncome", 7500.00);
+            application.put("isBumiputera", false);
+            application.put("status", "PENDING REVIEW");
+            application.put("submittedAt", "2026-01-26");
+            
+            Map<String, Object> address = new HashMap<>();
+            address.put("homeAddress", "456 Jalan Sultan");
+            address.put("city", "Selangor");
+            address.put("zipCode", "40000");
+            address.put("state", "Selangor");
+            application.put("address", address);
 
-        application.put("status", "PENDING REVIEW");
-        application.put("submittedAt", "2026-01-25");
+            Map<String, Object> education = new HashMap<>();
+            education.put("college", "Universiti Teknologi Malaysia");
+            education.put("currentYearOfStudy", 3);
+            education.put("expectedGraduationYear", 2026);
+            education.put("major", "Business Administration");
+            education.put("studyLevel", "UNDERGRADUATE");
+            application.put("education", education);
+        } else if (applicationId == 3) {
+            application.put("firstName", "Ahmed");
+            application.put("lastName", "Hassan");
+            application.put("email", "ahmed.hassan@example.com");
+            application.put("phoneNumber", "+60187654321");
+            application.put("nricNumber", "970820-10-9012");
+            application.put("gender", "MALE");
+            application.put("nationality", "Malaysian");
+            application.put("dateOfBirth", "1997-08-20");
+            application.put("monthlyFamilyIncome", 6000.00);
+            application.put("isBumiputera", true);
+            application.put("status", "UNDER REVIEW");
+            application.put("submittedAt", "2026-01-27");
+            
+            Map<String, Object> address = new HashMap<>();
+            address.put("homeAddress", "789 Jalan Raja");
+            address.put("city", "Penang");
+            address.put("zipCode", "10000");
+            address.put("state", "Penang");
+            application.put("address", address);
+
+            Map<String, Object> education = new HashMap<>();
+            education.put("college", "Universiti Pertahanan Nasional");
+            education.put("currentYearOfStudy", 1);
+            education.put("expectedGraduationYear", 2028);
+            education.put("major", "Engineering");
+            education.put("studyLevel", "UNDERGRADUATE");
+            application.put("education", education);
+        } else {
+            // Default fallback for unknown IDs
+            application.put("firstName", "Unknown");
+            application.put("lastName", "Applicant");
+            application.put("email", "unknown@example.com");
+            application.put("phoneNumber", "N/A");
+            application.put("nricNumber", "N/A");
+            application.put("gender", "N/A");
+            application.put("nationality", "N/A");
+            application.put("dateOfBirth", "N/A");
+            application.put("monthlyFamilyIncome", 0.00);
+            application.put("isBumiputera", false);
+            application.put("status", "UNKNOWN");
+            application.put("submittedAt", "N/A");
+            
+            Map<String, Object> address = new HashMap<>();
+            address.put("homeAddress", "N/A");
+            address.put("city", "N/A");
+            address.put("zipCode", "N/A");
+            address.put("state", "N/A");
+            application.put("address", address);
+
+            Map<String, Object> education = new HashMap<>();
+            education.put("college", "N/A");
+            education.put("currentYearOfStudy", 0);
+            education.put("expectedGraduationYear", 0);
+            education.put("major", "N/A");
+            education.put("studyLevel", "N/A");
+            application.put("education", education);
+        }
 
         return application;
     }

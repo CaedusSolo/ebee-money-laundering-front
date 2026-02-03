@@ -1,34 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Search, Pencil, ArrowRight } from "lucide-react";
 import ScholarshipPlaceholder from "../assets/images/scholarship3.png";
 
-const scholarships = [
-  {
-    id: 1,
-    title: "Merit's Scholarship",
-    description:
-      "Call out a feature, benefit, or value of your site or product that can stand on its own.",
-    requirements: ["Req 1", "Req 2", "Req 3"],
-    deadline: "Date",
-  },
-  {
-    id: 2,
-    title: "President's Scholarship",
-    description:
-      "Call out a feature, benefit, or value of your site or product that can stand on its own.",
-    requirements: ["Req 1", "Req 2", "Req 3"],
-    deadline: "Date",
-  },
-  {
-    id: 3,
-    title: "High Achiever's Scholarship",
-    description:
-      "Call out a feature, benefit, or value of your site or product that can stand on its own.",
-    requirements: ["Req 1", "Req 2", "Req 3"],
-    deadline: "Date",
-  },
-];
+import { useAuth } from "../context/AuthContext";
+import ScholarshipService from "../services/ScholarshipService";
 
 function ScholarshipCard({ scholarship }) {
   return (
@@ -36,34 +12,19 @@ function ScholarshipCard({ scholarship }) {
       <div className="flex-shrink-0">
         <img
           src={scholarship.image || ScholarshipPlaceholder}
-          alt={scholarship.title}
+          alt={scholarship.name}
           className="w-32 h-24 object-cover rounded-lg"
         />
       </div>
 
       <div className="flex-1 min-w-0">
         <h3 className="text-lg font-semibold text-gray-900">
-          {scholarship.title}
+          {scholarship.name}
         </h3>
         <p className="text-sm text-gray-500 mt-1">{scholarship.description}</p>
 
-        <div className="mt-2">
-          <p className="text-sm text-gray-600">Requirements:</p>
-          <ul className="mt-1 space-y-0.5">
-            {scholarship.requirements.map((req, index) => (
-              <li
-                key={index}
-                className="text-sm text-gray-500 flex items-center gap-1"
-              >
-                <ArrowRight className="w-3 h-3" />
-                {req}
-              </li>
-            ))}
-          </ul>
-        </div>
-
         <p className="text-sm text-gray-500 mt-2">
-          Deadline : {scholarship.deadline}
+          Deadline : {scholarship.applicationDeadline}
         </p>
 
         <Link
@@ -89,11 +50,41 @@ function ScholarshipCard({ scholarship }) {
 }
 
 export default function ManageScholarship() {
+  const { currentUser } = useAuth();
+  const [scholarships, setScholarships] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const scholarshipService = new ScholarshipService(currentUser?.token);
+    const fetchUserData = async () => {
+      try {
+        const data = await scholarshipService.getScholarships();
+        if (isLoading) setScholarships(data);
+        console.log("Scholarships fetched:", data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+
+    return () => {
+      setIsLoading(false);
+    };
+  }, [isLoading, currentUser]);
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredScholarships = scholarships.filter((scholarship) =>
-    scholarship.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    scholarship.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500">Loading scholarships...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">

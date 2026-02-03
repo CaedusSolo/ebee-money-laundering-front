@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function ApplicationDetails({ applicationId, onBack }) {
   const [application, setApplication] = useState(null);
@@ -6,26 +7,47 @@ export default function ApplicationDetails({ applicationId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
-    fetchApplicationDetails();
-  }, [applicationId]);
+    if (applicationId && currentUser?.token) {
+      // Clear previous data when applicationId changes
+      setApplication(null);
+      setReviewsData(null);
+      setError('');
+      fetchApplicationDetails();
+    }
+  }, [applicationId, currentUser?.token]);
 
   const fetchApplicationDetails = async () => {
     setLoading(true);
+    console.log('Fetching application details for ID:', applicationId); // DEBUG
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentUser?.token}`
+      };
+
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}`;
+      console.log('Requesting URL:', url); // DEBUG
+
       const [appRes, reviewsRes] = await Promise.all([
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}`),
-        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`)
+        fetch(url, { headers }),
+        fetch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`, { headers })
       ]);
 
+      if (!appRes.ok) {
+        throw new Error(`Failed to fetch application: ${appRes.statusText}`);
+      }
+
       const appData = await appRes.json();
-      const reviewsData = await reviewsRes.json();
+      console.log('Received application data:', appData); // DEBUG
+      const reviewsData = reviewsRes.ok ? await reviewsRes.json() : null;
 
       setApplication(appData);
       setReviewsData(reviewsData);
     } catch (err) {
-      setError('Failed to load application details');
+      setError(`Failed to load application details: ${err.message}`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -39,7 +61,10 @@ export default function ApplicationDetails({ applicationId, onBack }) {
         `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/decision`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser?.token}`
+          },
           body: JSON.stringify({ decision: approvalDecision })
         }
       );
