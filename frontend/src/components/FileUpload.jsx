@@ -7,7 +7,7 @@ const FileUpload = React.memo(({
     onChange,
     onValidate, 
     error,
-    acceptedFormats = ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+    acceptedFormats = ".pdf",
     maxSizeMB = 5
 }) => {
     const handleFileChange = (e) => {
