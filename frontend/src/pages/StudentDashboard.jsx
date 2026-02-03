@@ -2,7 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 import personPlaceholder from "../assets/personPlaceholder.svg";
-import ApplicationItem from "../components/ApplicationItem";
+
+const mockApplications = [
+    {
+        applicationId: 1,
+        scholarshipName: "Merit's Scholarship",
+        status: "Under Review",
+        submittedDate: "DD/MM/YYYY"
+    },
+    {
+        applicationId: 2,
+        scholarshipName: "President's Scholarship",
+        status: "Accepted",
+        submittedDate: "DD/MM/YYYY"
+    },
+    {
+        applicationId: 3,
+        scholarshipName: "High Achiever's Scholarship",
+        status: "Submitted",
+        submittedDate: "DD/MM/YYYY"
+    },
+];
 
 export default function StudentDashboard() {
     const [dashboardData, setDashboardData] = useState(null);
@@ -39,7 +59,7 @@ export default function StudentDashboard() {
         }
     }, [location]);
 
-    const applications = dashboardData?.applications || [];
+    const applications = mockApplications; // Using mock data
 
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
@@ -47,7 +67,7 @@ export default function StudentDashboard() {
         <div className="bg-gray-100 min-h-screen font-sans">
             <Navbar showBrowse={true} /> {/* Pass the prop here */}
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                 <div className="space-y-8">
                     
                     {/* Success Message */}
@@ -73,7 +93,7 @@ export default function StudentDashboard() {
                         </div>
                     )}
 
-                    <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-between">
+                    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 flex items-center justify-between">
                         <div className="flex items-center space-x-6">
                             <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden border border-gray-100">
                                 <img src={personPlaceholder} alt="Profile" />
@@ -93,17 +113,14 @@ export default function StudentDashboard() {
                         </button>
                     </div>
 
-                    <div className="bg-white p-6 rounded-lg shadow-md">
-                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-100">
-                            <div className="flex items-center">
-                                <svg className="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-50">
+                            <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                                <svg className="w-6 h-6 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
-                                <h3 className="text-xl font-bold text-gray-800">Application Status</h3>
-                            </div>
-                            <span className="text-sm text-gray-500">
-                                {applications.length} {applications.length === 1 ? 'Application' : 'Applications'}
-                            </span>
+                                Application Status
+                            </h3>
                         </div>
 
                         {applications.length === 0 ? (
@@ -121,14 +138,68 @@ export default function StudentDashboard() {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {applications.map((app) => (
-                                    <ApplicationItem
-                                        key={app.applicationId}
-                                        title={app.scholarshipName}
-                                        status={app.status}
-                                        date={app.submittedDate}
-                                    />
-                                ))}
+                                {applications.map((app) => {
+                                    const getStatusStyles = (status) => {
+                                        switch(status?.toLowerCase()) {
+                                            case 'accepted':
+                                                return {
+                                                    bg: 'bg-green-100',
+                                                    text: 'text-green-700',
+                                                    border: 'border-l-blue-500'
+                                                };
+                                            case 'under review':
+                                                return {
+                                                    bg: 'bg-yellow-100',
+                                                    text: 'text-yellow-700',
+                                                    border: 'border-l-blue-500'
+                                                };
+                                            case 'submitted':
+                                                return {
+                                                    bg: 'bg-blue-100',
+                                                    text: 'text-blue-700',
+                                                    border: 'border-l-blue-500'
+                                                };
+                                            case 'rejected':
+                                                return {
+                                                    bg: 'bg-red-100',
+                                                    text: 'text-red-700',
+                                                    border: 'border-l-red-500'
+                                                };
+                                            default:
+                                                return {
+                                                    bg: 'bg-gray-100',
+                                                    text: 'text-gray-700',
+                                                    border: 'border-l-gray-400'
+                                                };
+                                        }
+                                    };
+
+                                    const statusStyles = getStatusStyles(app.status);
+
+                                    return (
+                                        <div 
+                                            key={app.applicationId} 
+                                            className={`bg-white border-l-8 ${statusStyles.border} p-5 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100`}
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <h4 className="text-lg font-bold text-gray-800 mb-3">{app.scholarshipName}</h4>
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm text-gray-600 font-medium">Status:</span>
+                                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusStyles.bg} ${statusStyles.text}`}>
+                                                                {app.status.toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-500">
+                                                            <span className="font-medium">Submitted:</span> {app.submittedDate}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
