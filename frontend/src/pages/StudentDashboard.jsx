@@ -45,7 +45,7 @@ export default function StudentDashboard() {
 
     return (
         <div className="bg-gray-100 min-h-screen font-sans">
-            <Navbar />
+            <Navbar showBrowse={true} /> {/* Pass the prop here */}
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
                 <div className="space-y-8">
