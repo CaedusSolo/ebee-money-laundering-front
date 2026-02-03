@@ -21,8 +21,20 @@ export default function ScholarshipCommitteeDashboard() {
           headers: { 'Authorization': `Bearer ${currentUser?.token}` }
         });
         const data = await response.json();
-        if (response.ok && data.applications) {
-          setApplications(data.applications);
+
+        if (response.ok) {
+          const combined = [
+            ...(data.pendingApplications || []),
+            ...(data.gradedApplications || [])
+          ].map(app => ({
+            ...app,
+            scores: {
+              academic: app.scores?.find(s => s.category === 'ACADEMIC')?.score,
+              curriculum: app.scores?.find(s => s.category === 'CURRICULUM')?.score,
+              leadership: app.scores?.find(s => s.category === 'LEADERSHIP')?.score,
+            }
+          }));
+          setApplications(combined);
         }
       } catch (error) {
         console.error("Dashboard fetch failed:", error);
@@ -52,10 +64,11 @@ export default function ScholarshipCommitteeDashboard() {
     const leadership = modalData.leadership === '' ? null : modalData.leadership;
 
     newApplications[appIndex].scores = { academic, curriculum, leadership };
-    newApplications[appIndex].status = 'Graded';
+    newApplications[appIndex].status = 'GRADED'; // Aligned with Backend Enum
 
     if (academic !== null && curriculum !== null && leadership !== null) {
       const totalRaw = academic + curriculum + leadership;
+      // Normalizing score to 100 based on raw max of 60
       newApplications[appIndex].totalScore = Math.round((totalRaw / 60) * 100);
     }
 
@@ -85,7 +98,12 @@ export default function ScholarshipCommitteeDashboard() {
       <div className="space-y-4">
         {applications.length > 0 ? (
           applications.map((app, index) => (
-            <ApplicationItem key={app.id} title={app.id} status={app.status} date={app.submittedDate}>
+            <ApplicationItem
+              key={app.id}
+              title={app.id}
+              status={app.status}
+              date={app.submittedAt} // 3. KEY MATCH: Use submittedAt from Backend DTO
+            >
               <button onClick={() => handleOpenModal(index)} className="text-gray-400 hover:text-blue-600 transition">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
