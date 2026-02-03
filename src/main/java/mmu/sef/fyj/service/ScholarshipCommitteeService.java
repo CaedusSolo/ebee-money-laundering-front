@@ -33,7 +33,7 @@ public class ScholarshipCommitteeService {
                 .orElseThrow(() -> new RuntimeException("Committee profile not found for: " + user.getEmail()));
 
         if (committee.getAssignedScholarshipId() == null) {
-            throw new RuntimeException("No scholarship has been assigned to this committee member yet.");
+            throw new RuntimeException("No scholarship assigned to this committee member.");
         }
 
         Scholarship scholarship = scholarshipRepository.findById(committee.getAssignedScholarshipId())
@@ -42,7 +42,6 @@ public class ScholarshipCommitteeService {
         Map<String, Object> profile = new HashMap<>();
         profile.put("id", committee.getCommitteeId());
         profile.put("assignedScholarship", scholarship.getName());
-        profile.put("assignedScholarshipId", scholarship.getId());
 
         List<Application> allApps = applicationRepository.findByScholarshipID(scholarship.getId());
 
@@ -69,6 +68,7 @@ public class ScholarshipCommitteeService {
                 .orElseThrow(() -> new RuntimeException("Application not found"));
     }
 
+    // THIS IS THE MISSING METHOD CAUSING YOUR ERROR
     @Transactional
     public void evaluateApplication(Integer applicationId, Map<String, Object> evaluationData) {
         Application app = applicationRepository.findById(applicationId)
@@ -76,7 +76,7 @@ public class ScholarshipCommitteeService {
 
         String remarks = (String) evaluationData.get("comments");
 
-        // Build new grades list (Replacing old ones if they exist)
+        // Create new Grade objects for the @ElementCollection
         List<Grade> grades = new ArrayList<>();
         grades.add(new Grade("ACADEMIC", (Integer) evaluationData.get("academic"), remarks));
         grades.add(new Grade("CURRICULUM", (Integer) evaluationData.get("curriculum"), remarks));
@@ -103,8 +103,7 @@ public class ScholarshipCommitteeService {
         }
 
         map.put("scores", scores);
-        // Normalize score to 100 based on max 60 (3 categories * 20)
-        map.put("totalScore", Math.round((total / 60.0) * 100));
+        map.put("totalScore", total);
         return map;
     }
 }
