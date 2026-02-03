@@ -13,36 +13,31 @@ export default function ScholarshipCommitteeDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentAppIndex, setCurrentAppIndex] = useState(null);
 
-  useEffect(() => {
-    const fetchApps = async () => {
-      try {
-        const id = currentUser?.user?.id || currentUser?.id;
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/committee/dashboard/${id}`, {
-          headers: { 'Authorization': `Bearer ${currentUser?.token}` }
-        });
-        const data = await response.json();
+  const fetchApps = async () => {
+    try {
+      setLoading(true);
+      const id = currentUser?.user?.id || currentUser?.id;
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/committee/dashboard/${id}`, {
+        headers: { 'Authorization': `Bearer ${currentUser?.token}` }
+      });
+      const data = await response.json();
 
-        if (response.ok) {
-          const combined = [
-            ...(data.pendingApplications || []),
-            ...(data.gradedApplications || [])
-          ].map(app => ({
-            ...app,
-            scores: {
-              academic: app.scores?.find(s => s.category === 'ACADEMIC')?.score,
-              curriculum: app.scores?.find(s => s.category === 'CURRICULUM')?.score,
-              leadership: app.scores?.find(s => s.category === 'LEADERSHIP')?.score,
-              remarks: app.scores?.[0]?.remarks || ''
-            }
-          }));
-          setApplications(combined);
-        }
-      } catch (error) {
-        console.error("Dashboard fetch failed:", error);
-      } finally {
-        setLoading(false);
+      if (response.ok) {
+        // Correctly merge backend lists into local state
+        const combined = [
+          ...(data.pendingApplications || []),
+          ...(data.gradedApplications || [])
+        ];
+        setApplications(combined);
       }
-    };
+    } catch (error) {
+      console.error("Dashboard fetch failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (currentUser) fetchApps();
   }, [currentUser]);
 
@@ -57,20 +52,41 @@ export default function ScholarshipCommitteeDashboard() {
   };
 
   const handleSubmitEvaluation = (modalData) => {
-    const newApps = [...applications];
-    newApps[currentAppIndex].scores = { ...modalData };
-    newApps[currentAppIndex].status = 'GRADED';
-    setApplications(newApps);
+    const newApplications = [...applications];
+    const appIndex = currentAppIndex;
+
+    const academic = modalData.academic === '' ? 0 : parseInt(modalData.academic, 10);
+    const curriculum = modalData.curriculum === '' ? 0 : parseInt(modalData.curriculum, 10);
+    const leadership = modalData.leadership === '' ? 0 : parseInt(modalData.leadership, 10);
+
+    newApplications[appIndex].scores = { academic, curriculum, leadership };
+    newApplications[appIndex].status = 'GRADED';
+
+    // REMOVED NORMALIZATION: Using the raw sum (max 60)
+    newApplications[appIndex].totalScore = academic + curriculum + leadership;
+
+    setApplications(newApplications);
     handleCloseModal();
   };
 
-  if (loading) return <div className="text-center py-20 text-gray-500">Loading...</div>;
+  if (loading) return <div className="text-center py-20 text-gray-500">Loading applications...</div>;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-      <h3 className="text-xl font-bold text-gray-800 mb-6 pb-2 border-b">
-        {committeeInfo?.assignedScholarship || "Scholarship"} Applications
-      </h3>
+      <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-50">
+        <h3 className="text-xl font-bold text-gray-800 flex items-center">
+          <svg className="w-6 h-6 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {committeeInfo?.assignedScholarship} Applications
+        </h3>
+        <div className="hidden md:flex items-center space-x-3 text-sm font-semibold text-gray-400 mr-4">
+          <span className="w-16 text-center">Academic</span>
+          <span className="w-16 text-center">Co-Curric.</span>
+          <span className="w-16 text-center">Leadership</span>
+          <span className="w-16 text-center">Total</span>
+        </div>
+      </div>
 
       <div className="space-y-4">
         {applications.length > 0 ? (
@@ -85,11 +101,11 @@ export default function ScholarshipCommitteeDashboard() {
               <ScoreDisplay value={app.scores?.academic} maxValue={20} />
               <ScoreDisplay value={app.scores?.curriculum} maxValue={20} />
               <ScoreDisplay value={app.scores?.leadership} maxValue={20} />
-              <ScoreDisplay value={app.totalScore} variant="total" />
+              <ScoreDisplay value={app.totalScore} variant="total" maxValue={60} />
             </ApplicationItem>
           ))
         ) : (
-          <p className="text-gray-500 text-center py-10">No applications assigned.</p>
+          <p className="text-gray-500 text-center py-10">No applications assigned yet.</p>
         )}
       </div>
 

@@ -28,4 +28,15 @@ public class ScholarshipCommitteeController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PostMapping("/evaluate/{applicationId}")
+    public ResponseEntity<?> evaluate(@PathVariable Integer applicationId,
+            @RequestBody Map<String, Object> evaluationData) {
+        try {
+            committeeService.evaluateApplication(applicationId, evaluationData);
+            return ResponseEntity.ok(Map.of("message", "Evaluation submitted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }
