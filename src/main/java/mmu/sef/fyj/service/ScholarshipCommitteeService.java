@@ -49,7 +49,7 @@ public class ScholarshipCommitteeService {
 
     private Map<String, Object> mapToSummary(Application app) {
         Map<String, Object> map = new HashMap<>();
-        map.put("id", app.getApplicationId());
+        map.put("id", app.getApplicationID());
         map.put("studentName", app.getFirstName() + " " + app.getLastName());
         map.put("status", app.getStatus().name());
         map.put("submittedAt", app.getSubmittedAt());
