@@ -64,7 +64,7 @@ class ScholarshipService {
    * @returns {Promise<object>}  { data, total, page, limit }
    */
   async getScholarships() {
-    const { data } = await this.api.get("/");
+    const { data } = await this.api.get("");
     return data;
   }
 

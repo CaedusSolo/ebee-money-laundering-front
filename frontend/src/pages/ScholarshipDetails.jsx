@@ -19,10 +19,9 @@ export default function ScholarshipDetailPage() {
 
   const [formData, setFormData] = useState({
     id: 1,
-    title: "Merit's Scholarship",
-    description:
-      "Call out a feature, benefit, or value of your site or product that can stand on its own.",
-    deadline: "2024-12-31",
+    name: "Scholarship Name",
+    description: "Scholarship Description",
+    applicationDeadline: "1999-12-31",
     reviewer: "",
     scholarshipCommittees: [],
   });
@@ -107,11 +106,11 @@ export default function ScholarshipDetailPage() {
             <div className="flex flex-col gap-6 md:flex-row">
               {/* Form Fields Section */}
               <div className="flex flex-1 flex-col gap-4">
-                {/* Title Field */}
+                {/* name Field */}
                 <input
                   type="text"
-                  value={formData.title}
-                  onChange={(e) => handleChange("title", e.target.value)}
+                  value={formData.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-lg font-semibold text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
 
@@ -127,13 +126,15 @@ export default function ScholarshipDetailPage() {
                   />
                 </div>
 
-                {/* Deadline Field */}
+                {/* applicationDeadline Field */}
                 <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
                   <span className="text-sm text-gray-500">Deadline:</span>
                   <input
                     type="date"
-                    value={formData.deadline}
-                    onChange={(e) => handleChange("deadline", e.target.value)}
+                    value={formData.applicationDeadline}
+                    onChange={(e) =>
+                      handleChange("applicationDeadline", e.target.value)
+                    }
                     className="flex-1 bg-transparent text-sm text-gray-500 outline-none"
                   />
                 </div>
