@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import InputField from "./InputField";
 
 const PersonalInfoForm = ({ 
@@ -24,11 +24,51 @@ const PersonalInfoForm = ({
         return true;
     };
 
+    // Validate all required fields on page 1
+    const validatePage1 = () => {
+        const requiredFields = [
+            'firstName', 'lastName', 'email', 'phoneNumber', 
+            'dateOfBirth', 'icNumber', 'nationality', 'bumiputera', 
+            'gender', 'monthlyHouseholdIncome'
+        ];
+        
+        let isValid = true;
+        
+        // Check all required fields are filled
+        requiredFields.forEach(field => {
+            if (!formData[field] || formData[field].toString().trim() === '' || formData[field] === 'Select Gender' || formData[field] === 'Select') {
+                isValid = false;
+            }
+        });
+        
+        // Check if there are any validation errors
+        if (Object.keys(errors).length > 0) {
+            isValid = false;
+        }
+        
+        // Check family members
+        if (!validateFamilyMembers()) {
+            isValid = false;
+        }
+        
+        return isValid;
+    };
+
     const handleNextClick = () => {
         if (validateFamilyMembers()) {
             handleNext();
         }
     };
+
+    // Handle family member income change - only allow numbers
+    const handleFamilyIncomeChange = (index, value) => {
+        // Remove all non-numeric characters except decimal point
+        const numericValue = value.replace(/[^\d.]/g, '');
+        handleFamilyChange(index, "income", numericValue);
+    };
+
+    // Check if Next button should be disabled
+    const isNextDisabled = !validatePage1();
 
     return (
         <div className="space-y-12">
@@ -45,6 +85,7 @@ const PersonalInfoForm = ({
                         onChange={handleInputChange}
                         onValidate={handleValidationError}
                         error={errors.firstName}
+                        validationType="name"
                     />
                     <InputField 
                         label="Last Name" 
@@ -53,6 +94,7 @@ const PersonalInfoForm = ({
                         onChange={handleInputChange}
                         onValidate={handleValidationError}
                         error={errors.lastName}
+                        validationType="name"
                     />
                     <InputField 
                         label="Email" 
@@ -72,6 +114,7 @@ const PersonalInfoForm = ({
                         onValidate={handleValidationError}
                         error={errors.phoneNumber}
                         validationType="phone"
+                        exampleFormat="012-3456789"
                     />
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
@@ -81,6 +124,29 @@ const PersonalInfoForm = ({
                             type="date"
                             value={formData.dateOfBirth || ""}
                             onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                            onBlur={(e) => {
+                                const value = e.target.value;
+                                if (value) {
+                                    const selectedDate = new Date(value);
+                                    const today = new Date();
+                                    const minDate = new Date();
+                                    minDate.setFullYear(today.getFullYear() - 100);
+                                    
+                                    if (selectedDate > today) {
+                                        handleValidationError('dateOfBirth', 'Please enter a valid date of birth');
+                                    } else if (selectedDate < minDate) {
+                                        handleValidationError('dateOfBirth', 'Please enter a valid date of birth');
+                                    } else {
+                                        const minAge = new Date();
+                                        minAge.setFullYear(today.getFullYear() - 16);
+                                        if (selectedDate > minAge) {
+                                            handleValidationError('dateOfBirth', 'You must be at least 16 years old');
+                                        }
+                                    }
+                                }
+                            }}
+                            max={new Date().toISOString().split('T')[0]} // Prevent future dates in date picker
+                            min={new Date(new Date().getFullYear() - 100, 0, 1).toISOString().split('T')[0]} // Prevent dates too far in past
                             className={`border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.dateOfBirth ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
                         />
                         {errors.dateOfBirth && (
@@ -95,15 +161,25 @@ const PersonalInfoForm = ({
                         onValidate={handleValidationError}
                         error={errors.icNumber}
                         validationType="icNumber"
+                        exampleFormat="123456-12-1234"
                     />
-                    <InputField 
-                        label="Nationality"
-                        field="nationality"
-                        value={formData.nationality}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.nationality}
-                    />
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
+                            Nationality*
+                        </label>
+                        <select 
+                            className={`border ${errors.nationality ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.nationality ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            value={formData.nationality || ""}
+                            onChange={(e) => handleInputChange('nationality', e.target.value)}
+                        >
+                            <option value="">Select Nationality</option>
+                            <option value="Malaysian">Malaysian</option>
+                            <option value="Non-Malaysian">Non-Malaysian</option>
+                        </select>
+                        {errors.nationality && (
+                            <span className="text-red-500 text-xs mt-1">{errors.nationality}</span>
+                        )}
+                    </div>
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Bumiputera*
@@ -126,13 +202,13 @@ const PersonalInfoForm = ({
                             Gender*
                         </label>
                         <select 
-                            className={`border ${errors.gender ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none ${errors.gender ? 'focus:ring-red-500' : ''}`}
-                            value={formData.gender}
+                            className={`border ${errors.gender ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.gender ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            value={formData.gender || ""}
                             onChange={(e) => handleInputChange('gender', e.target.value)}
                         >
-                            <option>Select Gender</option>
-                            <option>Male</option>
-                            <option>Female</option>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
                         </select>
                         {errors.gender && (
                             <span className="text-red-500 text-xs mt-1">{errors.gender}</span>
@@ -232,15 +308,13 @@ const PersonalInfoForm = ({
                                     </td>
                                     <td className="border border-gray-300">
                                         <input
+                                            type="text"
                                             className="w-full p-2 outline-none focus:bg-blue-50"
                                             value={member.income}
                                             onChange={(e) =>
-                                                handleFamilyChange(
-                                                    i,
-                                                    "income",
-                                                    e.target.value,
-                                                )
+                                                handleFamilyIncomeChange(i, e.target.value)
                                             }
+                                            placeholder="0.00"
                                         />
                                     </td>
                                 </tr>
@@ -257,7 +331,12 @@ const PersonalInfoForm = ({
                 <button
                     type="button"
                     onClick={handleNextClick}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-12 rounded-xl transition-colors"
+                    disabled={isNextDisabled}
+                    className={`font-bold py-3 px-12 rounded-xl transition-colors ${
+                        isNextDisabled 
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                            : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+                    }`}
                 >
                     Next
                 </button>

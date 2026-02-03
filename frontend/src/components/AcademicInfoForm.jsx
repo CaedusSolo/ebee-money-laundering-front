@@ -14,6 +14,63 @@ const AcademicInfoForm = ({
     handleBack,
     handleSubmit
 }) => {
+
+    const universities = [
+        "Universiti Malaya (UM)",
+        "Universiti Kebangsaan Malaysia (UKM)",
+        "Universiti Putra Malaysia (UPM)",
+        "Universiti Teknologi Malaysia (UTM)",
+        "Universiti Teknologi MARA (UiTM)",
+        "Universiti Islam Antarabangsa Malaysia (UIAM)",
+        "Universiti Utara Malaysia (UUM)",
+        "Universiti Malaysia Sarawak (UNIMAS)",
+        "Universiti Malaysia Sabah (UMS)",
+        "Universiti Sains Islam Malaysia (USIM)",,
+        "Taylor's University",
+        "Sunway University",
+        "INTI International University",
+        "Monash University Malaysia",
+        "University of Nottingham Malaysia",
+        "Heriot-Watt University Malaysia",
+        "UCSI University",
+        "Multimedia University (MMU)",
+        "Asia Pacific University (APU)",
+        "Management and Science University (MSU)",
+        "Other"
+    ];
+
+    const majors = [
+        "Computer Science",
+        "Information Technology",
+        "Business Administration",
+        "Accounting",
+        "Finance",
+        "Marketing",
+        "Economics",
+        "Mechanical Engineering",
+        "Electrical Engineering",
+        "Law",
+        "Cinematic Arts",
+        "Creative Multimedia",
+        "Communication",
+        "Other"
+    ];
+
+    // Graduation years (current year + next 10 years)
+    const currentYear = new Date().getFullYear();
+    const graduationYears = Array.from({ length: 11 }, (_, i) => currentYear + i);
+
+    // Highest qualifications
+    const qualifications = [
+        "SPM",
+        "STPM",
+        "A-Levels",
+        "Foundation",
+        "Diploma",
+        "Matriculation",
+        "Other"
+    ];
+
     // Validate activities table (minimum 2 rows filled)
     const validateActivities = () => {
         const filledRows = activities.filter(activity => {
@@ -44,40 +101,64 @@ const AcademicInfoForm = ({
                     Academic Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputField 
-                        label="University/College"
-                        field="university"
-                        value={formData.university}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.university}
-                    />
-                    <InputField 
-                        label="Major"
-                        field="major"
-                        value={formData.major}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.major}
-                    />
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
+                            University/College*
+                        </label>
+                        <select 
+                            className={`border ${errors.university ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.university ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            value={formData.university || ""}
+                            onChange={(e) => handleInputChange('university', e.target.value)}
+                        >
+                            <option value="">Select University/College</option>
+                            {universities.map((uni, index) => (
+                                <option key={index} value={uni}>{uni}</option>
+                            ))}
+                        </select>
+                        {errors.university && (
+                            <span className="text-red-500 text-xs mt-1">{errors.university}</span>
+                        )}
+                    </div>
+                    
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
+                            Major*
+                        </label>
+                        <select 
+                            className={`border ${errors.major ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.major ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            value={formData.major || ""}
+                            onChange={(e) => handleInputChange('major', e.target.value)}
+                        >
+                            <option value="">Select Major</option>
+                            {majors.map((major, index) => (
+                                <option key={index} value={major}>{major}</option>
+                            ))}
+                        </select>
+                        {errors.major && (
+                            <span className="text-red-500 text-xs mt-1">{errors.major}</span>
+                        )}
+                    </div>
+                    
                     <div className="flex flex-col">
                         <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                             Year*
                         </label>
                         <select 
-                            className={`border ${errors.year ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none ${errors.year ? 'focus:ring-red-500' : ''}`}
-                            value={formData.year}
+                            className={`border ${errors.year ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.year ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            value={formData.year || ""}
                             onChange={(e) => handleInputChange('year', e.target.value)}
                         >
-                            <option>Select Year</option>
-                            <option>Year 1</option>
-                            <option>Year 2</option>
-                            <option>Year 3</option>
+                            <option value="">Select Year</option>
+                            <option value="Year 1">Year 1</option>
+                            <option value="Year 2">Year 2</option>
+                            <option value="Year 3">Year 3</option>
+                            <option value="Year 4">Year 4</option>
                         </select>
                         {errors.year && (
                             <span className="text-red-500 text-xs mt-1">{errors.year}</span>
                         )}
                     </div>
+                    
                     <InputField 
                         label="CGPA"
                         field="cgpa"
@@ -87,23 +168,44 @@ const AcademicInfoForm = ({
                         error={errors.cgpa}
                         validationType="cgpa"
                     />
-                    <InputField 
-                        label="Expected Graduation Year"
-                        field="expectedGraduation"
-                        value={formData.expectedGraduation}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.expectedGraduation}
-                        validationType="year"
-                    />
-                    <InputField 
-                        label="Highest Academic Qualification"
-                        field="highestQualification"
-                        value={formData.highestQualification}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.highestQualification}
-                    />
+                    
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
+                            Expected Graduation Year*
+                        </label>
+                        <select 
+                            className={`border ${errors.expectedGraduation ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.expectedGraduation ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            value={formData.expectedGraduation || ""}
+                            onChange={(e) => handleInputChange('expectedGraduation', e.target.value)}
+                        >
+                            <option value="">Select Year</option>
+                            {graduationYears.map((year) => (
+                                <option key={year} value={year}>{year}</option>
+                            ))}
+                        </select>
+                        {errors.expectedGraduation && (
+                            <span className="text-red-500 text-xs mt-1">{errors.expectedGraduation}</span>
+                        )}
+                    </div>
+                    
+                    <div className="flex flex-col">
+                        <label className="text-xs font-bold text-gray-700 uppercase mb-1">
+                            Highest Academic Qualification*
+                        </label>
+                        <select 
+                            className={`border ${errors.highestQualification ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${errors.highestQualification ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                            value={formData.highestQualification || ""}
+                            onChange={(e) => handleInputChange('highestQualification', e.target.value)}
+                        >
+                            <option value="">Select Qualification</option>
+                            {qualifications.map((qual, index) => (
+                                <option key={index} value={qual}>{qual}</option>
+                            ))}
+                        </select>
+                        {errors.highestQualification && (
+                            <span className="text-red-500 text-xs mt-1">{errors.highestQualification}</span>
+                        )}
+                    </div>
                 </div>
             </section>
 

@@ -7,16 +7,41 @@ const validators = {
         return re.test(value) ? null : "Please enter a valid email address";
     },
     phone: (value) => {
-        const re = /^[0-9]{10,11}$/;
-        return re.test(value.replace(/[\s-]/g, '')) ? null : "Please enter a valid phone number (10-11 digits)";
+        // Format: 012-3456789 (3 digits, dash, 7 or 8 digits)
+        const re = /^01[0-9]-[0-9]{7,8}$/;
+        return re.test(value) ? null : "Please enter phone number in format: 012-3456789";
     },
     icNumber: (value) => {
-        const re = /^[0-9]{6}-[0-9]{2}-[0-9]{4}$|^[0-9]{12}$/;
-        return re.test(value) ? null : "Please enter a valid IC number (e.g., 123456-12-1234)";
+        // Format: 123456-12-1234 (6 digits, dash, 2 digits, dash, 4 digits)
+        const re = /^[0-9]{6}-[0-9]{2}-[0-9]{4}$/;
+        return re.test(value) ? null : "Please enter IC number in format: 123456-12-1234";
     },
     dateOfBirth: (value) => {
-        const re = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/\d{4}$/;
-        return re.test(value) ? null : "Please use DD/MM/YYYY format";
+        if (!value) return "Date of birth is required";
+        
+        const selectedDate = new Date(value);
+        const today = new Date();
+        const minDate = new Date();
+        minDate.setFullYear(today.getFullYear() - 100); // 100 years ago
+        
+        // Check if date is in the future
+        if (selectedDate > today) {
+            return "Please enter a valid date of birth";
+        }
+        
+        // Check if date is too far in the past
+        if (selectedDate < minDate) {
+            return "Please enter a valid date of birth";
+        }
+        
+        // Check if person is at least 16 years old (typical minimum age for scholarship)
+        const minAge = new Date();
+        minAge.setFullYear(today.getFullYear() - 16);
+        if (selectedDate > minAge) {
+            return "You must be at least 16 years old";
+        }
+        
+        return null;
     },
     cgpa: (value) => {
         const num = parseFloat(value);
@@ -38,6 +63,11 @@ const validators = {
     },
     yesNo: (value) => {
         return ['yes', 'no'].includes(value.toLowerCase()) ? null : "Please enter 'Yes' or 'No'";
+    },
+    name: (value) => {
+        // Only allow letters and spaces, no numbers or special characters
+        const re = /^[a-zA-Z\s]+$/;
+        return re.test(value) ? null : "Name can only contain letters";
     }
 };
 
@@ -51,10 +81,44 @@ const InputField = React.memo(({
     onValidate,
     error,
     validationType = null,
-    required = true 
+    required = true,
+    exampleFormat = ""
 }) => {
     const handleChange = (e) => {
-        const newValue = e.target.value;
+        let newValue = e.target.value;
+        
+        // For phone numbers, auto-format with dash
+        if (validationType === 'phone') {
+            // Remove all non-digits
+            newValue = newValue.replace(/\D/g, '');
+            
+            // Add dash after 3rd digit if there are more than 3 digits
+            if (newValue.length > 3) {
+                newValue = newValue.slice(0, 3) + '-' + newValue.slice(3, 11);
+            }
+        }
+        
+        // For IC numbers, auto-format with dashes
+        if (validationType === 'icNumber') {
+            // Remove all non-digits
+            newValue = newValue.replace(/\D/g, '');
+            
+            // Add dashes at appropriate positions
+            if (newValue.length > 6) {
+                if (newValue.length > 8) {
+                    newValue = newValue.slice(0, 6) + '-' + newValue.slice(6, 8) + '-' + newValue.slice(8, 12);
+                } else {
+                    newValue = newValue.slice(0, 6) + '-' + newValue.slice(6, 8);
+                }
+            }
+        }
+        
+        // For name fields, prevent numbers
+        if (validationType === 'name') {
+            // Only allow letters and spaces
+            newValue = newValue.replace(/[^a-zA-Z\s]/g, '');
+        }
+        
         onChange(field, newValue);
     };
 
@@ -72,6 +136,11 @@ const InputField = React.memo(({
         <div className="flex flex-col">
             <label className="text-xs font-bold text-gray-700 uppercase mb-1">
                 {label}{required && '*'}
+                {exampleFormat && (
+                    <span className="text-gray-500 font-normal normal-case ml-1">
+                        (e.g., {exampleFormat})
+                    </span>
+                )}
             </label>
             <input
                 type={type}

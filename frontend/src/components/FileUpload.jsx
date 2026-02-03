@@ -25,7 +25,7 @@ const FileUpload = React.memo(({
             
             // Validate file type
             const fileExtension = '.' + selectedFile.name.split('.').pop().toLowerCase();
-            const acceptedArray = acceptedFormats.split(',');
+            const acceptedArray = acceptedFormats.split(',').map(format => format.trim());
             if (!acceptedArray.includes(fileExtension)) {
                 if (onValidate) {
                     onValidate(field, `Please upload a valid file type (${acceptedFormats})`);
@@ -68,6 +68,9 @@ const FileUpload = React.memo(({
                         {(file.size / 1024).toFixed(1)} KB
                     </span>
                 )}
+                <span className="text-xs text-gray-400 mt-2">
+                    Accepted formats: {acceptedFormats}
+                </span>
                 <input
                     id={`file-${field}`}
                     type="file"
