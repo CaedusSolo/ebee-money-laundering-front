@@ -159,7 +159,7 @@ public class DataSeeder implements CommandLineRunner {
         Random random = new Random(42);
         String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
         String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
-        ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW };
+        // ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW };
         ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW,
                 ApplicationStatus.GRADED };
         String[] colleges = { "Multimedia University", "Universiti Malaya", "Universiti Teknologi Malaysia",
