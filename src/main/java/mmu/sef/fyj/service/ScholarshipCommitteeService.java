@@ -27,6 +27,7 @@ public class ScholarshipCommitteeService {
     public Map<String, Object> getCommitteeDashboard(Integer userId) {
         Map<String, Object> dashboard = new HashMap<>();
 
+        // 1. Resolve Identity
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User account not found"));
 
@@ -40,29 +41,51 @@ public class ScholarshipCommitteeService {
             throw new RuntimeException("No scholarships assigned to this committee member.");
         }
 
-        // OPTIMIZED: Fetch only assigned applications directly from the DB
+        // 2. Fetch All Assigned Applications
         List<Application> allAssignedApps = applicationRepository.findByScholarshipIDIn(scholarshipIds);
 
-        // Grouping logic remains the same...
-        List<Map<String, Object>> pending = allAssignedApps.stream()
-                .filter(app -> app.getGrades().stream()
-                        .noneMatch(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
-                .map(app -> mapToSummary(app, currentCommitteeId))
-                .collect(Collectors.toList());
+        // 3. Resolve Scholarship Names for grouping headings
+        Map<Integer, String> scholarshipNames = scholarshipRepository.findAllById(scholarshipIds)
+                .stream().collect(Collectors.toMap(Scholarship::getId, Scholarship::getName));
 
-        List<Map<String, Object>> graded = allAssignedApps.stream()
-                .filter(app -> app.getGrades().stream()
-                        .anyMatch(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
-                .map(app -> mapToSummary(app, currentCommitteeId))
-                .collect(Collectors.toList());
+        // 4. Group by Scholarship Name and then Status
+        // This creates the "scholarships" key the frontend is looking for
+        Map<String, Map<String, List<Map<String, Object>>>> groupedScholarships = new HashMap<>();
 
+        for (Integer sId : scholarshipIds) {
+            String name = scholarshipNames.getOrDefault(sId, "Scholarship " + sId);
+
+            List<Application> appsForThisType = allAssignedApps.stream()
+                    .filter(app -> app.getScholarshipID().equals(sId))
+                    .collect(Collectors.toList());
+
+            Map<String, List<Map<String, Object>>> groups = new HashMap<>();
+
+            // Pending: Applications this specific member hasn't graded
+            groups.put("pending", appsForThisType.stream()
+                    .filter(app -> app.getGrades().stream()
+                            .noneMatch(
+                                    g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
+                    .map(app -> mapToSummary(app, currentCommitteeId))
+                    .collect(Collectors.toList()));
+
+            // Graded: Applications this specific member has graded
+            groups.put("graded", appsForThisType.stream()
+                    .filter(app -> app.getGrades().stream()
+                            .anyMatch(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
+                    .map(app -> mapToSummary(app, currentCommitteeId))
+                    .collect(Collectors.toList()));
+
+            groupedScholarships.put(name, groups);
+        }
+
+        // 5. Final Output
         Map<String, Object> profileInfo = new HashMap<>();
         profileInfo.put("name", committee.getName());
         profileInfo.put("assignedCount", scholarshipIds.size());
 
         dashboard.put("profile", profileInfo);
-        dashboard.put("pendingApplications", pending);
-        dashboard.put("gradedApplications", graded);
+        dashboard.put("scholarships", groupedScholarships); // The frontend needs this key
 
         return dashboard;
     }
