@@ -17,17 +17,20 @@ public class DataSeeder implements CommandLineRunner {
     private final ScholarshipRepository scholarshipRepository;
     private final ApplicationRepository applicationRepository;
     private final ScholarshipCommitteeRepository committeeRepository; // Added Repository
+    private final ReviewerRepository reviewerRepository; // Added Repository for Reviewers
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(UserRepository userRepository,
             ScholarshipRepository scholarshipRepository,
             ApplicationRepository applicationRepository,
             ScholarshipCommitteeRepository committeeRepository, // Added to Constructor
+            ReviewerRepository reviewerRepository, // Added to Constructor
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.scholarshipRepository = scholarshipRepository;
         this.applicationRepository = applicationRepository;
         this.committeeRepository = committeeRepository;
+        this.reviewerRepository = reviewerRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -38,6 +41,7 @@ public class DataSeeder implements CommandLineRunner {
         seedUsers();
         seedScholarships();
         seedApplications();
+        seedGradedApplications();
 
         System.out.println("--- Data Seeding Completed ---");
     }
@@ -87,13 +91,23 @@ public class DataSeeder implements CommandLineRunner {
 
             // FIX: If user is a Committee member, also create their Profile record
             if (role == Role.COMMITTEE && !committeeRepository.existsByEmail(email)) {
-                ScholarshipCommittee committee = new ScholarshipCommittee();
-                committee.setName(name);
-                committee.setEmail(email);
-                committee.setPassword(encodedPassword);
-                committee.setAssignedScholarshipId(1); // Default assignment for testing
-                committeeRepository.save(committee);
-                System.out.println("Created Committee Profile: " + email);
+                ScholarshipCommittee sc = new ScholarshipCommittee();
+                sc.setName(name);
+                sc.setEmail(email);
+                sc.setPassword(encodedPassword);
+                sc.getAssignedScholarshipIds().add(1);
+                committeeRepository.save(sc);
+            }
+
+            // FIX: If user is a Reviewer, also create their Profile record
+            if (role == Role.REVIEWER && !reviewerRepository.existsByEmail(email)) {
+                Reviewer reviewer = new Reviewer();
+                reviewer.setName(name);
+                reviewer.setEmail(email);
+                reviewer.setPassword(encodedPassword);
+                reviewer.setAssignedScholarshipId(1); // Default assignment for testing
+                reviewerRepository.save(reviewer);
+                System.out.println("Created Reviewer Profile: " + email);
             }
 
             System.out.println("Created User: " + email + " [" + role + "]");
@@ -153,6 +167,41 @@ public class DataSeeder implements CommandLineRunner {
                 app.setMonthlyFamilyIncome(5000f);
                 app.setBumiputera(true);
                 app.setStatus(statuses[random.nextInt(statuses.length)]);
+                applicationRepository.save(app);
+            }
+        }
+    }
+
+    private void seedGradedApplications() {
+        List<User> students = userRepository.findByRole(Role.STUDENT);
+        List<Scholarship> scholarships = scholarshipRepository.findAll();
+
+        if (students.isEmpty() || scholarships.isEmpty())
+            return;
+
+        Random random = new Random(99);
+        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
+        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
+
+        // Create some graded applications for testing approval
+        for (Scholarship scholarship : scholarships) {
+            for (int i = 0; i < 3 && i < students.size(); i++) {
+                User student = students.get(i);
+                
+                Application app = new Application();
+                app.setStudentID(student.getId());
+                app.setScholarshipID(scholarship.getId());
+                app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
+                app.setLastName(lastNames[random.nextInt(lastNames.length)]);
+                app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
+                app.setNationality("Malaysian");
+                app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1, 1 + random.nextInt(28)));
+                app.setPhoneNumber("012-" + (1000000 + random.nextInt(9000000)));
+                app.setNricNumber("000101-14-" + (1000 + random.nextInt(9000)));
+                app.setMonthlyFamilyIncome(3000f + random.nextFloat() * 7000);
+                app.setBumiputera(random.nextBoolean());
+                app.setStatus(ApplicationStatus.GRADED);
+                
                 applicationRepository.save(app);
             }
         }

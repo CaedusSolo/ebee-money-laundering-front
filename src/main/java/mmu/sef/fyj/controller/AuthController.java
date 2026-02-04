@@ -5,7 +5,9 @@ import mmu.sef.fyj.dto.LoginRequest;
 import mmu.sef.fyj.dto.RegisterRequest;
 import mmu.sef.fyj.dto.ResetPasswordRequest;
 import mmu.sef.fyj.model.User;
+import mmu.sef.fyj.model.Reviewer;
 import mmu.sef.fyj.repository.UserRepository;
+import mmu.sef.fyj.repository.ReviewerRepository;
 import mmu.sef.fyj.service.AuthService;
 import mmu.sef.fyj.service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,6 +37,9 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ReviewerRepository reviewerRepository;
 
     @PostMapping("/register/student")
     public ResponseEntity<?> registerStudent(@Valid @RequestBody RegisterRequest request) { // Changed to DTO
@@ -57,10 +64,20 @@ public class AuthController {
             User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
             String token = jwtService.generateToken(user);
 
-            return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "role", user.getRole(),
-                    "user", user));
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("role", user.getRole());
+            response.put("user", user);
+
+            // If user is a reviewer, include reviewer ID
+            if (user.getRole().toString().equals("REVIEWER")) {
+                Optional<Reviewer> reviewer = reviewerRepository.findByEmail(user.getEmail());
+                if (reviewer.isPresent()) {
+                    response.put("reviewerId", reviewer.get().getReviewerId());
+                }
+            }
+
+            return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid email or password"));
