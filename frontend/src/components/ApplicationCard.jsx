@@ -32,15 +32,6 @@ export default function ApplicationCard({
         >
           <img src={Eye} alt="View" className="w-5 h-5" />
         </Link>
-
-        {/* Edit button */}
-        <Link
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
-          to={`/admin/users/edit/${id}`}
-        >
-          Edit
-        </Link>
-
         {/* Delete button */}
         <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
           Delete

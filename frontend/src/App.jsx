@@ -27,6 +27,7 @@ import ScholarshipView from "./pages/ScholarshipView";
 import StudentDashboard from "./pages/StudentDashboard";
 import ManageApplications from "./pages/ManageApplications";
 import ApplicationDetails from "./components/ApplicationDetails";
+import ApplicationEdit from "./pages/ApplicationEdit";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -92,17 +93,23 @@ function App() {
           />
 
           {/* Scholarship/Applications Routes */}
-          <Route path="/student-dashboard" element={
-            <ProtectedRoute allowedRoles={["STUDENT"]}>
-              <StudentDashboard />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/student-dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["STUDENT"]}>
+                <StudentDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-          <Route path="/scholarships-list" element={
-            <ProtectedRoute allowedRoles={["STUDENT"]}>
-              <ScholarshipsList />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/scholarships-list"
+            element={
+              <ProtectedRoute allowedRoles={["STUDENT"]}>
+                <ScholarshipsList />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Added leading slash */}
           <Route
@@ -129,12 +136,19 @@ function App() {
             </Route>
             <Route path="scholarship">
               <Route index element={<ManageScholarship />} />
-              <Route path="details/:scholarshipId?" element={<ScholarshipDetail />} />
+              <Route
+                path="details/:scholarshipId?"
+                element={<ScholarshipDetail />}
+              />
               <Route path=":scholarshipId/view" element={<ScholarshipView />} />
             </Route>
             <Route path="applications">
               <Route index element={<ManageApplications />} />
-              <Route path=":applicationId" element={<ApplicationDetailsWrapper />} />
+              <Route
+                path=":applicationId"
+                element={<ApplicationDetailsWrapper />}
+              />
+              <Route path="edit/:appId" element={<ApplicationEdit />} />
             </Route>
           </Route>
 
