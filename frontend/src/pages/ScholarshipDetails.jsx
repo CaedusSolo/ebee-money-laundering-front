@@ -62,11 +62,16 @@ export default function ScholarshipDetailPage() {
             reviewer: data.reviewer?.reviewerId || "",
             scholarshipCommittees: data.scholarshipCommittees?.length 
               ? data.scholarshipCommittees.map(c => c.committeeId || c.id)
-              : [null, null, null]
+              : [null, null, null],
+            minCGPA: data.minCGPA ?? data.mincgpa ?? "",
+            maxFamilyIncome: data.maxFamilyIncome ?? data.max_family_income ?? "",
+            minGraduationYear: data.minGraduationYear ?? data.min_graduation_year ?? "",
+            mustBumiputera: data.mustBumiputera ?? data.must_bumiputera ?? false
           };
+          console.log("Raw data from API:", data);
+          console.log("Transformed data for form:", transformedData);
           setFormData(transformedData);
         }
-        console.log(data);
       })
       .catch((e) => {
         console.error("Error fetching options:", e);
