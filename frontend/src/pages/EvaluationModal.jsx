@@ -35,11 +35,14 @@ const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
 
   const handleChange = (field, value) => {
     if (application.status === 'GRADED') return;
+
     setLocalError('');
     if (field === 'comments') {
       setFormData({ ...formData, [field]: value });
     } else {
+      // Original regex validation for numeric input
       if (/[^0-9]/.test(value) && value !== '') return;
+
       const num = value === '' ? '' : parseInt(value, 10);
       const score = num === '' ? '' : Math.max(0, Math.min(20, num));
       setFormData({ ...formData, [field]: score });
@@ -65,7 +68,10 @@ const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-[#1e3a8a] text-white px-6 pt-4">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold uppercase tracking-tight">App ID: {application.id} {isReadOnly && <span className="ml-2 text-[10px] bg-emerald-500 px-2 py-1 rounded">FINALIZED</span>}</h2>
+            <h2 className="font-bold uppercase tracking-tight">
+              App ID: {application.id}
+              {isReadOnly && <span className="ml-2 text-[10px] bg-emerald-500 px-2 py-1 rounded">FINALIZED</span>}
+            </h2>
             <button onClick={onClose} className="text-2xl hover:text-gray-300 transition-colors">&times;</button>
           </div>
           <div className="flex space-x-6 text-[10px] font-bold uppercase">
