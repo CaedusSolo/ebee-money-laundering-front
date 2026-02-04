@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import ApplicationItem from "../components/ApplicationItem";
 import ScoreDisplay from "../components/ScoreDisplay";
 import EvaluationModal from './EvaluationModal';
@@ -22,6 +21,7 @@ export default function ScholarshipCommitteeDashboard() {
       const data = await response.json();
 
       if (response.ok) {
+        // We still receive both from the backend, but we will only use groups that have pending apps
         setScholarshipGroups(data.scholarships || {});
       }
     } catch (error) {
@@ -70,10 +70,15 @@ export default function ScholarshipCommitteeDashboard() {
 
   if (loading) return <div className="text-center py-20 text-gray-400 animate-pulse">Loading assigned applications...</div>;
 
+  // Filter scholarships to only those that have at least one pending application
+  const activeScholarships = Object.entries(scholarshipGroups).filter(
+    ([_, groups]) => groups.pending?.length > 0
+  );
+
   return (
     <div className="space-y-10">
-      {Object.entries(scholarshipGroups).length > 0 ? (
-        Object.entries(scholarshipGroups).map(([scholarshipName, groups]) => (
+      {activeScholarships.length > 0 ? (
+        activeScholarships.map(([scholarshipName, groups]) => (
           <div key={scholarshipName} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
               <div className="flex items-center space-x-3">
@@ -85,77 +90,45 @@ export default function ScholarshipCommitteeDashboard() {
                 <h3 className="text-xl font-black text-gray-800 tracking-tight">{scholarshipName}</h3>
               </div>
               <div className="hidden md:flex space-x-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest mr-4">
-                <span className="w-16 text-center">Academic</span>
-                <span className="w-16 text-center">Curriculum</span>
-                <span className="w-16 text-center">Leadership</span>
-                <span className="w-16 text-center">Total</span>
+                <span className="w-16 text-center">Score</span>
+                <span className="w-16 text-center">Status</span>
               </div>
             </div>
 
-            <div className="mb-10">
+            <div className="mb-4">
               <div className="flex items-center space-x-2 mb-4">
                 <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending Evaluation ({groups.pending?.length || 0})</h4>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending Evaluation ({groups.pending.length})</h4>
               </div>
               <div className="space-y-3">
-                {groups.pending?.length > 0 ? (
-                  groups.pending.map((app) => (
-                    <ApplicationItem key={app.id} title={app.id} status="PENDING" date={app.submittedAt}>
-                      <button
-                        onClick={() => handleOpenModal(app)}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <ScoreDisplay value={null} maxValue={20} />
-                      <ScoreDisplay value={null} maxValue={20} />
-                      <ScoreDisplay value={null} maxValue={20} />
-                      <ScoreDisplay value={0} variant="total" maxValue={60} />
-                    </ApplicationItem>
-                  ))
-                ) : (
-                  <div className="py-8 text-center border-2 border-dashed border-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-400 font-medium italic">No pending evaluations.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Completed ({groups.graded?.length || 0})</h4>
-              </div>
-              <div className="space-y-3">
-                {groups.graded?.length > 0 ? (
-                  groups.graded.map((app) => (
-                    <ApplicationItem key={app.id} title={app.id} status="GRADED" date={app.submittedAt}>
-                      <button
-                        onClick={() => handleOpenModal(app)}
-                        className="p-2 text-emerald-600 bg-emerald-50 rounded-lg transition-all"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </button>
-                      <ScoreDisplay value={app.scores?.academic} maxValue={20} />
-                      <ScoreDisplay value={app.scores?.curriculum} maxValue={20} />
-                      <ScoreDisplay value={app.scores?.leadership} maxValue={20} />
-                      <ScoreDisplay value={app.totalScore} variant="total" maxValue={60} />
-                    </ApplicationItem>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-300 italic px-4">No evaluations completed yet.</p>
-                )}
+                {groups.pending.map((app) => (
+                  <ApplicationItem key={app.id} title={app.studentName} status="PENDING" date={app.submittedAt}>
+                    <div className="flex items-center space-x-4">
+                        <button
+                            onClick={() => handleOpenModal(app)}
+                            className="flex items-center space-x-2 px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition-all text-[10px] uppercase"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Evaluate</span>
+                        </button>
+                    </div>
+                  </ApplicationItem>
+                ))}
               </div>
             </div>
           </div>
         ))
       ) : (
         <div className="bg-white p-20 rounded-3xl shadow-sm border text-center">
-          <p className="text-gray-400 font-bold">No scholarships currently assigned to your profile.</p>
+          <div className="flex justify-center mb-4 text-emerald-500">
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-1">Queue Empty</p>
+          <p className="text-gray-500 font-black text-xl">All evaluations are completed.</p>
         </div>
       )}
 
