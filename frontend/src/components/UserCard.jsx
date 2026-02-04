@@ -21,9 +21,12 @@ export default function UserCard({ user: { id, name, email, role } }) {
       {/* Right section with actions */}
       <div className="flex items-center gap-4">
         {/* View button */}
-        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <Link
+          to={`/admin/users/${id}`}
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
           <img src={Eye} alt="View" className="w-5 h-5" />
-        </button>
+        </Link>
 
         {/* Edit button */}
         <Link

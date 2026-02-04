@@ -5,6 +5,7 @@ import mmu.sef.fyj.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,44 +24,95 @@ public class ScholarshipCommitteeService {
     @Autowired
     private ApplicationRepository applicationRepository;
 
+    public List<ScholarshipCommittee> findAll() {
+        return scholarshipCommitteeRepository.findAll();
+    }
+
     public Map<String, Object> getCommitteeDashboard(Integer userId) {
         Map<String, Object> dashboard = new HashMap<>();
 
+        // 1. Resolve Identity
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User account not found"));
 
         ScholarshipCommittee committee = scholarshipCommitteeRepository.findByEmail(user.getEmail())
                 .orElseThrow(() -> new RuntimeException("Committee profile not found for: " + user.getEmail()));
 
-        if (committee.getAssignedScholarshipId() == null) {
-            throw new RuntimeException("No scholarship assigned to this committee member.");
+        Integer currentCommitteeId = committee.getCommitteeId();
+        List<Integer> scholarshipIds = committee.getAssignedScholarshipIds();
+
+        if (scholarshipIds == null || scholarshipIds.isEmpty()) {
+            throw new RuntimeException("No scholarships assigned to this committee member.");
         }
 
-        Scholarship scholarship = scholarshipRepository.findById(committee.getAssignedScholarshipId())
-                .orElseThrow(() -> new RuntimeException("Assigned scholarship record not found"));
+        // 2. Fetch All Assigned Applications
+        List<Application> allAssignedApps = applicationRepository.findByScholarshipIDIn(scholarshipIds);
 
-        Map<String, Object> profile = new HashMap<>();
-        profile.put("id", committee.getCommitteeId());
-        profile.put("assignedScholarship", scholarship.getName());
+        // 3. Resolve Scholarship Names for grouping headings
+        Map<Integer, String> scholarshipNames = scholarshipRepository.findAllById(scholarshipIds)
+                .stream().collect(Collectors.toMap(Scholarship::getId, Scholarship::getName));
 
-        List<Application> allApps = applicationRepository.findByScholarshipID(scholarship.getId());
+        // 4. Group by Scholarship Name and then Status
+        // This creates the "scholarships" key the frontend is looking for
+        Map<String, Map<String, List<Map<String, Object>>>> groupedScholarships = new HashMap<>();
 
-        List<Map<String, Object>> pending = allApps.stream()
-                .filter(app -> app.getStatus() == ApplicationStatus.SUBMITTED
-                        || app.getStatus() == ApplicationStatus.UNDER_REVIEW)
-                .map(this::mapToSummary)
-                .collect(Collectors.toList());
+        for (Integer sId : scholarshipIds) {
+            String name = scholarshipNames.getOrDefault(sId, "Scholarship " + sId);
 
-        List<Map<String, Object>> graded = allApps.stream()
-                .filter(app -> app.getStatus() == ApplicationStatus.GRADED)
-                .map(this::mapToSummary)
-                .collect(Collectors.toList());
+            List<Application> appsForThisType = allAssignedApps.stream()
+                    .filter(app -> app.getScholarshipID().equals(sId))
+                    .collect(Collectors.toList());
 
-        dashboard.put("profile", profile);
-        dashboard.put("pendingApplications", pending);
-        dashboard.put("gradedApplications", graded);
+            Map<String, List<Map<String, Object>>> groups = new HashMap<>();
+
+            // Pending: Applications this specific member hasn't graded
+            groups.put("pending", appsForThisType.stream()
+                    .filter(app -> app.getGrades().stream()
+                            .noneMatch(
+                                    g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
+                    .map(app -> mapToSummary(app, currentCommitteeId))
+                    .collect(Collectors.toList()));
+
+            // Graded: Applications this specific member has graded
+            groups.put("graded", appsForThisType.stream()
+                    .filter(app -> app.getGrades().stream()
+                            .anyMatch(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
+                    .map(app -> mapToSummary(app, currentCommitteeId))
+                    .collect(Collectors.toList()));
+
+            groupedScholarships.put(name, groups);
+        }
+
+        // 5. Final Output
+        Map<String, Object> profileInfo = new HashMap<>();
+        profileInfo.put("name", committee.getName());
+        profileInfo.put("assignedCount", scholarshipIds.size());
+
+        dashboard.put("profile", profileInfo);
+        dashboard.put("scholarships", groupedScholarships); // The frontend needs this key
 
         return dashboard;
+    }
+
+    @Transactional
+    public void evaluateApplication(Integer applicationId, Map<String, Object> evaluationData, Integer userId) {
+        Application app = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+
+        User user = userRepository.findById(userId).orElseThrow();
+        ScholarshipCommittee committee = scholarshipCommitteeRepository.findByEmail(user.getEmail()).orElseThrow();
+        Integer committeeId = committee.getCommitteeId();
+
+        String remarks = (String) evaluationData.get("comments");
+
+        app.getGrades().removeIf(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(committeeId));
+
+        app.getGrades().add(new Grade(committeeId, "ACADEMIC", (Integer) evaluationData.get("academic"), remarks));
+        app.getGrades().add(new Grade(committeeId, "CURRICULUM", (Integer) evaluationData.get("curriculum"), remarks));
+        app.getGrades().add(new Grade(committeeId, "LEADERSHIP", (Integer) evaluationData.get("leadership"), remarks));
+
+        app.setStatus(ApplicationStatus.GRADED);
+        applicationRepository.save(app);
     }
 
     public Application getFullApplicationDetails(Integer applicationId) {
@@ -68,42 +120,36 @@ public class ScholarshipCommitteeService {
                 .orElseThrow(() -> new RuntimeException("Application not found"));
     }
 
-    // THIS IS THE MISSING METHOD CAUSING YOUR ERROR
-    @Transactional
-    public void evaluateApplication(Integer applicationId, Map<String, Object> evaluationData) {
-        Application app = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
-
-        String remarks = (String) evaluationData.get("comments");
-
-        // Create new Grade objects for the @ElementCollection
-        List<Grade> grades = new ArrayList<>();
-        grades.add(new Grade("ACADEMIC", (Integer) evaluationData.get("academic"), remarks));
-        grades.add(new Grade("CURRICULUM", (Integer) evaluationData.get("curriculum"), remarks));
-        grades.add(new Grade("LEADERSHIP", (Integer) evaluationData.get("leadership"), remarks));
-
-        app.setGrades(grades);
-        app.setStatus(ApplicationStatus.GRADED);
-
-        applicationRepository.save(app);
-    }
-
-    private Map<String, Object> mapToSummary(Application app) {
+    private Map<String, Object> mapToSummary(Application app, Integer currentCommitteeId) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", app.getApplicationID());
         map.put("studentName", app.getFirstName() + " " + app.getLastName());
-        map.put("status", app.getStatus().name());
         map.put("submittedAt", app.getSubmittedAt() != null ? app.getSubmittedAt().toLocalDate().toString() : "N/A");
 
         Map<String, Object> scores = new HashMap<>();
-        int total = 0;
-        for (Grade g : app.getGrades()) {
-            scores.put(g.getCategory().toLowerCase(), g.getScore());
-            total += (g.getScore() != null ? g.getScore() : 0);
+        int rawTotal = 0;
+
+        List<Grade> myGrades = app.getGrades().stream()
+                .filter(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId))
+                .collect(Collectors.toList());
+
+        for (Grade g : myGrades) {
+            String key = g.getCategory().toLowerCase();
+            scores.put(key, g.getScore());
+            rawTotal += (g.getScore() != null ? g.getScore() : 0);
+            scores.put("remarks", g.getRemarks());
         }
 
+        if (!scores.containsKey("academic"))
+            scores.put("academic", null);
+        if (!scores.containsKey("curriculum"))
+            scores.put("curriculum", null);
+        if (!scores.containsKey("leadership"))
+            scores.put("leadership", null);
+
         map.put("scores", scores);
-        map.put("totalScore", total);
+        map.put("status", myGrades.isEmpty() ? "PENDING" : "GRADED");
+        map.put("totalScore", rawTotal);
         return map;
     }
 }

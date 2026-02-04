@@ -1,17 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ApplicationItem from './ApplicationItem';
 import ScoreDisplay from './ScoreDisplay';
+import { useAuth } from '../context/AuthContext';
 
 export default function ApplicationsList({ applications, onSelectApplication }) {
   const [selectedStatus, setSelectedStatus] = useState(null);
+  const [scores, setScores] = useState({});
+  const [loadingScores, setLoadingScores] = useState(false);
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    // Fetch committee scores for graded applications
+    const gradedApps = applications.filter(app => app.status === 'GRADED');
+    if (gradedApps.length > 0 && currentUser?.token) {
+      fetchCommitteeScores(gradedApps);
+    }
+  }, [applications, currentUser?.token]);
+
+  const fetchCommitteeScores = async (gradedApps) => {
+    setLoadingScores(true);
+    try {
+      const scoreMap = {};
+      for (const app of gradedApps) {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${app.applicationID}/grades`,
+            {
+              headers: { 'Authorization': `Bearer ${currentUser?.token}` }
+            }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            scoreMap[app.applicationID] = data.combinedScore || 0;
+          }
+        } catch (err) {
+          console.error(`Failed to fetch score for app ${app.applicationID}:`, err);
+        }
+      }
+      setScores(scoreMap);
+    } finally {
+      setLoadingScores(false);
+    }
+  };
 
   const getStatusLabel = (status) => {
     switch (status) {
       case 'PENDING APPROVAL': return 'Pending Approval';
       case 'UNDER REVIEW': return 'Under Review';
+      case 'GRADED': return 'Pending Approval';
       case 'APPROVED': return 'Approved';
       case 'REJECTED': return 'Rejected';
       default: return status;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'GRADED': return 'bg-green-50 border-l-4 border-green-500';
+      case 'APPROVED': return 'bg-green-50 border-l-4 border-green-500';
+      case 'REJECTED': return 'bg-red-50 border-l-4 border-red-500';
+      case 'UNDER_REVIEW': return 'bg-blue-50 border-l-4 border-blue-500';
+      default: return 'bg-gray-50 border-l-4 border-gray-300';
     }
   };
 
@@ -31,17 +80,20 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
             onClick={() => setSelectedStatus(null)}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedStatus === null ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}
           >
-            All
+            All ({applications.length})
           </button>
-          {statuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => setSelectedStatus(status)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedStatus === status ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}
-            >
-              {getStatusLabel(status)}
-            </button>
-          ))}
+          {statuses.map((status) => {
+            const count = applications.filter(app => app.status === status).length;
+            return (
+              <button
+                key={status}
+                onClick={() => setSelectedStatus(status)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedStatus === status ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}
+              >
+                {getStatusLabel(status)} ({count})
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -50,29 +102,59 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
           <div className="p-4 bg-gray-100 rounded text-gray-600">No applications found.</div>
         ) : (
           filteredApplications.map((app) => (
-            <ApplicationItem
+            <div
               key={app.applicationID}
-              title={app.studentName}
-              status={getStatusLabel(app.status)}
-              date={app.submittedAt}
+              className={`p-4 rounded-lg ${getStatusColor(app.status)} hover:shadow-md transition-shadow`}
             >
-              {app.judgingCompleted && (
-                <ScoreDisplay
-                  value={app.totalScore}
-                  maxValue={300}
-                  variant="reviewerTotal"
-                  className="w-24 h-14"
-                />
-              )}
-              {app.judgingCompleted && (
-                <button
-                  onClick={() => onSelectApplication(app)}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  View Details
-                </button>
-              )}
-            </ApplicationItem>
+              <div className="flex justify-between items-center">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 text-lg">
+                    {app.studentName}
+                  </h3>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className="text-sm text-gray-600">
+                      Application ID: <span className="font-mono font-bold">{app.applicationID}</span>
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      app.status === 'GRADED' ? 'bg-green-200 text-green-800' :
+                      app.status === 'APPROVED' ? 'bg-green-200 text-green-800' :
+                      app.status === 'REJECTED' ? 'bg-red-200 text-red-800' :
+                      app.status === 'UNDER_REVIEW' ? 'bg-blue-200 text-blue-800' :
+                      'bg-gray-200 text-gray-800'
+                    }`}>
+                      {getStatusLabel(app.status)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {app.status === 'GRADED' && (
+                    <div className="text-right pr-2">
+                      <p className="text-xs text-gray-600 font-medium">COMMITTEE SCORE</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {scores[app.applicationID] !== undefined ? scores[app.applicationID] : '—'}
+                      </p>
+                      <p className="text-xs text-green-700">/300</p>
+                    </div>
+                  )}
+                  
+                  <button
+                    onClick={() => onSelectApplication(app)}
+                    className={`px-4 py-2 font-medium rounded-lg transition-colors whitespace-nowrap ${
+                      app.status === 'GRADED'
+                        ? 'bg-green-600 text-white hover:bg-green-700 shadow-md'
+                        : app.status === 'APPROVED'
+                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        : app.status === 'REJECTED'
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {app.status === 'GRADED' ? 'Review' : 'View Details'}
+                  </button>
+                </div>
+              </div>
+            </div>
           ))
         )}
       </div>

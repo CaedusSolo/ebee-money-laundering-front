@@ -1,10 +1,15 @@
 package mmu.sef.fyj.controller;
 
+import mmu.sef.fyj.model.User;
+import mmu.sef.fyj.model.ScholarshipCommittee;
 import mmu.sef.fyj.service.ScholarshipCommitteeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -14,6 +19,11 @@ public class ScholarshipCommitteeController {
 
     @Autowired
     private ScholarshipCommitteeService committeeService;
+
+    @GetMapping("/list")
+    public ResponseEntity<List<ScholarshipCommittee>> getAllCommittees() {
+        return ResponseEntity.ok(committeeService.findAll());
+    }
 
     @GetMapping("/dashboard/{committeeId}")
     public ResponseEntity<?> getDashboard(@PathVariable Integer committeeId) {
@@ -33,7 +43,14 @@ public class ScholarshipCommitteeController {
     public ResponseEntity<?> evaluate(@PathVariable Integer applicationId,
             @RequestBody Map<String, Object> evaluationData) {
         try {
-            committeeService.evaluateApplication(applicationId, evaluationData);
+            // FIX: Retrieve current user ID from the Security Context
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User currentUser = (User) authentication.getPrincipal();
+            Integer userId = currentUser.getId();
+
+            // Pass the required 3 arguments: appId, data, and userId
+            committeeService.evaluateApplication(applicationId, evaluationData, userId);
+
             return ResponseEntity.ok(Map.of("message", "Evaluation submitted successfully"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
