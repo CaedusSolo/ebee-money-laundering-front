@@ -94,7 +94,8 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    private void seedUser(String name, String email, String rawPassword, Role role, String studentId, List<Integer> assignedIds) {
+    private void seedUser(String name, String email, String rawPassword, Role role, String studentId,
+            List<Integer> assignedIds) {
         if (!userRepository.existsByEmail(email)) {
             String encodedPassword = passwordEncoder.encode(rawPassword);
 
@@ -127,13 +128,18 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedScholarships() {
-        if (scholarshipRepository.count() > 0) return;
+        if (scholarshipRepository.count() > 0)
+            return;
 
         List<Scholarship> scholarships = List.of(
-                new Scholarship("Merit's Scholarship", "Outstanding academic achievement.", LocalDate.now().plusMonths(3)),
-                new Scholarship("President's Scholarship", "Highest honour for students.", LocalDate.now().plusMonths(4)),
-                new Scholarship("High Achiever's Scholarship", "Strong academic records (3.7+).", LocalDate.now().plusMonths(2)),
-                new Scholarship("Excellence in STEM Scholarship", "Science and Engineering focus.", LocalDate.now().plusMonths(5)));
+                new Scholarship("Merit's Scholarship", "Outstanding academic achievement.",
+                        LocalDate.now().plusMonths(3)),
+                new Scholarship("President's Scholarship", "Highest honour for students.",
+                        LocalDate.now().plusMonths(4)),
+                new Scholarship("High Achiever's Scholarship", "Strong academic records (3.7+).",
+                        LocalDate.now().plusMonths(2)),
+                new Scholarship("Excellence in STEM Scholarship", "Science and Engineering focus.",
+                        LocalDate.now().plusMonths(5)));
 
         for (Scholarship s : scholarships) {
             scholarshipRepository.save(s);
@@ -141,17 +147,30 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedApplications() {
-        if (applicationRepository.count() > 0) return;
+        if (applicationRepository.count() > 0)
+            return;
 
         List<User> students = userRepository.findByRole(Role.STUDENT);
         List<Scholarship> scholarships = scholarshipRepository.findAll();
 
-        if (students.isEmpty() || scholarships.isEmpty()) return;
+        if (students.isEmpty() || scholarships.isEmpty())
+            return;
 
         Random random = new Random(42);
         String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
         String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
         ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW };
+        ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW,
+                ApplicationStatus.GRADED };
+        String[] colleges = { "Multimedia University", "Universiti Malaya", "Universiti Teknologi Malaysia",
+                "Universiti Sains Malaysia" };
+        String[] majors = { "Computer Science", "Software Engineering", "Information Technology", "Data Science",
+                "Cybersecurity" };
+        String[] cities = { "Cyberjaya", "Kuala Lumpur", "Petaling Jaya", "Shah Alam", "Subang Jaya" };
+        String[] states = { "Selangor", "Wilayah Persekutuan", "Johor", "Penang", "Perak" };
+        String[] activities = { "Debate Club", "Basketball Team", "Volunteer Corps", "Coding Club", "Music Society",
+                "Student Council" };
+        String[] roles = { "President", "Vice President", "Secretary", "Member", "Team Captain", "Coordinator" };
 
         for (Scholarship scholarship : scholarships) {
             for (int i = 0; i < 4 && i < students.size(); i++) {
@@ -163,12 +182,46 @@ public class DataSeeder implements CommandLineRunner {
                 app.setLastName(lastNames[random.nextInt(lastNames.length)]);
                 app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
                 app.setNationality("Malaysian");
-                app.setDateOfBirth(LocalDate.of(2000, 1, 1));
-                app.setPhoneNumber("012-3456789");
-                app.setNricNumber("000101-14-1234");
-                app.setMonthlyFamilyIncome(5000f);
-                app.setBumiputera(true);
+                app.setDateOfBirth(
+                        LocalDate.of(2000 + random.nextInt(4), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+                app.setPhoneNumber("01" + random.nextInt(10) + "-" + (1000000 + random.nextInt(9000000)));
+                app.setNricNumber("00010" + random.nextInt(10) + "-14-" + (1000 + random.nextInt(9000)));
+                app.setMonthlyFamilyIncome(2000f + random.nextInt(8000));
+                app.setBumiputera(random.nextBoolean());
                 app.setStatus(statuses[random.nextInt(statuses.length)]);
+
+                // Address
+                app.setHomeAddress("No. " + (1 + random.nextInt(100)) + ", Jalan " + (1 + random.nextInt(20)));
+                app.setCity(cities[random.nextInt(cities.length)]);
+                app.setZipCode(String.valueOf(40000 + random.nextInt(10000)));
+                app.setState(states[random.nextInt(states.length)]);
+
+                // Education
+                app.setCollege(colleges[random.nextInt(colleges.length)]);
+                app.setMajor(majors[random.nextInt(majors.length)]);
+                app.setCurrentYearOfStudy(1 + random.nextInt(4));
+                app.setExpectedGraduationYear(2025 + random.nextInt(3));
+                StudyLevel[] studyLevels = StudyLevel.values();
+                app.setStudyLevel(studyLevels[random.nextInt(studyLevels.length)]);
+
+                // Documents
+                app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf",
+                        "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
+                app.setTranscriptDoc(new DocumentInfo("transcript_" + student.getId() + ".pdf",
+                        "https://example.com/docs/transcript_" + student.getId() + ".pdf", "application/pdf"));
+                app.setFamilyIncomeConfirmationDoc(new DocumentInfo("income_" + student.getId() + ".pdf",
+                        "https://example.com/docs/income_" + student.getId() + ".pdf", "application/pdf"));
+
+                // Extracurriculars
+                int numExtracurriculars = 1 + random.nextInt(3);
+                for (int j = 0; j < numExtracurriculars; j++) {
+                    Extracurricular extra = new Extracurricular(
+                            activities[random.nextInt(activities.length)],
+                            roles[random.nextInt(roles.length)],
+                            "Achievement in " + (2020 + random.nextInt(5)));
+                    app.getExtracurriculars().add(extra);
+                }
+
                 applicationRepository.save(app);
             }
         }
@@ -178,7 +231,8 @@ public class DataSeeder implements CommandLineRunner {
         List<User> students = userRepository.findByRole(Role.STUDENT);
         List<Scholarship> scholarships = scholarshipRepository.findAll();
 
-        if (students.isEmpty() || scholarships.isEmpty()) return;
+        if (students.isEmpty() || scholarships.isEmpty())
+            return;
 
         Random random = new Random(99);
         String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
