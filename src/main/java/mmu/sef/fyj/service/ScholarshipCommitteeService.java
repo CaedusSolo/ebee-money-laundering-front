@@ -24,6 +24,10 @@ public class ScholarshipCommitteeService {
     @Autowired
     private ApplicationRepository applicationRepository;
 
+    public List<ScholarshipCommittee> findAll() {
+        return scholarshipCommitteeRepository.findAll();
+    }
+
     public Map<String, Object> getCommitteeDashboard(Integer userId) {
         Map<String, Object> dashboard = new HashMap<>();
 
