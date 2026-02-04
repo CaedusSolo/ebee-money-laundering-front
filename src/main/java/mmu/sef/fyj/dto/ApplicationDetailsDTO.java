@@ -27,6 +27,9 @@ public class ApplicationDetailsDTO {
     private Float monthlyFamilyIncome;
     private Boolean isBumiputera;
     
+    // Academic
+    private Float cgpa;
+    
     // Address
     private AddressDTO address;
     
@@ -144,6 +147,14 @@ public class ApplicationDetailsDTO {
 
     public void setIsBumiputera(Boolean isBumiputera) {
         this.isBumiputera = isBumiputera;
+    }
+
+    public Float getCgpa() {
+        return cgpa;
+    }
+
+    public void setCgpa(Float cgpa) {
+        this.cgpa = cgpa;
     }
 
     public AddressDTO getAddress() {
