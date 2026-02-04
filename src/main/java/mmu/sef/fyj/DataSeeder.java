@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -206,44 +207,21 @@ public class DataSeeder implements CommandLineRunner {
                 app.setMonthlyFamilyIncome(2000f + random.nextInt(8000));
                 app.setBumiputera(random.nextBoolean());
                 
-                // Assign status: distribute graded ones based on scholarship ID
+                // Assign status: distribute applications between PENDING_APPROVAL and UNDER_REVIEW
                 ApplicationStatus status;
                 int appPair = i; // Student index within each scholarship
                 
-                // For scholarship 1 (Merit's Scholarship), assign more GRADED applications for reviewer 1
+                // For scholarship 1 (Merit's Scholarship), assign more applications for reviewer 1
                 if (scholarship.getId() == 1) {
-                    if (appPair < 4) {
-                        // First 4 students get GRADED status for scholarship 1
-                        status = ApplicationStatus.GRADED;
-                    } else {
-                        // Last student gets PENDING_APPROVAL
-                        status = ApplicationStatus.PENDING_APPROVAL;
-                    }
+                    // Alternate between PENDING_APPROVAL and UNDER_REVIEW
+                    status = (appPair % 2 == 0) ? ApplicationStatus.PENDING_APPROVAL : ApplicationStatus.UNDER_REVIEW;
                 } else {
-                    // For other scholarships, use the original distribution
-                    if (appPair < 3) {
-                        // First 3 students per scholarship get varied statuses
-                        if (appPair == 0) {
-                            status = ApplicationStatus.GRADED;
-                        } else if (appPair == 1) {
-                            status = ApplicationStatus.UNDER_REVIEW;
-                        } else {
-                            status = ApplicationStatus.PENDING_APPROVAL;
-                        }
-                    } else {
-                        // Remaining students: alternate between UNDER_REVIEW and PENDING_APPROVAL
-                        status = (appPair % 2 == 0) ? ApplicationStatus.UNDER_REVIEW : ApplicationStatus.PENDING_APPROVAL;
-                    }
-                }
-
-                // If GRADED, add committee grades
-                if (status == ApplicationStatus.GRADED) {
-                    List<Grade> appGrades = new ArrayList<>();
-                    addRandomGradesToList(appGrades, random, comments);
-                    app.setGrades(appGrades);
+                    // For other scholarships, use the same distribution
+                    status = (appPair % 2 == 0) ? ApplicationStatus.PENDING_APPROVAL : ApplicationStatus.UNDER_REVIEW;
                 }
 
                 app.setStatus(status);
+                app.setSubmittedAt(LocalDateTime.now().minusDays(random.nextInt(30)));
 
                 // Address
                 app.setHomeAddress("No. " + (1 + random.nextInt(100)) + ", Jalan " + (1 + random.nextInt(20)));
@@ -277,7 +255,17 @@ public class DataSeeder implements CommandLineRunner {
                     app.getExtracurriculars().add(extra);
                 }
 
-                applicationRepository.save(app);
+                Application savedApp = applicationRepository.save(app);
+                
+                // Add committee grades to PENDING_APPROVAL applications
+                if (status == ApplicationStatus.PENDING_APPROVAL) {
+                    List<Grade> grades = new ArrayList<>();
+                    addRandomGradesToList(grades, random, comments);
+                    for (Grade grade : grades) {
+                        savedApp.getGrades().add(grade);
+                    }
+                    applicationRepository.save(savedApp);
+                }
             }
         }
     }
