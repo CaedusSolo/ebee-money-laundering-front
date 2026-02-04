@@ -33,13 +33,7 @@ export default function ApplicationDetails({ applicationId, onBack }) {
       const url = `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}`;
       console.log("Requesting URL:", url); // DEBUG
 
-      const [appRes, reviewsRes] = await Promise.all([
-        fetch(url, { headers }),
-        fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`,
-          { headers },
-        ),
-      ]);
+      const appRes = await fetch(url, { headers });
 
       if (!appRes.ok) {
         throw new Error(`Failed to fetch application: ${appRes.statusText}`);
@@ -47,7 +41,20 @@ export default function ApplicationDetails({ applicationId, onBack }) {
 
       const appData = await appRes.json();
       console.log("Received application data:", appData); // DEBUG
-      const reviewsData = reviewsRes.ok ? await reviewsRes.json() : null;
+      
+      // Only fetch grades if application is GRADED
+      let reviewsData = null;
+      if (appData.status === 'GRADED') {
+        try {
+          const reviewsRes = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`,
+            { headers },
+          );
+          reviewsData = reviewsRes.ok ? await reviewsRes.json() : null;
+        } catch (err) {
+          console.error('Failed to fetch reviews:', err);
+        }
+      }
 
       setApplication(appData);
       setReviewsData(reviewsData);
@@ -78,7 +85,8 @@ export default function ApplicationDetails({ applicationId, onBack }) {
 
       if (response.ok) {
         const result = await response.json();
-        setSuccessMessage(`Application ${approvalDecision.toLowerCase()}d successfully`);
+        const successText = approvalDecision === "APPROVE" ? "approved" : "rejected";
+        setSuccessMessage(`Application ${successText} successfully`);
         // Refresh the application details
         setTimeout(() => {
           fetchApplicationDetails();
@@ -442,6 +450,18 @@ export default function ApplicationDetails({ applicationId, onBack }) {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Message for applications not yet graded */}
+          {application?.status !== 'GRADED' && (
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-blue-900 mb-2">
+                ℹ️ Judging In Progress
+              </h3>
+              <p className="text-blue-800">
+                Committee evaluations are not yet available. The judging process is still in progress. Check back once the evaluation is complete.
+              </p>
             </div>
           )}
         </div>
