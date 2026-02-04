@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import mmu.sef.fyj.dto.ApplicationDetailsDTO;
 import mmu.sef.fyj.dto.ApplicationSummaryDTO;
 import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.ApplicationStatus;
@@ -29,6 +30,13 @@ public class ApplicationController {
     @GetMapping("/{id}")
     public ResponseEntity<Application> getApplicationById(@PathVariable Integer id) {
         return applicationService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/details")
+    public ResponseEntity<ApplicationDetailsDTO> getApplicationDetailsById(@PathVariable Integer id) {
+        return applicationService.findDetailsById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
