@@ -93,15 +93,15 @@ const AcademicInfoForm = ({
         });
         
         const isValid = allTextFieldsFilled && 
-                       formData.year && 
-                       formData.expectedGraduation && 
-                       formData.highestQualification &&
-                       !isNaN(cgpaValue) && cgpaValue >= 2.0 && cgpaValue <= 4.0 &&
-                       filledActivities.length >= 2 &&
-                       activitiesValid &&
-                       !hasPartiallyFilledActivities &&
-                       allFilesUploaded &&
-                       !hasActualErrors;
+                        formData.year && 
+                        formData.expectedGraduation && 
+                        formData.highestQualification &&
+                        !isNaN(cgpaValue) && cgpaValue >= 2.0 && cgpaValue <= 4.0 &&
+                        filledActivities.length >= 2 &&
+                        activitiesValid &&
+                        !hasPartiallyFilledActivities &&
+                        allFilesUploaded &&
+                        !hasActualErrors;
         
         setIsFormValid(isValid);
         setValidationMessages(messages);
@@ -129,19 +129,11 @@ const AcademicInfoForm = ({
         "Universiti Putra Malaysia (UPM)",
         "Universiti Teknologi Malaysia (UTM)",
         "Universiti Teknologi MARA (UiTM)",
-        "Universiti Islam Antarabangsa Malaysia (UIAM)",
         "Universiti Utara Malaysia (UUM)",
         "Universiti Malaysia Sarawak (UNIMAS)",
         "Universiti Malaysia Sabah (UMS)",
         "Universiti Pendidikan Sultan Idris (UPSI)",
-        "Universiti Teknikal Malaysia Melaka (UTeM)",
-        "Universiti Tun Hussein Onn Malaysia (UTHM)",
         "Universiti Malaysia Perlis (UniMAP)",
-        "Universiti Sultan Zainal Abidin (UniSZA)",
-        "Universiti Malaysia Terengganu (UMT)",
-        "Universiti Malaysia Kelantan (UMK)",
-        "Universiti Malaysia Pahang (UMP)",
-        "Universiti Sains Islam Malaysia (USIM)",
         "Universiti Pertahanan Nasional Malaysia (UPNM)",
         "Taylor's University",
         "Sunway University",
@@ -149,25 +141,17 @@ const AcademicInfoForm = ({
         "Monash University Malaysia",
         "University of Nottingham Malaysia",
         "Heriot-Watt University Malaysia",
-        "Curtin University Malaysia",
         "Swinburne University of Technology Sarawak",
         "UCSI University",
         "Multimedia University (MMU)",
         "Asia Pacific University (APU)",
         "Management and Science University (MSU)",
-        "Binary University",
-        "Perdana University",
         "Other"
     ];
 
     // Common majors/fields of study
     const majors = [
         "Computer Science",
-        "Information Technology",
-        "Software Engineering",
-        "Data Science",
-        "Artificial Intelligence",
-        "Cybersecurity",
         "Business Administration",
         "Accounting",
         "Finance",
@@ -176,24 +160,10 @@ const AcademicInfoForm = ({
         "Mechanical Engineering",
         "Electrical Engineering",
         "Civil Engineering",
-        "Chemical Engineering",
-        "Biomedical Engineering",
-        "Medicine",
-        "Pharmacy",
-        "Dentistry",
-        "Nursing",
         "Law",
-        "Architecture",
-        "Psychology",
-        "Education",
         "Mass Communication",
-        "Mathematics",
-        "Physics",
-        "Chemistry",
-        "Biology",
-        "Environmental Science",
-        "Hospitality Management",
-        "Culinary Arts",
+        "Creative Multimedia",
+        "Design",
         "Other"
     ];
 
