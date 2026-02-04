@@ -3,7 +3,14 @@ import Eye from "../assets/eye.svg";
 
 export default function ApplicationCard({
   user: { applicationID: id, name, createdAt, submittedAt, status },
+  onDelete,
 }) {
+  const handleDelete = () => {
+    if (window.confirm(`Are you sure you want to delete the application from ${name}?`)) {
+      onDelete(id);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       {/* Left section with blue accent bar */}
@@ -33,7 +40,10 @@ export default function ApplicationCard({
           <img src={Eye} alt="View" className="w-5 h-5" />
         </Link>
         {/* Delete button */}
-        <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+        <button 
+          onClick={handleDelete}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+        >
           Delete
         </button>
       </div>
