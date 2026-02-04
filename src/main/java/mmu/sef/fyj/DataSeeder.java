@@ -187,6 +187,7 @@ public class DataSeeder implements CommandLineRunner {
                 app.setExpectedGraduationYear(2025 + random.nextInt(3));
                 StudyLevel[] studyLevels = StudyLevel.values();
                 app.setStudyLevel(studyLevels[random.nextInt(studyLevels.length)]);
+                app.setCgpa(2.5f + random.nextFloat() * 1.5f); // Random CGPA between 2.5 and 4.0
 
                 // Documents
                 app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf", "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
@@ -237,6 +238,7 @@ public class DataSeeder implements CommandLineRunner {
                 app.setNricNumber("000101-14-" + (1000 + random.nextInt(9000)));
                 app.setMonthlyFamilyIncome(3000f + random.nextFloat() * 7000);
                 app.setBumiputera(random.nextBoolean());
+                app.setCgpa(2.5f + random.nextFloat() * 1.5f); // Random CGPA between 2.5 and 4.0
                 app.setStatus(ApplicationStatus.GRADED);
                 
                 applicationRepository.save(app);
