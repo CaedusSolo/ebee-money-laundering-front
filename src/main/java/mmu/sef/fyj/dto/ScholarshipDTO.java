@@ -23,6 +23,14 @@ public class ScholarshipDTO {
 
     private Set<Integer> committeeIds = new HashSet<>();
 
+    private Float minCGPA;
+
+    private Float maxFamilyIncome;
+
+    private Boolean mustBumiputera;
+
+    private Integer minGraduationYear;
+
     // Getters and Setters
     public String getName() {
         return name;
@@ -62,5 +70,37 @@ public class ScholarshipDTO {
 
     public void setCommitteeIds(Set<Integer> committeeIds) {
         this.committeeIds = committeeIds != null ? committeeIds : new HashSet<>();
+    }
+
+    public Float getMinCGPA() {
+        return minCGPA;
+    }
+
+    public void setMinCGPA(Float minCGPA) {
+        this.minCGPA = minCGPA;
+    }
+
+    public Float getMaxFamilyIncome() {
+        return maxFamilyIncome;
+    }
+
+    public void setMaxFamilyIncome(Float maxFamilyIncome) {
+        this.maxFamilyIncome = maxFamilyIncome;
+    }
+
+    public Boolean getMustBumiputera() {
+        return mustBumiputera;
+    }
+
+    public void setMustBumiputera(Boolean mustBumiputera) {
+        this.mustBumiputera = mustBumiputera;
+    }
+
+    public Integer getMinGraduationYear() {
+        return minGraduationYear;
+    }
+
+    public void setMinGraduationYear(Integer minGraduationYear) {
+        this.minGraduationYear = minGraduationYear;
     }
 }

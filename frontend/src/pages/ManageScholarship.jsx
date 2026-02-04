@@ -28,7 +28,7 @@ function ScholarshipCard({ scholarship }) {
         </p>
 
         <Link
-          to={`/scholarship/${scholarship.id}`}
+          to={`/admin/scholarship/${scholarship.id}/view`}
           className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 mt-2"
         >
           More information

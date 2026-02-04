@@ -1,6 +1,6 @@
 package mmu.sef.fyj.service;
 
-import mmu.sef.fyj.dto.ApplicationSummaryDTO;
+import mmu.sef.fyj.dto.*;
 import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.ApplicationStatus;
 import mmu.sef.fyj.model.Grade;
@@ -85,6 +85,65 @@ public class ApplicationService {
                         app.getStatus()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public Optional<ApplicationDetailsDTO> findDetailsById(Integer id) {
+        return applicationRepository.findById(id).map(this::mapToDetailsDTO);
+    }
+
+    private ApplicationDetailsDTO mapToDetailsDTO(Application app) {
+        ApplicationDetailsDTO dto = new ApplicationDetailsDTO();
+        
+        dto.setApplicationId(app.getApplicationID());
+        dto.setFirstName(app.getFirstName());
+        dto.setLastName(app.getLastName());
+        dto.setPhoneNumber(app.getPhoneNumber());
+        dto.setNricNumber(app.getNricNumber());
+        dto.setGender(app.getGender() != null ? app.getGender().name() : null);
+        dto.setNationality(app.getNationality());
+        dto.setDateOfBirth(app.getDateOfBirth());
+        dto.setMonthlyFamilyIncome(app.getMonthlyFamilyIncome());
+        dto.setIsBumiputera(app.getBumiputera());
+        
+        // Education
+        dto.setEducation(new EducationDTO(
+                app.getCollege(),
+                app.getMajor(),
+                app.getCurrentYearOfStudy(),
+                app.getExpectedGraduationYear(),
+                app.getStudyLevel() != null ? app.getStudyLevel().name() : null
+        ));
+        
+        // Address
+        dto.setAddress(new AddressDTO(
+                app.getHomeAddress(),
+                app.getCity(),
+                app.getZipCode(),
+                app.getState()
+        ));
+        
+        // Extracurriculars
+        if (app.getExtracurriculars() != null) {
+            dto.setExtracurriculars(app.getExtracurriculars().stream()
+                    .map(e -> new ExtracurricularDTO(e.getActivityName(), e.getRole()))
+                    .collect(Collectors.toList()));
+        }
+        
+        // Documents
+        if (app.getNricDoc() != null) {
+            dto.setNricDoc(new DocumentDTO(app.getNricDoc().getFileName(), app.getNricDoc().getFileUrl()));
+        }
+        if (app.getTranscriptDoc() != null) {
+            dto.setTranscriptDoc(new DocumentDTO(app.getTranscriptDoc().getFileName(), app.getTranscriptDoc().getFileUrl()));
+        }
+        if (app.getFamilyIncomeConfirmationDoc() != null) {
+            dto.setFamilyIncomeConfirmationDoc(new DocumentDTO(
+                    app.getFamilyIncomeConfirmationDoc().getFileName(),
+                    app.getFamilyIncomeConfirmationDoc().getFileUrl()
+            ));
+        }
+        
+        return dto;
     }
 }
 
