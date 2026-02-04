@@ -31,7 +31,7 @@ export default function ReviewerDashboard() {
 
   const fetchReviewerData = async () => {
     try {
-      const reviewerId = currentUser?.user?.id || currentUser?.id;
+      const reviewerId = currentUser?.reviewerId || currentUser?.user?.id || currentUser?.id;
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/${reviewerId}`,
         {
@@ -55,7 +55,7 @@ export default function ReviewerDashboard() {
     setLoading(true);
     setError('');
     try {
-      const reviewerId = currentUser?.user?.id || currentUser?.id;
+      const reviewerId = currentUser?.reviewerId || currentUser?.user?.id || currentUser?.id;
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/dashboard/${reviewerId}`,
         {
