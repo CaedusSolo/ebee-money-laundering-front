@@ -191,72 +191,7 @@ public class DataSeeder implements CommandLineRunner {
                 app.setNricNumber("00010" + random.nextInt(10) + "-14-" + (1000 + random.nextInt(9000)));
                 app.setMonthlyFamilyIncome(2000f + random.nextInt(8000));
                 app.setBumiputera(random.nextBoolean());
-                app.setStatus(statuses[random.nextInt(statuses.length)]);
-
-                // Address
-                app.setHomeAddress("No. " + (1 + random.nextInt(100)) + ", Jalan " + (1 + random.nextInt(20)));
-                app.setCity(cities[random.nextInt(cities.length)]);
-                app.setZipCode(String.valueOf(40000 + random.nextInt(10000)));
-                app.setState(states[random.nextInt(states.length)]);
-
-                // Education
-                app.setCollege(colleges[random.nextInt(colleges.length)]);
-                app.setMajor(majors[random.nextInt(majors.length)]);
-                app.setCurrentYearOfStudy(1 + random.nextInt(4));
-                app.setExpectedGraduationYear(2025 + random.nextInt(3));
-                StudyLevel[] studyLevels = StudyLevel.values();
-                app.setStudyLevel(studyLevels[random.nextInt(studyLevels.length)]);
-
-                // Documents
-                app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf", "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
-                app.setTranscriptDoc(new DocumentInfo("transcript_" + student.getId() + ".pdf", "https://example.com/docs/transcript_" + student.getId() + ".pdf", "application/pdf"));
-                app.setFamilyIncomeConfirmationDoc(new DocumentInfo("income_" + student.getId() + ".pdf", "https://example.com/docs/income_" + student.getId() + ".pdf", "application/pdf"));
-
-                // Extracurriculars
-                int numExtracurriculars = 1 + random.nextInt(3);
-                for (int j = 0; j < numExtracurriculars; j++) {
-                    Extracurricular extra = new Extracurricular(
-                            activities[random.nextInt(activities.length)],
-                            roles[random.nextInt(roles.length)],
-                            "Achievement in " + (2020 + random.nextInt(5))
-                    );
-                    app.getExtracurriculars().add(extra);
-                }
-
-                applicationRepository.save(app);
-            }
-        }
-    }
-
-    private void seedGradedApplications() {
-        List<User> students = userRepository.findByRole(Role.STUDENT);
-        List<Scholarship> scholarships = scholarshipRepository.findAll();
-
-        if (students.isEmpty() || scholarships.isEmpty())
-            return;
-
-        Random random = new Random(99);
-        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
-        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
-
-        // Create some graded applications for testing approval
-        for (Scholarship scholarship : scholarships) {
-            for (int i = 0; i < 3 && i < students.size(); i++) {
-                User student = students.get(i);
                 
-                Application app = new Application();
-                app.setStudentID(student.getId());
-                app.setScholarshipID(scholarship.getId());
-                app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
-                app.setLastName(lastNames[random.nextInt(lastNames.length)]);
-                app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
-                app.setNationality("Malaysian");
-                app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1, 1 + random.nextInt(28)));
-                app.setPhoneNumber("012-" + (1000000 + random.nextInt(9000000)));
-                app.setNricNumber("000101-14-" + (1000 + random.nextInt(9000)));
-                app.setMonthlyFamilyIncome(3000f + random.nextFloat() * 7000);
-                app.setBumiputera(random.nextBoolean());
-
                 // Assign status: distribute graded ones based on scholarship ID
                 ApplicationStatus status;
                 int appPair = i; // Student index within each scholarship
@@ -295,8 +230,38 @@ public class DataSeeder implements CommandLineRunner {
                 }
 
                 app.setStatus(status);
+
+                // Address
+                app.setHomeAddress("No. " + (1 + random.nextInt(100)) + ", Jalan " + (1 + random.nextInt(20)));
+                app.setCity(cities[random.nextInt(cities.length)]);
+                app.setZipCode(String.valueOf(40000 + random.nextInt(10000)));
+                app.setState(states[random.nextInt(states.length)]);
+
+                // Education
+                app.setCollege(colleges[random.nextInt(colleges.length)]);
+                app.setMajor(majors[random.nextInt(majors.length)]);
+                app.setCurrentYearOfStudy(1 + random.nextInt(4));
+                app.setExpectedGraduationYear(2025 + random.nextInt(3));
+                StudyLevel[] studyLevels = StudyLevel.values();
+                app.setStudyLevel(studyLevels[random.nextInt(studyLevels.length)]);
+
+                // Documents
+                app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf", "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
+                app.setTranscriptDoc(new DocumentInfo("transcript_" + student.getId() + ".pdf", "https://example.com/docs/transcript_" + student.getId() + ".pdf", "application/pdf"));
+                app.setFamilyIncomeConfirmationDoc(new DocumentInfo("income_" + student.getId() + ".pdf", "https://example.com/docs/income_" + student.getId() + ".pdf", "application/pdf"));
+
+                // Extracurriculars
+                int numExtracurriculars = 1 + random.nextInt(3);
+                for (int j = 0; j < numExtracurriculars; j++) {
+                    Extracurricular extra = new Extracurricular(
+                            activities[random.nextInt(activities.length)],
+                            roles[random.nextInt(roles.length)],
+                            "Achievement in " + (2020 + random.nextInt(5))
+                    );
+                    app.getExtracurriculars().add(extra);
+                }
+
                 applicationRepository.save(app);
-                appIndex++;
             }
         }
     }
@@ -328,6 +293,7 @@ public class DataSeeder implements CommandLineRunner {
             );
             
             Grade grade = new Grade(
+                j + 1,
                 "COMMITTEE_REVIEW_" + (j + 1),
                 normalizedScore,
                 reviewData
