@@ -112,6 +112,18 @@ export default class ApplicationService {
   }
 
   /**
+   * Retrieve application details DTO by its ID.
+   *
+   * @param {string|number} applicationId
+   * @returns {Promise<Object>} The application details DTO
+   */
+  async getApplicationDetailsById(applicationId) {
+    if (!applicationId) throw new Error("applicationId is required.");
+    const { data } = await this.axios.get(`/applications/${applicationId}/details`);
+    return data;
+  }
+
+  /**
    * Create (submit) a new scholarship application.
    *
    * @param {Object} applicationData
@@ -198,5 +210,55 @@ export default class ApplicationService {
     return (
       await this.axios.patch(`/applications/${applicationId}/status`, payload)
     ).data;
+  }
+
+  // ─── reviewer operations ────────────────────────────────────────────────────
+
+  /**
+   * Retrieve application details from the reviewer endpoint.
+   *
+   * @param {string|number} applicationId
+   * @returns {Promise<Object>} The application object
+   */
+  async getReviewerApplicationDetails(applicationId) {
+    if (!applicationId) throw new Error("applicationId is required.");
+    const { data } = await this.axios.get(
+      `/reviewer/applications/${applicationId}`
+    );
+    return data;
+  }
+
+  /**
+   * Retrieve application grades/reviews from the reviewer endpoint.
+   *
+   * @param {string|number} applicationId
+   * @returns {Promise<Object|null>} The reviews data or null if not found
+   */
+  async getReviewerApplicationGrades(applicationId) {
+    if (!applicationId) throw new Error("applicationId is required.");
+    try {
+      const { data } = await this.axios.get(
+        `/reviewer/applications/${applicationId}/grades`
+      );
+      return data;
+    } catch (err) {
+      if (err.statusCode === 404) return null;
+      throw err;
+    }
+  }
+
+  /**
+   * Retrieve both application details and grades in parallel.
+   *
+   * @param {string|number} applicationId
+   * @returns {Promise<{application: Object, reviewsData: Object|null}>}
+   */
+  async getApplicationDetailsWithReviews(applicationId) {
+    if (!applicationId) throw new Error("applicationId is required.");
+    const [application, reviewsData] = await Promise.all([
+      this.getReviewerApplicationDetails(applicationId),
+      this.getReviewerApplicationGrades(applicationId),
+    ]);
+    return { application, reviewsData };
   }
 }

@@ -1,6 +1,8 @@
 package mmu.sef.fyj.model;
 
 import jakarta.persistence.*;
+import java.util.ArrayList; // ADDED
+import java.util.List; // ADDED
 
 @Entity
 @Table(name = "scholarship_committees")
@@ -17,19 +19,23 @@ public class ScholarshipCommittee {
     private String email;
 
     @Column(nullable = false)
-    private String password; // Hashed
+    private String password;
 
-    @Column(nullable = false)
-    private Integer assignedScholarshipId;
+    // Fixed to match method names (singular) for easier integration with existing
+    // service
+    // or pluralize the methods below. Let's use plural for the logic:
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "committee_assignments", joinColumns = @JoinColumn(name = "committee_id"))
+    @Column(name = "scholarship_id")
+    private List<Integer> assignedScholarshipIds = new ArrayList<>();
 
     public ScholarshipCommittee() {
     }
 
-    public ScholarshipCommittee(String name, String email, String password, Integer assignedScholarshipId) {
+    public ScholarshipCommittee(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.assignedScholarshipId = assignedScholarshipId;
     }
 
     // Getters and Setters
@@ -65,11 +71,12 @@ public class ScholarshipCommittee {
         this.password = password;
     }
 
-    public Integer getAssignedScholarshipId() {
-        return assignedScholarshipId;
+    // Pluralized methods to support multiple assignments
+    public List<Integer> getAssignedScholarshipIds() {
+        return assignedScholarshipIds;
     }
 
-    public void setAssignedScholarshipId(Integer assignedScholarshipId) {
-        this.assignedScholarshipId = assignedScholarshipId;
+    public void setAssignedScholarshipIds(List<Integer> assignedScholarshipIds) {
+        this.assignedScholarshipIds = assignedScholarshipIds;
     }
 }

@@ -91,13 +91,12 @@ public class DataSeeder implements CommandLineRunner {
 
             // FIX: If user is a Committee member, also create their Profile record
             if (role == Role.COMMITTEE && !committeeRepository.existsByEmail(email)) {
-                ScholarshipCommittee committee = new ScholarshipCommittee();
-                committee.setName(name);
-                committee.setEmail(email);
-                committee.setPassword(encodedPassword);
-                committee.setAssignedScholarshipId(1); // Default assignment for testing
-                committeeRepository.save(committee);
-                System.out.println("Created Committee Profile: " + email);
+                ScholarshipCommittee sc = new ScholarshipCommittee();
+                sc.setName(name);
+                sc.setEmail(email);
+                sc.setPassword(encodedPassword);
+                sc.getAssignedScholarshipIds().add(1);
+                committeeRepository.save(sc);
             }
 
             // FIX: If user is a Reviewer, also create their Profile record
@@ -169,6 +168,12 @@ public class DataSeeder implements CommandLineRunner {
         // Distribute applications across different statuses
         ApplicationStatus[] allStatuses = { ApplicationStatus.PENDING_APPROVAL, ApplicationStatus.UNDER_REVIEW,
                 ApplicationStatus.GRADED, ApplicationStatus.APPROVED, ApplicationStatus.REJECTED };
+        String[] colleges = { "Multimedia University", "Universiti Malaya", "Universiti Teknologi Malaysia", "Universiti Sains Malaysia" };
+        String[] majors = { "Computer Science", "Software Engineering", "Information Technology", "Data Science", "Cybersecurity" };
+        String[] cities = { "Cyberjaya", "Kuala Lumpur", "Petaling Jaya", "Shah Alam", "Subang Jaya" };
+        String[] states = { "Selangor", "Wilayah Persekutuan", "Johor", "Penang", "Perak" };
+        String[] activities = { "Debate Club", "Basketball Team", "Volunteer Corps", "Coding Club", "Music Society", "Student Council" };
+        String[] roles = { "President", "Vice President", "Secretary", "Member", "Team Captain", "Coordinator" };
 
         int appIndex = 0;
         for (Scholarship scholarship : scholarships) {
@@ -177,9 +182,73 @@ public class DataSeeder implements CommandLineRunner {
                 Application app = new Application();
                 app.setStudentID(student.getId());
                 app.setScholarshipID(scholarship.getId());
-                // Use deterministic names based on student index to ensure uniqueness
-                app.setFirstName(firstNames[i % firstNames.length]);
-                app.setLastName(lastNames[i % lastNames.length]);
+                app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
+                app.setLastName(lastNames[random.nextInt(lastNames.length)]);
+                app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
+                app.setNationality("Malaysian");
+                app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+                app.setPhoneNumber("01" + random.nextInt(10) + "-" + (1000000 + random.nextInt(9000000)));
+                app.setNricNumber("00010" + random.nextInt(10) + "-14-" + (1000 + random.nextInt(9000)));
+                app.setMonthlyFamilyIncome(2000f + random.nextInt(8000));
+                app.setBumiputera(random.nextBoolean());
+                app.setStatus(statuses[random.nextInt(statuses.length)]);
+
+                // Address
+                app.setHomeAddress("No. " + (1 + random.nextInt(100)) + ", Jalan " + (1 + random.nextInt(20)));
+                app.setCity(cities[random.nextInt(cities.length)]);
+                app.setZipCode(String.valueOf(40000 + random.nextInt(10000)));
+                app.setState(states[random.nextInt(states.length)]);
+
+                // Education
+                app.setCollege(colleges[random.nextInt(colleges.length)]);
+                app.setMajor(majors[random.nextInt(majors.length)]);
+                app.setCurrentYearOfStudy(1 + random.nextInt(4));
+                app.setExpectedGraduationYear(2025 + random.nextInt(3));
+                StudyLevel[] studyLevels = StudyLevel.values();
+                app.setStudyLevel(studyLevels[random.nextInt(studyLevels.length)]);
+
+                // Documents
+                app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf", "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
+                app.setTranscriptDoc(new DocumentInfo("transcript_" + student.getId() + ".pdf", "https://example.com/docs/transcript_" + student.getId() + ".pdf", "application/pdf"));
+                app.setFamilyIncomeConfirmationDoc(new DocumentInfo("income_" + student.getId() + ".pdf", "https://example.com/docs/income_" + student.getId() + ".pdf", "application/pdf"));
+
+                // Extracurriculars
+                int numExtracurriculars = 1 + random.nextInt(3);
+                for (int j = 0; j < numExtracurriculars; j++) {
+                    Extracurricular extra = new Extracurricular(
+                            activities[random.nextInt(activities.length)],
+                            roles[random.nextInt(roles.length)],
+                            "Achievement in " + (2020 + random.nextInt(5))
+                    );
+                    app.getExtracurriculars().add(extra);
+                }
+
+                applicationRepository.save(app);
+            }
+        }
+    }
+
+    private void seedGradedApplications() {
+        List<User> students = userRepository.findByRole(Role.STUDENT);
+        List<Scholarship> scholarships = scholarshipRepository.findAll();
+
+        if (students.isEmpty() || scholarships.isEmpty())
+            return;
+
+        Random random = new Random(99);
+        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
+        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
+
+        // Create some graded applications for testing approval
+        for (Scholarship scholarship : scholarships) {
+            for (int i = 0; i < 3 && i < students.size(); i++) {
+                User student = students.get(i);
+                
+                Application app = new Application();
+                app.setStudentID(student.getId());
+                app.setScholarshipID(scholarship.getId());
+                app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
+                app.setLastName(lastNames[random.nextInt(lastNames.length)]);
                 app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
                 app.setNationality("Malaysian");
                 app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1, 1 + random.nextInt(28)));

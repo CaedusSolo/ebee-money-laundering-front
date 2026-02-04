@@ -6,6 +6,9 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public class Grade {
 
+    @Column(name = "committee_id")
+    private Integer committeeId;
+
     @Column(name = "category")
     private String category;
 
@@ -15,12 +18,14 @@ public class Grade {
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
 
-    public Grade() {}
+    public Grade() {
+    }
 
-    public Grade(String category, Integer score, String remarks) {
+    public Grade(Integer committeeId, String category, Integer score, String remarks) {
         this.category = category;
         this.score = score;
         this.remarks = remarks;
+        this.committeeId = committeeId;
     }
 
     public String getCategory() {
@@ -35,6 +40,10 @@ public class Grade {
         return score;
     }
 
+    public Integer getCommitteeId() {
+        return committeeId;
+    }
+
     public void setScore(Integer score) {
         this.score = score;
     }
@@ -46,5 +55,5 @@ public class Grade {
     public void setRemarks(String remarks) {
         this.remarks = remarks;
     }
-}
 
+}
