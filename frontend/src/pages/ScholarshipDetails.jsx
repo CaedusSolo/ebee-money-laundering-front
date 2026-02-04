@@ -47,7 +47,7 @@ export default function ScholarshipDetailPage() {
       fetch(`${API_BASE}/api/reviewer/list`, { headers }).then((r) =>
         r.ok ? r.json() : [],
       ),
-      fetch(`${API_BASE}/api/users?role=COMMITTEE`, { headers }).then((r) =>
+      fetch(`${API_BASE}/api/committee/list`, { headers }).then((r) =>
         r.ok ? r.json() : [],
       ),
       scholarshipId ? scholarshipService.getScholarshipById(scholarshipId) : Promise.resolve(null),
@@ -318,7 +318,7 @@ export default function ScholarshipDetailPage() {
                       >
                         <option value="">Committee member {i + 1}</option>
                         {committeeMembers.map((c) => (
-                          <option key={c.id} value={c.id}>
+                          <option key={c.committeeId} value={c.committeeId}>
                             {c.name} {c.email ? `(${c.email})` : ""}
                           </option>
                         ))}
