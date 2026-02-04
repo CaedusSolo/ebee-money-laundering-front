@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -17,15 +19,15 @@ public class DataSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final ScholarshipRepository scholarshipRepository;
     private final ApplicationRepository applicationRepository;
-    private final ScholarshipCommitteeRepository committeeRepository; // Added Repository
-    private final ReviewerRepository reviewerRepository; // Added Repository for Reviewers
+    private final ScholarshipCommitteeRepository committeeRepository;
+    private final ReviewerRepository reviewerRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(UserRepository userRepository,
             ScholarshipRepository scholarshipRepository,
             ApplicationRepository applicationRepository,
-            ScholarshipCommitteeRepository committeeRepository, // Added to Constructor
-            ReviewerRepository reviewerRepository, // Added to Constructor
+            ScholarshipCommitteeRepository committeeRepository,
+            ReviewerRepository reviewerRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.scholarshipRepository = scholarshipRepository;
@@ -48,7 +50,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedUsers() {
         // 1. Admin Account
-        seedUser("System Admin", "admin@gmail.com", "Admin123!", Role.ADMIN, null);
+        seedUser("System Admin", "admin@gmail.com", "Admin123!", Role.ADMIN, null, null);
 
         // 2. Student Accounts
         for (int i = 1; i <= 5; i++) {
@@ -57,17 +59,27 @@ public class DataSeeder implements CommandLineRunner {
                     "student" + i + "@gmail.com",
                     "Student123!",
                     Role.STUDENT,
-                    "11000" + i);
+                    "11000" + i,
+                    null);
         }
 
         // 3. Committee Accounts
         for (int i = 1; i <= 6; i++) {
+            List<Integer> assignments = new ArrayList<>();
+            // Test Case: Committee 1 gets three different scholarships
+            if (i == 1) {
+                assignments.addAll(Arrays.asList(1, 2, 3));
+            } else {
+                assignments.add(1);
+            }
+
             seedUser(
                     "Committee Member " + i,
                     "committee" + i + "@gmail.com",
                     "Committee123!",
                     Role.COMMITTEE,
-                    null);
+                    null,
+                    assignments);
         }
 
         // 4. Reviewer Accounts
@@ -77,40 +89,41 @@ public class DataSeeder implements CommandLineRunner {
                     "reviewer" + i + "@gmail.com",
                     "Reviewer123!",
                     Role.REVIEWER,
+                    null,
                     null);
         }
     }
 
-    private void seedUser(String name, String email, String rawPassword, Role role, String studentId) {
+    private void seedUser(String name, String email, String rawPassword, Role role, String studentId,
+            List<Integer> assignedIds) {
         if (!userRepository.existsByEmail(email)) {
             String encodedPassword = passwordEncoder.encode(rawPassword);
 
-            // Save to Authentication Table
             User user = new User(name, email, encodedPassword, role, studentId);
             userRepository.save(user);
 
-            // FIX: If user is a Committee member, also create their Profile record
             if (role == Role.COMMITTEE && !committeeRepository.existsByEmail(email)) {
                 ScholarshipCommittee sc = new ScholarshipCommittee();
                 sc.setName(name);
                 sc.setEmail(email);
                 sc.setPassword(encodedPassword);
-                sc.getAssignedScholarshipIds().add(1);
+
+                // Use the passed assignments instead of hardcoded 1
+                if (assignedIds != null) {
+                    sc.getAssignedScholarshipIds().addAll(assignedIds);
+                }
+
                 committeeRepository.save(sc);
             }
 
-            // FIX: If user is a Reviewer, also create their Profile record
             if (role == Role.REVIEWER && !reviewerRepository.existsByEmail(email)) {
                 Reviewer reviewer = new Reviewer();
                 reviewer.setName(name);
                 reviewer.setEmail(email);
                 reviewer.setPassword(encodedPassword);
-                reviewer.setAssignedScholarshipId(1); // Default assignment for testing
+                reviewer.setAssignedScholarshipId(1);
                 reviewerRepository.save(reviewer);
-                System.out.println("Created Reviewer Profile: " + email);
             }
-
-            System.out.println("Created User: " + email + " [" + role + "]");
         }
     }
 
@@ -130,7 +143,6 @@ public class DataSeeder implements CommandLineRunner {
 
         for (Scholarship s : scholarships) {
             scholarshipRepository.save(s);
-            System.out.println("Created Scholarship: " + s.getName());
         }
     }
 
@@ -172,7 +184,8 @@ public class DataSeeder implements CommandLineRunner {
         String[] majors = { "Computer Science", "Software Engineering", "Information Technology", "Data Science", "Cybersecurity" };
         String[] cities = { "Cyberjaya", "Kuala Lumpur", "Petaling Jaya", "Shah Alam", "Subang Jaya" };
         String[] states = { "Selangor", "Wilayah Persekutuan", "Johor", "Penang", "Perak" };
-        String[] activities = { "Debate Club", "Basketball Team", "Volunteer Corps", "Coding Club", "Music Society", "Student Council" };
+        String[] activities = { "Debate Club", "Basketball Team", "Volunteer Corps", "Coding Club", "Music Society",
+                "Student Council" };
         String[] roles = { "President", "Vice President", "Secretary", "Member", "Team Captain", "Coordinator" };
 
         int appIndex = 0;
@@ -186,7 +199,8 @@ public class DataSeeder implements CommandLineRunner {
                 app.setLastName(lastNames[random.nextInt(lastNames.length)]);
                 app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
                 app.setNationality("Malaysian");
-                app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+                app.setDateOfBirth(
+                        LocalDate.of(2000 + random.nextInt(4), 1 + random.nextInt(12), 1 + random.nextInt(28)));
                 app.setPhoneNumber("01" + random.nextInt(10) + "-" + (1000000 + random.nextInt(9000000)));
                 app.setNricNumber("00010" + random.nextInt(10) + "-14-" + (1000 + random.nextInt(9000)));
                 app.setMonthlyFamilyIncome(2000f + random.nextInt(8000));
@@ -246,9 +260,12 @@ public class DataSeeder implements CommandLineRunner {
                 app.setStudyLevel(studyLevels[random.nextInt(studyLevels.length)]);
 
                 // Documents
-                app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf", "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
-                app.setTranscriptDoc(new DocumentInfo("transcript_" + student.getId() + ".pdf", "https://example.com/docs/transcript_" + student.getId() + ".pdf", "application/pdf"));
-                app.setFamilyIncomeConfirmationDoc(new DocumentInfo("income_" + student.getId() + ".pdf", "https://example.com/docs/income_" + student.getId() + ".pdf", "application/pdf"));
+                app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf",
+                        "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
+                app.setTranscriptDoc(new DocumentInfo("transcript_" + student.getId() + ".pdf",
+                        "https://example.com/docs/transcript_" + student.getId() + ".pdf", "application/pdf"));
+                app.setFamilyIncomeConfirmationDoc(new DocumentInfo("income_" + student.getId() + ".pdf",
+                        "https://example.com/docs/income_" + student.getId() + ".pdf", "application/pdf"));
 
                 // Extracurriculars
                 int numExtracurriculars = 1 + random.nextInt(3);
@@ -256,8 +273,7 @@ public class DataSeeder implements CommandLineRunner {
                     Extracurricular extra = new Extracurricular(
                             activities[random.nextInt(activities.length)],
                             roles[random.nextInt(roles.length)],
-                            "Achievement in " + (2020 + random.nextInt(5))
-                    );
+                            "Achievement in " + (2020 + random.nextInt(5)));
                     app.getExtracurriculars().add(extra);
                 }
 
