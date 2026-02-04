@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import ApplicationService from "../services/ApplicationService";
 
 export default function ApplicationDetails({ applicationId, onBack }) {
   const [application, setApplication] = useState(null);
@@ -10,10 +9,10 @@ export default function ApplicationDetails({ applicationId, onBack }) {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const { currentUser } = useAuth();
-  const userRole = currentUser?.role;
 
   useEffect(() => {
     if (applicationId && currentUser?.token) {
+      // Clear previous data when applicationId changes
       setApplication(null);
       setReviewsData(null);
       setError("");
@@ -24,6 +23,7 @@ export default function ApplicationDetails({ applicationId, onBack }) {
 
   const fetchApplicationDetails = async () => {
     setLoading(true);
+    console.log("Fetching application details for ID:", applicationId); // DEBUG
     try {
       const headers = {
         "Content-Type": "application/json",
@@ -41,10 +41,10 @@ export default function ApplicationDetails({ applicationId, onBack }) {
 
       const appData = await appRes.json();
       console.log("Received application data:", appData); // DEBUG
-      
+
       // Only fetch grades if application is GRADED
       let reviewsData = null;
-      if (appData.status === 'GRADED') {
+      if (appData.status === "GRADED") {
         try {
           const reviewsRes = await fetch(
             `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`,
@@ -52,13 +52,12 @@ export default function ApplicationDetails({ applicationId, onBack }) {
           );
           reviewsData = reviewsRes.ok ? await reviewsRes.json() : null;
         } catch (err) {
-          console.error('Failed to fetch reviews:', err);
+          console.error("Failed to fetch reviews:", err);
         }
       }
 
       setApplication(appData);
-      console.log(appData.address);
-      setReviewsData(reviews);
+      setReviewsData(reviewsData);
     } catch (err) {
       setError(`Failed to load application details: ${err.message}`);
       console.error(err);
@@ -86,7 +85,8 @@ export default function ApplicationDetails({ applicationId, onBack }) {
 
       if (response.ok) {
         const result = await response.json();
-        const successText = approvalDecision === "APPROVE" ? "approved" : "rejected";
+        const successText =
+          approvalDecision === "APPROVE" ? "approved" : "rejected";
         setSuccessMessage(`Application ${successText} successfully`);
         // Refresh the application details
         setTimeout(() => {
@@ -202,14 +202,19 @@ export default function ApplicationDetails({ applicationId, onBack }) {
                   {application?.firstName} {application?.lastName}
                 </h2>
                 <p className="text-blue-100 mt-2">
-                  Application ID: <span className="font-mono font-semibold">{application?.applicationID}</span>
+                  Application ID:{" "}
+                  <span className="font-mono font-semibold">
+                    {application?.applicationID}
+                  </span>
                 </p>
               </div>
               <div
                 className={`px-5 py-2 rounded-full font-semibold text-lg ${
-                  application?.status === 'APPROVED' ? 'bg-green-500' :
-                  application?.status === 'REJECTED' ? 'bg-red-500' :
-                  'bg-yellow-500'
+                  application?.status === "APPROVED"
+                    ? "bg-green-500"
+                    : application?.status === "REJECTED"
+                      ? "bg-red-500"
+                      : "bg-yellow-500"
                 }`}
               >
                 {application?.status}
@@ -354,114 +359,119 @@ export default function ApplicationDetails({ applicationId, onBack }) {
           </div>
 
           {/* Committee Reviews Section */}
-          {reviewsData?.committeeReviews && reviewsData.committeeReviews.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">
-                Committee Evaluations
-              </h3>
-              
-              {reviewsData?.committeeReviews?.map((review) => (
-                <div
-                  key={review.reviewID}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  {/* Header with Committee Member Info */}
-                  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-4 border-b-2 border-indigo-200">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-bold text-lg text-gray-900">
-                          {review.committeeMemberName}
-                        </h4>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {review.committeeMemberRole}
+          {reviewsData?.committeeReviews &&
+            reviewsData.committeeReviews.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Committee Evaluations
+                </h3>
+
+                {reviewsData?.committeeReviews?.map((review) => (
+                  <div
+                    key={review.reviewID}
+                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                  >
+                    {/* Header with Committee Member Info */}
+                    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-4 border-b-2 border-indigo-200">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-lg text-gray-900">
+                            {review.committeeMemberName}
+                          </h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {review.committeeMemberRole}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full">
+                          Evaluated: {review.submittedAt}
                         </p>
                       </div>
-                      <p className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full">
-                        Evaluated: {review.submittedAt}
-                      </p>
+                    </div>
+
+                    {/* Scores Grid */}
+                    <div className="px-6 py-5">
+                      <div className="grid grid-cols-3 gap-4 mb-5">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                          <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                            Academic Performance
+                          </p>
+                          <p className="text-3xl font-bold text-blue-600 mt-2">
+                            {review.academicRubric}
+                            <span className="text-lg text-blue-500">/20</span>
+                          </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">
+                            Co-curricular Activities
+                          </p>
+                          <p className="text-3xl font-bold text-green-600 mt-2">
+                            {review.cocurricularRubric}
+                            <span className="text-lg text-green-500">/20</span>
+                          </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                          <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">
+                            Leadership
+                          </p>
+                          <p className="text-3xl font-bold text-purple-600 mt-2">
+                            {review.leadershipRubric}
+                            <span className="text-lg text-purple-500">/20</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Summary Scores */}
+                      <div className="grid grid-cols-2 gap-4 mb-5">
+                        <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+                          <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                            Raw Score
+                          </p>
+                          <p className="text-3xl font-bold text-orange-600 mt-2">
+                            {review.rawScore}
+                            <span className="text-lg text-orange-500">/60</span>
+                          </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
+                          <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">
+                            Normalized Score
+                          </p>
+                          <p className="text-3xl font-bold text-indigo-600 mt-2">
+                            {review.normalizedScore}
+                            <span className="text-lg text-indigo-500">
+                              /100
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Comments */}
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+                          Evaluator Comments
+                        </p>
+                        <p className="text-gray-700 leading-relaxed">
+                          {review.comment}
+                        </p>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Scores Grid */}
-                  <div className="px-6 py-5">
-                    <div className="grid grid-cols-3 gap-4 mb-5">
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-                        <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
-                          Academic Performance
-                        </p>
-                        <p className="text-3xl font-bold text-blue-600 mt-2">
-                          {review.academicRubric}
-                          <span className="text-lg text-blue-500">/20</span>
-                        </p>
-                      </div>
-                      
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-                        <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">
-                          Co-curricular Activities
-                        </p>
-                        <p className="text-3xl font-bold text-green-600 mt-2">
-                          {review.cocurricularRubric}
-                          <span className="text-lg text-green-500">/20</span>
-                        </p>
-                      </div>
-                      
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-                        <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">
-                          Leadership
-                        </p>
-                        <p className="text-3xl font-bold text-purple-600 mt-2">
-                          {review.leadershipRubric}
-                          <span className="text-lg text-purple-500">/20</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Summary Scores */}
-                    <div className="grid grid-cols-2 gap-4 mb-5">
-                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
-                        <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
-                          Raw Score
-                        </p>
-                        <p className="text-3xl font-bold text-orange-600 mt-2">
-                          {review.rawScore}
-                          <span className="text-lg text-orange-500">/60</span>
-                        </p>
-                      </div>
-                      
-                      <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
-                        <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">
-                          Normalized Score
-                        </p>
-                        <p className="text-3xl font-bold text-indigo-600 mt-2">
-                          {review.normalizedScore}
-                          <span className="text-lg text-indigo-500">/100</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Comments */}
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-                        Evaluator Comments
-                      </p>
-                      <p className="text-gray-700 leading-relaxed">
-                        {review.comment}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
 
           {/* Message for applications not yet graded */}
-          {application?.status !== 'GRADED' && (
+          {application?.status !== "GRADED" && (
             <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
               <h3 className="text-lg font-bold text-blue-900 mb-2">
                 ℹ️ Judging In Progress
               </h3>
               <p className="text-blue-800">
-                Committee evaluations are not yet available. The judging process is still in progress. Check back once the evaluation is complete.
+                Committee evaluations are not yet available. The judging process
+                is still in progress. Check back once the evaluation is
+                complete.
               </p>
             </div>
           )}
@@ -484,7 +494,11 @@ export default function ApplicationDetails({ applicationId, onBack }) {
                 </p>
                 <div className="mt-4 pt-4 border-t-2 border-orange-300">
                   <p className="text-xs text-orange-600">
-                    Average: <span className="font-bold text-lg">{(reviewsData?.combinedScore / 3).toFixed(1)}</span>/100
+                    Average:{" "}
+                    <span className="font-bold text-lg">
+                      {(reviewsData?.combinedScore / 3).toFixed(1)}
+                    </span>
+                    /100
                   </p>
                 </div>
               </div>
@@ -497,8 +511,12 @@ export default function ApplicationDetails({ applicationId, onBack }) {
               </p>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Evaluators</span>
-                  <span className="font-bold text-gray-900">{reviewsData?.totalReviews}</span>
+                  <span className="text-sm text-gray-600">
+                    Total Evaluators
+                  </span>
+                  <span className="font-bold text-gray-900">
+                    {reviewsData?.totalReviews}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Status</span>
@@ -510,65 +528,103 @@ export default function ApplicationDetails({ applicationId, onBack }) {
             </div>
 
             {/* Decision Buttons */}
-            {application?.status !== "APPROVED" && application?.status !== "REJECTED" && (
-              <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-500">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">
-                  Final Decision
-                </h3>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => handleDecision("APPROVE")}
-                    disabled={submitting}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95"
-                  >
-                    {submitting ? (
-                      <span className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Processing...
-                      </span>
-                    ) : (
-                      <span>✓ Approve Application</span>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => handleDecision("REJECT")}
-                    disabled={submitting}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95"
-                  >
-                    {submitting ? (
-                      <span className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Processing...
-                      </span>
-                    ) : (
-                      <span>✕ Reject Application</span>
-                    )}
-                  </button>
+            {application?.status !== "APPROVED" &&
+              application?.status !== "REJECTED" && (
+                <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-500">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">
+                    Final Decision
+                  </h3>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => handleDecision("APPROVE")}
+                      disabled={submitting}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95"
+                    >
+                      {submitting ? (
+                        <span className="flex items-center justify-center">
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        <span>✓ Approve Application</span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDecision("REJECT")}
+                      disabled={submitting}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold rounded-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-95"
+                    >
+                      {submitting ? (
+                        <span className="flex items-center justify-center">
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        <span>✕ Reject Application</span>
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Decision Status - When Already Decided */}
-            {(application?.status === "APPROVED" || application?.status === "REJECTED") && (
-              <div className={`rounded-lg shadow-lg p-6 border-t-4 ${
-                application?.status === "APPROVED" 
-                  ? "bg-green-50 border-green-500" 
-                  : "bg-red-50 border-red-500"
-              }`}>
+            {(application?.status === "APPROVED" ||
+              application?.status === "REJECTED") && (
+              <div
+                className={`rounded-lg shadow-lg p-6 border-t-4 ${
+                  application?.status === "APPROVED"
+                    ? "bg-green-50 border-green-500"
+                    : "bg-red-50 border-red-500"
+                }`}
+              >
                 <h3 className="text-lg font-bold text-gray-900 mb-3">
                   Decision Made
                 </h3>
-                <div className={`px-4 py-3 rounded-lg text-center font-bold text-lg ${
-                  application?.status === "APPROVED"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                }`}>
+                <div
+                  className={`px-4 py-3 rounded-lg text-center font-bold text-lg ${
+                    application?.status === "APPROVED"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
                   {application?.status === "APPROVED"
                     ? "✓ Application Approved"
                     : "✕ Application Rejected"}
