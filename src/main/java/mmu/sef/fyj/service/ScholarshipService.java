@@ -63,6 +63,12 @@ public class ScholarshipService {
             scholarship.setScholarshipCommittees(committees);
         }
 
+        // Set eligibility criteria
+        scholarship.setMinCGPA(dto.getMinCGPA());
+        scholarship.setMaxFamilyIncome(dto.getMaxFamilyIncome());
+        scholarship.setMustBumiputera(dto.getMustBumiputera());
+        scholarship.setMinGraduationYear(dto.getMinGraduationYear());
+
         return scholarshipRepository.save(scholarship);
     }
 

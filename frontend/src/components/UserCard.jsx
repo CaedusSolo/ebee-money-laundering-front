@@ -1,7 +1,33 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import Eye from "../assets/eye.svg";
+import { useAuth } from "../context/AuthContext";
+import UserService from "../services/UserService";
 
-export default function UserCard({ user: { id, name, email, role } }) {
+export default function UserCard({ user: { id, name, email, role }, onDelete }) {
+  const { currentUser } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm(`Are you sure you want to delete ${name}?`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const userService = new UserService(currentUser?.token);
+      await userService.deleteUser(id);
+      if (onDelete) {
+        onDelete(id);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("Failed to delete user. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-between bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
       {/* Left section with blue accent bar */}
@@ -37,8 +63,12 @@ export default function UserCard({ user: { id, name, email, role } }) {
         </Link>
 
         {/* Delete button */}
-        <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-          Delete
+        <button 
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isDeleting ? "Deleting..." : "Delete"}
         </button>
       </div>
     </div>

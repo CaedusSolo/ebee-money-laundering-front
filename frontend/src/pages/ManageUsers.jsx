@@ -27,6 +27,10 @@ export default function ManageUsers() {
     fetchUserData();
   }, []);
 
+  const handleUserDeleted = (userId) => {
+    setUserData((prevData) => prevData.filter((user) => user.id !== userId));
+  };
+
   const filteredUsers = userData.filter((user) => {
     const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
     const matchesSearch = user.name?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -76,7 +80,7 @@ export default function ManageUsers() {
       {/* User List */}
       <div className="flex flex-col gap-4">
         {filteredUsers.map((user) => (
-          <UserCard user={user} key={user.id} />
+          <UserCard user={user} key={user.id} onDelete={handleUserDeleted} />
         ))}
       </div>
     </div>

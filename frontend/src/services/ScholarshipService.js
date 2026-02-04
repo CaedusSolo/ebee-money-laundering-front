@@ -89,7 +89,7 @@ class ScholarshipService {
    * @returns {Promise<object>}  The created scholarship object.
    */
   async createScholarship(payload) {
-    const { data } = await this.api.post("/", payload);
+    const { data } = await this.api.post("", payload);
     return data;
   }
 
