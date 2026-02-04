@@ -109,6 +109,7 @@ public class ApplicationService {
         dto.setNricNumber(app.getNricNumber());
         dto.setGender(app.getGender() != null ? app.getGender().name() : null);
         dto.setNationality(app.getNationality());
+        dto.setCgpa(app.getCgpa());
         dto.setDateOfBirth(app.getDateOfBirth());
         dto.setMonthlyFamilyIncome(app.getMonthlyFamilyIncome());
         dto.setIsBumiputera(app.getBumiputera());

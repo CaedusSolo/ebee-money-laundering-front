@@ -4,8 +4,17 @@ import { useAuth } from "../context/AuthContext"
 import {Link, useNavigate} from 'react-router-dom'
 
 export default function Navbar({ showBrowse = false }) {
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const navigate = useNavigate();
+
+  // Check if user is a student (role must be exactly 'STUDENT')
+  const isStudent = currentUser?.role === 'STUDENT';
+
+  const handleProfileClick = () => {
+    if (isStudent) {
+      navigate('/student-dashboard');
+    }
+  };
 
   return (
       <nav className="fixed top-0 z-50 w-full bg-gradient-to-r from-blue-800 to-cyan-500 shadow-md">
@@ -37,7 +46,13 @@ export default function Navbar({ showBrowse = false }) {
                 Logout
             </button>
 
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-gray-600 shadow-sm">
+            {/* Profile Icon - Clickable for students only */}
+            <div 
+                onClick={handleProfileClick}
+                className={`w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-gray-600 shadow-sm ${
+                  isStudent ? 'cursor-pointer hover:bg-gray-100 transition duration-200' : ''
+                }`}
+            >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
