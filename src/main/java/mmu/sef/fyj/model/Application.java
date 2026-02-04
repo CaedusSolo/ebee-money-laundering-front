@@ -72,6 +72,8 @@ public class Application {
     @Enumerated(EnumType.STRING)
     private StudyLevel studyLevel;
 
+    private Float cgpa;
+
     // Extracurriculars
     @ElementCollection
     @CollectionTable(name = "application_extracurriculars", joinColumns = @JoinColumn(name = "application_id"))
@@ -351,6 +353,14 @@ public class Application {
 
     public void setStudyLevel(StudyLevel studyLevel) {
         this.studyLevel = studyLevel;
+    }
+
+    public Float getCgpa() {
+        return cgpa;
+    }
+
+    public void setCgpa(Float cgpa) {
+        this.cgpa = cgpa;
     }
 
     public List<Extracurricular> getExtracurriculars() {

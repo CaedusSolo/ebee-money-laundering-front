@@ -93,7 +93,7 @@ public class ApplicationService {
 
     private ApplicationDetailsDTO mapToDetailsDTO(Application app) {
         ApplicationDetailsDTO dto = new ApplicationDetailsDTO();
-        
+
         dto.setApplicationId(app.getApplicationID());
         dto.setFirstName(app.getFirstName());
         dto.setLastName(app.getLastName());
@@ -101,10 +101,11 @@ public class ApplicationService {
         dto.setNricNumber(app.getNricNumber());
         dto.setGender(app.getGender() != null ? app.getGender().name() : null);
         dto.setNationality(app.getNationality());
+        dto.setCgpa(app.getCgpa());
         dto.setDateOfBirth(app.getDateOfBirth());
         dto.setMonthlyFamilyIncome(app.getMonthlyFamilyIncome());
         dto.setIsBumiputera(app.getBumiputera());
-        
+
         // Education
         dto.setEducation(new EducationDTO(
                 app.getCollege(),
@@ -113,7 +114,7 @@ public class ApplicationService {
                 app.getExpectedGraduationYear(),
                 app.getStudyLevel() != null ? app.getStudyLevel().name() : null
         ));
-        
+
         // Address
         dto.setAddress(new AddressDTO(
                 app.getHomeAddress(),
@@ -121,14 +122,14 @@ public class ApplicationService {
                 app.getZipCode(),
                 app.getState()
         ));
-        
+
         // Extracurriculars
         if (app.getExtracurriculars() != null) {
             dto.setExtracurriculars(app.getExtracurriculars().stream()
                     .map(e -> new ExtracurricularDTO(e.getActivityName(), e.getRole()))
                     .collect(Collectors.toList()));
         }
-        
+
         // Documents
         if (app.getNricDoc() != null) {
             dto.setNricDoc(new DocumentDTO(app.getNricDoc().getFileName(), app.getNricDoc().getFileUrl()));
@@ -142,7 +143,7 @@ public class ApplicationService {
                     app.getFamilyIncomeConfirmationDoc().getFileUrl()
             ));
         }
-        
+
         return dto;
     }
 }
