@@ -7,7 +7,6 @@ import { useAuth } from '../context/AuthContext';
 
 export default function ScholarshipCommitteeDashboard() {
   const { currentUser } = useAuth();
-  const { committeeInfo } = useOutletContext();
   const [scholarshipGroups, setScholarshipGroups] = useState({});
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,7 +58,7 @@ export default function ScholarshipCommitteeDashboard() {
 
       if (response.ok) {
         handleCloseModal();
-        fetchDashboard(); // Refresh to move application from pending to graded
+        fetchDashboard();
       } else {
         const err = await response.json();
         alert(err.error || "Failed to save evaluation.");
@@ -76,7 +75,6 @@ export default function ScholarshipCommitteeDashboard() {
       {Object.entries(scholarshipGroups).length > 0 ? (
         Object.entries(scholarshipGroups).map(([scholarshipName, groups]) => (
           <div key={scholarshipName} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            {/* Scholarship Header */}
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
               <div className="flex items-center space-x-3">
                 <div className="bg-blue-600 p-2 rounded-lg text-white">
@@ -94,7 +92,6 @@ export default function ScholarshipCommitteeDashboard() {
               </div>
             </div>
 
-            {/* Pending Section */}
             <div className="mb-10">
               <div className="flex items-center space-x-2 mb-4">
                 <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
@@ -120,29 +117,27 @@ export default function ScholarshipCommitteeDashboard() {
                   ))
                 ) : (
                   <div className="py-8 text-center border-2 border-dashed border-gray-50 rounded-xl">
-                    <p className="text-sm text-gray-400 font-medium italic">No pending evaluations for this type.</p>
+                    <p className="text-sm text-gray-400 font-medium italic">No pending evaluations.</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Graded Section */}
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Completed ({groups.graded?.length || 0})</h4>
               </div>
-              <div className="space-y-3 opacity-80">
+              <div className="space-y-3">
                 {groups.graded?.length > 0 ? (
                   groups.graded.map((app) => (
                     <ApplicationItem key={app.id} title={app.id} status="GRADED" date={app.submittedAt}>
                       <button
                         onClick={() => handleOpenModal(app)}
-                        className="p-2 text-blue-600 bg-blue-50 rounded-lg transition-all"
+                        className="p-2 text-emerald-600 bg-emerald-50 rounded-lg transition-all"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </button>
                       <ScoreDisplay value={app.scores?.academic} maxValue={20} />
