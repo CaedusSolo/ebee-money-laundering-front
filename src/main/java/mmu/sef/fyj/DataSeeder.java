@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -183,6 +184,14 @@ public class DataSeeder implements CommandLineRunner {
         Random random = new Random(99);
         String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
         String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
+        String[] comments = {
+            "Excellent academic performance with strong leadership demonstrated in projects. Well-rounded candidate.",
+            "Good overall performance. Shows potential for growth in leadership roles. Consistent contributor in activities.",
+            "Outstanding student with exceptional leadership qualities. Highly active in extracurricular activities. Strongly recommended.",
+            "Strong academic background with solid extracurricular involvement. Shows promising potential for the future.",
+            "Demonstrates well-balanced skills across academics and leadership. Good fit for the scholarship.",
+            "Exceptional commitment to community service and academic excellence. Highly motivated and driven student."
+        };
 
         // Create some graded applications for testing approval
         for (Scholarship scholarship : scholarships) {
@@ -201,10 +210,51 @@ public class DataSeeder implements CommandLineRunner {
                 app.setNricNumber("000101-14-" + (1000 + random.nextInt(9000)));
                 app.setMonthlyFamilyIncome(3000f + random.nextFloat() * 7000);
                 app.setBumiputera(random.nextBoolean());
+                
+                // Add grades from 3 committee members BEFORE setting status
+                List<Grade> appGrades = new ArrayList<>();
+                addRandomGradesToList(appGrades, random, comments);
+                app.setGrades(appGrades);
+                
                 app.setStatus(ApplicationStatus.GRADED);
                 
                 applicationRepository.save(app);
             }
+        }
+    }
+    
+    private void addRandomGradesToList(List<Grade> grades, Random random, String[] comments) {
+        String[] committeeNames = { "Dr. Ahmed Khan", "Prof. Sarah Osman", "Assoc. Prof. Fatimah Hassan" };
+        String[] committeeRoles = { "Academic Excellence Committee", "Leadership Committee", "Student Affairs Committee" };
+        
+        for (int j = 0; j < 3; j++) {
+            // Generate varied scores (14-19 range per rubric)
+            int academic = 14 + random.nextInt(6);
+            int cocurricular = 14 + random.nextInt(6);
+            int leadership = 14 + random.nextInt(6);
+            int rawScore = academic + cocurricular + leadership;
+            int normalizedScore = (rawScore * 100) / 60;
+            
+            // Create committee review as a formatted comment
+            String reviewData = String.format(
+                "{\"reviewID\":%d,\"committeeMemberName\":\"%s\",\"committeeMemberRole\":\"%s\",\"academicRubric\":%d,\"cocurricularRubric\":%d,\"leadershipRubric\":%d,\"rawScore\":%d,\"normalizedScore\":%d,\"comment\":\"%s\"}",
+                j + 1,
+                committeeNames[j],
+                committeeRoles[j],
+                academic,
+                cocurricular,
+                leadership,
+                rawScore,
+                normalizedScore,
+                comments[random.nextInt(comments.length)]
+            );
+            
+            Grade grade = new Grade(
+                "COMMITTEE_REVIEW_" + (j + 1),
+                normalizedScore,
+                reviewData
+            );
+            grades.add(grade);
         }
     }
 }

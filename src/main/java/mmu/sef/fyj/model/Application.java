@@ -103,7 +103,7 @@ public class Application {
     private DocumentInfo familyIncomeConfirmationDoc;
 
     // Grades
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "application_grades", joinColumns = @JoinColumn(name = "application_id"))
     private List<Grade> grades = new ArrayList<>();
 
