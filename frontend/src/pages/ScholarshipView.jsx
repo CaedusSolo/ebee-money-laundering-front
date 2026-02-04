@@ -137,7 +137,7 @@ export default function ScholarshipView() {
                 <div>
                   <p className="text-sm text-gray-600">Assigned Reviewer</p>
                   <p className="font-medium text-gray-900">
-                    {scholarship?.reviewer || "Not assigned"}
+                    {scholarship?.reviewer ? `${scholarship.reviewer.name} (${scholarship.reviewer.email})` : "Not assigned"}
                   </p>
                 </div>
                 <div>
@@ -148,9 +148,14 @@ export default function ScholarshipView() {
                     {scholarship?.scholarshipCommittees &&
                     scholarship.scholarshipCommittees.length > 0 ? (
                       scholarship.scholarshipCommittees.map((member, index) => (
-                        <p key={index} className="font-medium text-gray-900">
-                          {index + 1}. {member || "Not assigned"}
-                        </p>
+                        <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                          <p className="font-medium text-gray-900">
+                            {index + 1}. {member.name || "Unknown"}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {member.email}
+                          </p>
+                        </div>
                       ))
                     ) : (
                       <p className="text-gray-600">No committee members assigned</p>

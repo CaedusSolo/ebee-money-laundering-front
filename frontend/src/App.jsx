@@ -23,6 +23,7 @@ import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout";
 import UserDetails from "./pages/UserDetails";
 import ManageScholarship from "./pages/ManageScholarship";
 import ScholarshipDetail from "./pages/ScholarshipDetails";
+import ScholarshipView from "./pages/ScholarshipView";
 import StudentDashboard from "./pages/StudentDashboard";
 import ManageApplications from "./pages/ManageApplications";
 import ApplicationDetails from "./components/ApplicationDetails";
@@ -129,6 +130,7 @@ function App() {
             <Route path="scholarship">
               <Route index element={<ManageScholarship />} />
               <Route path="details/:scholarshipId?" element={<ScholarshipDetail />} />
+              <Route path=":scholarshipId/view" element={<ScholarshipView />} />
             </Route>
             <Route path="applications">
               <Route index element={<ManageApplications />} />
