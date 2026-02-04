@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import ApplicationService from "../services/ApplicationService";
 
 export default function ApplicationDetails({ applicationId, onBack }) {
   const [application, setApplication] = useState(null);
@@ -8,10 +9,10 @@ export default function ApplicationDetails({ applicationId, onBack }) {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { currentUser } = useAuth();
+  const userRole = currentUser?.role;
 
   useEffect(() => {
     if (applicationId && currentUser?.token) {
-      // Clear previous data when applicationId changes
       setApplication(null);
       setReviewsData(null);
       setError("");
@@ -21,34 +22,15 @@ export default function ApplicationDetails({ applicationId, onBack }) {
 
   const fetchApplicationDetails = async () => {
     setLoading(true);
-    console.log("Fetching application details for ID:", applicationId); // DEBUG
     try {
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${currentUser?.token}`,
-      };
-
-      const url = `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}`;
-      console.log("Requesting URL:", url); // DEBUG
-
-      const [appRes, reviewsRes] = await Promise.all([
-        fetch(url, { headers }),
-        fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`,
-          { headers },
-        ),
+      const applicationService = new ApplicationService(currentUser.token);
+      const [appData, reviews] = await Promise.all([
+        applicationService.getApplicationDetailsById(applicationId),
+        applicationService.getReviewerApplicationGrades(applicationId),
       ]);
-
-      if (!appRes.ok) {
-        throw new Error(`Failed to fetch application: ${appRes.statusText}`);
-      }
-
-      const appData = await appRes.json();
-      console.log("Received application data:", appData); // DEBUG
-      const reviewsData = reviewsRes.ok ? await reviewsRes.json() : null;
-
       setApplication(appData);
-      setReviewsData(reviewsData);
+      console.log(appData.address);
+      setReviewsData(reviews);
     } catch (err) {
       setError(`Failed to load application details: ${err.message}`);
       console.error(err);
@@ -114,9 +96,17 @@ export default function ApplicationDetails({ applicationId, onBack }) {
         <div className="col-span-2">
           {/* Application Details */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              {application?.firstName} {application?.lastName}
-            </h2>
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {application?.firstName} {application?.lastName}
+              </h2>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Reviewer</p>
+                <p className="font-medium text-gray-900">
+                  {application?.reviewerName || "Not assigned"}
+                </p>
+              </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -236,6 +226,90 @@ export default function ApplicationDetails({ applicationId, onBack }) {
                 </p>
               </div>
             </div>
+
+            <div className="mt-6 border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Extracurricular Activities
+              </h3>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="text-left text-sm font-semibold text-gray-700 px-4 py-3 border-b">
+                      Activity Name
+                    </th>
+                    <th className="text-left text-sm font-semibold text-gray-700 px-4 py-3 border-b">
+                      Role
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {application?.extracurriculars?.length > 0 ? (
+                    application.extracurriculars.map((activity, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="text-sm text-gray-900 px-4 py-3 border-b">
+                          {activity.activityName}
+                        </td>
+                        <td className="text-sm text-gray-900 px-4 py-3 border-b">
+                          {activity.role}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="2"
+                        className="text-sm text-gray-500 px-4 py-3 text-center"
+                      >
+                        No extracurricular activities listed
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Documents
+              </h3>
+              <div className="grid grid-cols-3 gap-4">
+                <a
+                  href={application?.nricDoc?.fileUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  <span className="text-blue-600">📄</span>
+                  <span className="text-sm font-medium text-blue-700">
+                    NRIC Document
+                  </span>
+                </a>
+                <a
+                  href={application?.transcriptDoc?.fileUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                >
+                  <span className="text-green-600">📄</span>
+                  <span className="text-sm font-medium text-green-700">
+                    Transcript Document
+                  </span>
+                </a>
+                <a
+                  href={
+                    application?.familyIncomeConfirmationDoc?.fileUrl || "#"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                >
+                  <span className="text-purple-600">📄</span>
+                  <span className="text-sm font-medium text-purple-700">
+                    Family Income Document
+                  </span>
+                </a>
+              </div>
+            </div>
           </div>
 
           {/* Committee Reviews */}
@@ -341,27 +415,29 @@ export default function ApplicationDetails({ applicationId, onBack }) {
           </div>
 
           {/* Decision Buttons */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Make Final Decision
-            </h3>
-            <div className="space-y-3">
-              <button
-                onClick={() => handleDecision("APPROVE")}
-                disabled={submitting}
-                className="w-full px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors"
-              >
-                {submitting ? "Processing..." : "✓ Approve"}
-              </button>
-              <button
-                onClick={() => handleDecision("REJECT")}
-                disabled={submitting}
-                className="w-full px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:bg-gray-400 transition-colors"
-              >
-                {submitting ? "Processing..." : "✕ Reject"}
-              </button>
+          {userRole === "REVIEWER" && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Make Final Decision
+              </h3>
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleDecision("APPROVE")}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors"
+                >
+                  {submitting ? "Processing..." : "✓ Approve"}
+                </button>
+                <button
+                  onClick={() => handleDecision("REJECT")}
+                  disabled={submitting}
+                  className="w-full px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 disabled:bg-gray-400 transition-colors"
+                >
+                  {submitting ? "Processing..." : "✕ Reject"}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
