@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import mmu.sef.fyj.dto.ScholarshipDTO;
+import mmu.sef.fyj.dto.NewApplicationRequest;
 import mmu.sef.fyj.model.Scholarship;
 import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.User;
@@ -67,48 +69,23 @@ public class ScholarshipController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping(value = "/apply")
-    public ResponseEntity<Map<String, Object>> applyForScholarship(HttpServletRequest request) {
+    @PostMapping("/apply")
+    public ResponseEntity<?> applyForScholarship(@Valid @RequestBody NewApplicationRequest request) {
         try {
             // Get authenticated user from security context
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             User currentUser = (User) authentication.getPrincipal();
-            
-            Map<String, String> formData = new HashMap<>();
-            
-            // Handle both multipart and regular requests
-            if (request instanceof MultipartHttpServletRequest) {
-                MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-                // Extract form parameters from multipart request
-                Map<String, String[]> parameterMap = multipartRequest.getParameterMap();
-                for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-                    if (entry.getValue() != null && entry.getValue().length > 0) {
-                        formData.put(entry.getKey(), entry.getValue()[0]);
-                    }
-                }
-            } else {
-                // Regular form parameters
-                Map<String, String[]> parameterMap = request.getParameterMap();
-                for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-                    if (entry.getValue() != null && entry.getValue().length > 0) {
-                        formData.put(entry.getKey(), entry.getValue()[0]);
-                    }
-                }
-            }
-            
-            // Add the authenticated user's ID to form data
-            formData.put("studentId", String.valueOf(currentUser.getId()));
-            
-            Application application = applicationService.createFromFormData(formData);
-            
+
+            Application application = applicationService.createFromApplicationRequest(request, currentUser.getId());
+
             Map<String, Object> response = new HashMap<>();
             response.put("applicationId", application.getApplicationID());
             response.put("scholarshipName", "Scholarship Application");
             response.put("status", "success");
-            
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            e.printStackTrace(); // Log the error
+            e.printStackTrace();
             Map<String, Object> error = new HashMap<>();
             error.put("status", "error");
             error.put("message", e.getMessage());

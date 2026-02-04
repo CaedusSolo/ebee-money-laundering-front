@@ -104,7 +104,7 @@ public class ScholarshipService {
                 Set<Integer> oldCommitteeIds = scholarship.getScholarshipCommittees().stream()
                     .map(ScholarshipCommittee::getCommitteeId)
                     .collect(java.util.stream.Collectors.toSet());
-                
+
                 for (Integer oldCommitteeId : oldCommitteeIds) {
                     if (dto.getCommitteeIds() == null || !dto.getCommitteeIds().contains(oldCommitteeId)) {
                         committeeRepository.findById(oldCommitteeId).ifPresent(committee -> {
@@ -119,7 +119,7 @@ public class ScholarshipService {
                         committeeRepository.findAllById(dto.getCommitteeIds())
                     );
                     scholarship.setScholarshipCommittees(committees);
-                    
+
                     // Add to new committees
                     for (Integer committeeId : dto.getCommitteeIds()) {
                         committeeRepository.findById(committeeId).ifPresent(committee -> {
