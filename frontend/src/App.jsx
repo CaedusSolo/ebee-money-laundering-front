@@ -27,7 +27,7 @@ import ScholarshipView from "./pages/ScholarshipView";
 import StudentDashboard from "./pages/StudentDashboard";
 import ManageApplications from "./pages/ManageApplications";
 import ApplicationDetails from "./components/ApplicationDetails";
-import ApplicationEdit from "./pages/ApplicationEdit";
+import AdminStatistics from "./pages/AdminStatistics";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { currentUser, loading } = useAuth();
@@ -148,8 +148,8 @@ function App() {
                 path=":applicationId"
                 element={<ApplicationDetailsWrapper />}
               />
-              <Route path="edit/:appId" element={<ApplicationEdit />} />
             </Route>
+            <Route path="analytics" element={<AdminStatistics />} />
           </Route>
 
           {/* Catch-all to prevent rendering random components on 404 */}
