@@ -10,10 +10,10 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    // Fetch committee scores for graded applications
-    const gradedApps = applications.filter(app => app.status === 'GRADED');
-    if (gradedApps.length > 0 && currentUser?.token) {
-      fetchCommitteeScores(gradedApps);
+    // Fetch committee scores for applications pending approval
+    const pendingApps = applications.filter(app => app.status === 'PENDING_APPROVAL');
+    if (pendingApps.length > 0 && currentUser?.token) {
+      fetchCommitteeScores(pendingApps);
     }
   }, [applications, currentUser?.token]);
 
@@ -45,9 +45,9 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'PENDING APPROVAL': return 'Pending Approval';
-      case 'UNDER REVIEW': return 'Under Review';
-      case 'GRADED': return 'Pending Approval';
+      case 'PENDING_APPROVAL': return 'Pending Approval';
+      case 'UNDER_REVIEW': return 'Under Review';
+      case 'GRADED': return 'Graded';
       case 'APPROVED': return 'Approved';
       case 'REJECTED': return 'Rejected';
       default: return status;
@@ -60,6 +60,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
       case 'APPROVED': return 'bg-green-50 border-l-4 border-green-500';
       case 'REJECTED': return 'bg-red-50 border-l-4 border-red-500';
       case 'UNDER_REVIEW': return 'bg-blue-50 border-l-4 border-blue-500';
+      case 'PENDING_APPROVAL': return 'bg-yellow-50 border-l-4 border-yellow-500';
       default: return 'bg-gray-50 border-l-4 border-gray-300';
     }
   };
@@ -120,6 +121,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                       app.status === 'APPROVED' ? 'bg-green-200 text-green-800' :
                       app.status === 'REJECTED' ? 'bg-red-200 text-red-800' :
                       app.status === 'UNDER_REVIEW' ? 'bg-blue-200 text-blue-800' :
+                      app.status === 'PENDING_APPROVAL' ? 'bg-yellow-200 text-yellow-800' :
                       'bg-gray-200 text-gray-800'
                     }`}>
                       {getStatusLabel(app.status)}
@@ -128,7 +130,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {app.status === 'GRADED' && (
+                  {app.status === 'PENDING_APPROVAL' && (
                     <div className="text-right pr-2">
                       <p className="text-xs text-gray-600 font-medium">COMMITTEE SCORE</p>
                       <p className="text-2xl font-bold text-green-600">
@@ -141,7 +143,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                   <button
                     onClick={() => onSelectApplication(app)}
                     className={`px-4 py-2 font-medium rounded-lg transition-colors whitespace-nowrap ${
-                      app.status === 'GRADED'
+                      app.status === 'PENDING_APPROVAL'
                         ? 'bg-green-600 text-white hover:bg-green-700 shadow-md'
                         : app.status === 'APPROVED'
                         ? 'bg-green-600 text-white hover:bg-green-700'
@@ -150,7 +152,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                         : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                   >
-                    {app.status === 'GRADED' ? 'Review' : 'View Details'}
+                    {app.status === 'PENDING_APPROVAL' ? 'Review' : 'View Details'}
                   </button>
                 </div>
               </div>

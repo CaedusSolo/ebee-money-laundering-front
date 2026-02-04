@@ -10,6 +10,17 @@ export default function ApplicationDetails({ applicationId, onBack }) {
   const [successMessage, setSuccessMessage] = useState("");
   const { currentUser } = useAuth();
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'PENDING_APPROVAL': return 'Pending Approval';
+      case 'UNDER_REVIEW': return 'Under Review';
+      case 'GRADED': return 'Graded';
+      case 'APPROVED': return 'Approved';
+      case 'REJECTED': return 'Rejected';
+      default: return status;
+    }
+  };
+
   useEffect(() => {
     if (applicationId && currentUser?.token) {
       // Clear previous data when applicationId changes
@@ -42,9 +53,9 @@ export default function ApplicationDetails({ applicationId, onBack }) {
       const appData = await appRes.json();
       console.log("Received application data:", appData); // DEBUG
 
-      // Only fetch grades if application is GRADED
+      // Fetch grades if application has been reviewed by committee
       let reviewsData = null;
-      if (appData.status === "GRADED") {
+      if (["PENDING_APPROVAL", "GRADED", "APPROVED", "REJECTED"].includes(appData.status)) {
         try {
           const reviewsRes = await fetch(
             `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/applications/${applicationId}/grades`,
@@ -521,15 +532,14 @@ export default function ApplicationDetails({ applicationId, onBack }) {
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Status</span>
                   <span className="px-2 py-1 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">
-                    {application?.status}
+                    {getStatusLabel(application?.status)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Decision Buttons */}
-            {application?.status !== "APPROVED" &&
-              application?.status !== "REJECTED" && (
+            {/* Decision Buttons - Only show for PENDING_APPROVAL applications */}
+            {application?.status === "PENDING_APPROVAL" && (
                 <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-500">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">
                     Final Decision

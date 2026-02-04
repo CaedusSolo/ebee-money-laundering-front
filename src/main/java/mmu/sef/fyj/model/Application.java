@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "applications")
+@Table(name = "applications", uniqueConstraints = {
+    @UniqueConstraint(name = "unique_student_scholarship", columnNames = {"studentid", "scholarshipid"})
+})
 public class Application {
 
     @Id
@@ -105,7 +107,7 @@ public class Application {
     private DocumentInfo familyIncomeConfirmationDoc;
 
     // Grades
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "application_grades", joinColumns = @JoinColumn(name = "application_id"))
     private List<Grade> grades = new ArrayList<>();
 
@@ -123,7 +125,7 @@ public class Application {
     // Business methods
     public void submitApplication() {
         validate();
-        this.status = ApplicationStatus.SUBMITTED;
+        this.status = ApplicationStatus.UNDER_REVIEW;
         this.submittedAt = LocalDateTime.now();
     }
 

@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -157,21 +158,38 @@ public class DataSeeder implements CommandLineRunner {
             return;
 
         Random random = new Random(42);
-        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
-        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
-        // ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW };
-        ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW,
-                ApplicationStatus.GRADED };
-        String[] colleges = { "Multimedia University", "Universiti Malaya", "Universiti Teknologi Malaysia",
-                "Universiti Sains Malaysia" };
-        String[] majors = { "Computer Science", "Software Engineering", "Information Technology", "Data Science",
-                "Cybersecurity" };
+        String[] firstNames = { 
+            "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling",
+            "Hassan", "Aisha", "Prabhu", "Zainab", "Vikram", "Noor",
+            "Jamal", "Leila", "Arjun", "Fatimah", "Mohammed", "Siti"
+        };
+        String[] lastNames = { 
+            "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong",
+            "Ali", "Chen", "Lim", "Hassan", "Singh", "Ng",
+            "Rahman", "Ooi", "Ong", "Mohamed", "Sharma", "Koh"
+        };
+        String[] comments = {
+            "Excellent academic performance with strong leadership demonstrated in projects. Well-rounded candidate.",
+            "Good overall performance. Shows potential for growth in leadership roles. Consistent contributor in activities.",
+            "Outstanding student with exceptional leadership qualities. Highly active in extracurricular activities. Strongly recommended.",
+            "Strong academic background with solid extracurricular involvement. Shows promising potential for the future.",
+            "Demonstrates well-balanced skills across academics and leadership. Good fit for the scholarship.",
+            "Exceptional commitment to community service and academic excellence. Highly motivated and driven student."
+        };
+
+        // Each student applies to each scholarship exactly once (respects the unique constraint)
+        // Distribute applications across different statuses
+        ApplicationStatus[] allStatuses = { ApplicationStatus.PENDING_APPROVAL, ApplicationStatus.UNDER_REVIEW,
+                ApplicationStatus.GRADED, ApplicationStatus.APPROVED, ApplicationStatus.REJECTED };
+        String[] colleges = { "Multimedia University", "Universiti Malaya", "Universiti Teknologi Malaysia", "Universiti Sains Malaysia" };
+        String[] majors = { "Computer Science", "Software Engineering", "Information Technology", "Data Science", "Cybersecurity" };
         String[] cities = { "Cyberjaya", "Kuala Lumpur", "Petaling Jaya", "Shah Alam", "Subang Jaya" };
         String[] states = { "Selangor", "Wilayah Persekutuan", "Johor", "Penang", "Perak" };
         String[] activities = { "Debate Club", "Basketball Team", "Volunteer Corps", "Coding Club", "Music Society",
                 "Student Council" };
         String[] roles = { "President", "Vice President", "Secretary", "Member", "Team Captain", "Coordinator" };
 
+        int appIndex = 0;
         for (Scholarship scholarship : scholarships) {
             for (int i = 0; i < 4 && i < students.size(); i++) {
                 User student = students.get(i);
@@ -188,7 +206,22 @@ public class DataSeeder implements CommandLineRunner {
                 app.setNricNumber("00010" + random.nextInt(10) + "-14-" + (1000 + random.nextInt(9000)));
                 app.setMonthlyFamilyIncome(2000f + random.nextInt(8000));
                 app.setBumiputera(random.nextBoolean());
-                app.setStatus(statuses[random.nextInt(statuses.length)]);
+                
+                // Assign status: distribute applications between PENDING_APPROVAL and UNDER_REVIEW
+                ApplicationStatus status;
+                int appPair = i; // Student index within each scholarship
+                
+                // For scholarship 1 (Merit's Scholarship), assign more applications for reviewer 1
+                if (scholarship.getId() == 1) {
+                    // Alternate between PENDING_APPROVAL and UNDER_REVIEW
+                    status = (appPair % 2 == 0) ? ApplicationStatus.PENDING_APPROVAL : ApplicationStatus.UNDER_REVIEW;
+                } else {
+                    // For other scholarships, use the same distribution
+                    status = (appPair % 2 == 0) ? ApplicationStatus.PENDING_APPROVAL : ApplicationStatus.UNDER_REVIEW;
+                }
+
+                app.setStatus(status);
+                app.setSubmittedAt(LocalDateTime.now().minusDays(random.nextInt(30)));
 
                 // Address
                 app.setHomeAddress("No. " + (1 + random.nextInt(100)) + ", Jalan " + (1 + random.nextInt(20)));
@@ -223,10 +256,56 @@ public class DataSeeder implements CommandLineRunner {
                     app.getExtracurriculars().add(extra);
                 }
 
-                applicationRepository.save(app);
+                Application savedApp = applicationRepository.save(app);
+                
+                // Add committee grades to PENDING_APPROVAL applications
+                if (status == ApplicationStatus.PENDING_APPROVAL) {
+                    List<Grade> grades = new ArrayList<>();
+                    addRandomGradesToList(grades, random, comments);
+                    for (Grade grade : grades) {
+                        savedApp.getGrades().add(grade);
+                    }
+                    applicationRepository.save(savedApp);
+                }
             }
         }
     }
+
+private void addRandomGradesToList(List<Grade> grades, Random random, String[] comments) {
+        String[] committeeNames = { "Dr. Ahmed Khan", "Prof. Sarah Osman", "Assoc. Prof. Fatimah Hassan" };
+        String[] committeeRoles = { "Academic Excellence Committee", "Leadership Committee", "Student Affairs Committee" };
+        
+        for (int j = 0; j < 3; j++) {
+            // Generate varied scores (14-19 range per rubric)
+            int academic = 14 + random.nextInt(6);
+            int cocurricular = 14 + random.nextInt(6);
+            int leadership = 14 + random.nextInt(6);
+            int rawScore = academic + cocurricular + leadership;
+            int normalizedScore = (rawScore * 100) / 60;
+            
+            // Create committee review as a formatted comment
+            String reviewData = String.format(
+                "{\"reviewID\":%d,\"committeeMemberName\":\"%s\",\"committeeMemberRole\":\"%s\",\"academicRubric\":%d,\"cocurricularRubric\":%d,\"leadershipRubric\":%d,\"rawScore\":%d,\"normalizedScore\":%d,\"comment\":\"%s\"}",
+                j + 1,
+                committeeNames[j],
+                committeeRoles[j],
+                academic,
+                cocurricular,
+                leadership,
+                rawScore,
+                normalizedScore,
+                comments[random.nextInt(comments.length)]
+            );
+            
+            Grade grade = new Grade(
+                j + 1,
+                "COMMITTEE_REVIEW_" + (j + 1),
+                normalizedScore,
+                reviewData
+            );
+            grades.add(grade);
+        }
+}
 
     private void seedGradedApplications() {
         List<User> students = userRepository.findByRole(Role.STUDENT);

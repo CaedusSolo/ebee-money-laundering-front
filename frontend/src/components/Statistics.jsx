@@ -29,9 +29,9 @@ export default function Statistics({ token, reviewerId }) {
   const fetchStatistics = async () => {
     setLoading(true);
     try {
-      // 3. Update URL with reviewerId and include Authorization Header
+      // Fetch from the correct endpoint without reviewerId
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/statistics/${reviewerId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/statistics`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -43,7 +43,20 @@ export default function Statistics({ token, reviewerId }) {
       if (!response.ok) throw new Error('Unauthorized or Server Error');
 
       const data = await response.json();
-      setStats(data);
+      // Transform the data to match the frontend expectations
+      const transformedData = {
+        totalApplications: data.totalApplications,
+        approvalRate: Math.round(data.approvalRate),
+        approvedApplications: data.approvedApplications,
+        rejectedApplications: data.rejectedApplications,
+        pendingApplications: data.gradedApplications,
+        applicationsByStatus: {
+          'APPROVED': data.approvedApplications,
+          'REJECTED': data.rejectedApplications,
+          'PENDING_APPROVAL': data.gradedApplications
+        }
+      };
+      setStats(transformedData);
     } catch (err) {
       setError('Using offline statistics data.');
       setStats(DUMMY_STATS); // Fallback to dummy data
@@ -124,7 +137,7 @@ export default function Statistics({ token, reviewerId }) {
             <div key={status}>
               <div className="flex justify-between items-center mb-2">
                 <p className="text-sm font-bold text-gray-700">{status.replace('_', ' ')}</p>
-                <p className="text-sm font-bold text-gray-500">{count} <span className="font-normal">apps</span></p>
+                <p className="text-sm font-bold text-gray-500">{count} <span className="font-normal">applications</span></p>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-3">
                 <div

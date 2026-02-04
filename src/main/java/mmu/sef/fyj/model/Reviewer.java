@@ -19,7 +19,7 @@ public class Reviewer {
     @Column(nullable = false)
     private String password; // Hashed
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer assignedScholarshipId;
 
     public Reviewer() {

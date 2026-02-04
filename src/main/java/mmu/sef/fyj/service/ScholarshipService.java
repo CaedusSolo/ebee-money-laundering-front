@@ -63,7 +63,27 @@ public class ScholarshipService {
             scholarship.setScholarshipCommittees(committees);
         }
 
-        return scholarshipRepository.save(scholarship);
+        // Set eligibility criteria
+        scholarship.setMinCGPA(dto.getMinCGPA());
+        scholarship.setMaxFamilyIncome(dto.getMaxFamilyIncome());
+        scholarship.setMustBumiputera(dto.getMustBumiputera());
+        scholarship.setMinGraduationYear(dto.getMinGraduationYear());
+
+        Scholarship savedScholarship = scholarshipRepository.save(scholarship);
+
+        // Update committee assignments
+        if (dto.getCommitteeIds() != null && !dto.getCommitteeIds().isEmpty()) {
+            for (Integer committeeId : dto.getCommitteeIds()) {
+                committeeRepository.findById(committeeId).ifPresent(committee -> {
+                    if (!committee.getAssignedScholarshipIds().contains(savedScholarship.getId())) {
+                        committee.getAssignedScholarshipIds().add(savedScholarship.getId());
+                        committeeRepository.save(committee);
+                    }
+                });
+            }
+        }
+
+        return savedScholarship;
     }
 
     @Transactional
@@ -80,11 +100,35 @@ public class ScholarshipService {
                     scholarship.setReviewer(reviewer);
                 }
 
+                // Update committee assignments - remove from old committees
+                Set<Integer> oldCommitteeIds = scholarship.getScholarshipCommittees().stream()
+                    .map(ScholarshipCommittee::getCommitteeId)
+                    .collect(java.util.stream.Collectors.toSet());
+
+                for (Integer oldCommitteeId : oldCommitteeIds) {
+                    if (dto.getCommitteeIds() == null || !dto.getCommitteeIds().contains(oldCommitteeId)) {
+                        committeeRepository.findById(oldCommitteeId).ifPresent(committee -> {
+                            committee.getAssignedScholarshipIds().remove(Integer.valueOf(id));
+                            committeeRepository.save(committee);
+                        });
+                    }
+                }
+
                 if (dto.getCommitteeIds() != null) {
                     Set<ScholarshipCommittee> committees = new HashSet<>(
                         committeeRepository.findAllById(dto.getCommitteeIds())
                     );
                     scholarship.setScholarshipCommittees(committees);
+
+                    // Add to new committees
+                    for (Integer committeeId : dto.getCommitteeIds()) {
+                        committeeRepository.findById(committeeId).ifPresent(committee -> {
+                            if (!committee.getAssignedScholarshipIds().contains(id)) {
+                                committee.getAssignedScholarshipIds().add(id);
+                                committeeRepository.save(committee);
+                            }
+                        });
+                    }
                 }
 
                 // Update eligibility criteria

@@ -3,6 +3,7 @@ package mmu.sef.fyj.service;
 import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.Reviewer;
 import mmu.sef.fyj.model.ApplicationStatus;
+import mmu.sef.fyj.model.Grade;
 import mmu.sef.fyj.repository.ApplicationRepository;
 import mmu.sef.fyj.repository.ReviewerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -204,6 +205,12 @@ public class ReviewerService {
         long graded = allApplications.stream()
                 .filter(app -> app.getStatus() == ApplicationStatus.GRADED)
                 .count();
+        long underReview = allApplications.stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.UNDER_REVIEW)
+                .count();
+        long pendingApproval = allApplications.stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.PENDING_APPROVAL)
+                .count();
         
         long total = allApplications.size();
         double approvalRate = total > 0 ? (approved * 100.0) / total : 0;
@@ -212,12 +219,16 @@ public class ReviewerService {
         stats.put("approvedApplications", approved);
         stats.put("rejectedApplications", rejected);
         stats.put("gradedApplications", graded);
+        stats.put("underReviewApplications", underReview);
+        stats.put("pendingApprovalApplications", pendingApproval);
         stats.put("approvalRate", approvalRate);
         
         Map<String, Long> byStatus = new HashMap<>();
         byStatus.put("APPROVED", approved);
         byStatus.put("REJECTED", rejected);
         byStatus.put("GRADED", graded);
+        byStatus.put("UNDER_REVIEW", underReview);
+        byStatus.put("PENDING_APPROVAL", pendingApproval);
         stats.put("applicationsByStatus", byStatus);
 
         return stats;
@@ -226,56 +237,79 @@ public class ReviewerService {
     public Map<String, Object> getCommitteeReviews(Integer applicationId) {
         Map<String, Object> reviewsData = new HashMap<>();
         
+        Optional<Application> optionalApp = applicationRepository.findById(applicationId);
+        if (optionalApp.isEmpty()) {
+            reviewsData.put("error", "Application not found");
+            return reviewsData;
+        }
+        
+        Application app = optionalApp.get();
+        List<Grade> grades = app.getGrades();
+        
         List<Map<String, Object>> reviews = new ArrayList<>();
+        int totalNormalizedScore = 0;
         
-        // Committee member 1 review
-        Map<String, Object> review1 = new HashMap<>();
-        review1.put("reviewID", 1);
-        review1.put("committeeMemberName", "Dr. Ahmed Khan");
-        review1.put("committeeMemberRole", "Academic Excellence Committee");
-        review1.put("academicRubric", 18);
-        review1.put("cocurricularRubric", 16);
-        review1.put("leadershipRubric", 17);
-        review1.put("rawScore", 51); // 18+16+17
-        review1.put("normalizedScore", 85); // (51/60)*100
-        review1.put("comment", "Excellent academic performance with strong leadership demonstrated in projects. Well-rounded candidate.");
-        review1.put("submittedAt", "2026-01-28");
-        reviews.add(review1);
-        
-        // Committee member 2 review
-        Map<String, Object> review2 = new HashMap<>();
-        review2.put("reviewID", 2);
-        review2.put("committeeMemberName", "Prof. Sarah Osman");
-        review2.put("committeeMemberRole", "Leadership Committee");
-        review2.put("academicRubric", 16);
-        review2.put("cocurricularRubric", 15);
-        review2.put("leadershipRubric", 16);
-        review2.put("rawScore", 47); // 16+15+16
-        review2.put("normalizedScore", 79); // (47/60)*100
-        review2.put("comment", "Good overall performance. Shows potential for growth in leadership roles. Consistent contributor in activities.");
-        review2.put("submittedAt", "2026-01-28");
-        reviews.add(review2);
-        
-        // Committee member 3 review
-        Map<String, Object> review3 = new HashMap<>();
-        review3.put("reviewID", 3);
-        review3.put("committeeMemberName", "Assoc. Prof. Fatimah Hassan");
-        review3.put("committeeMemberRole", "Student Affairs Committee");
-        review3.put("academicRubric", 17);
-        review3.put("cocurricularRubric", 16);
-        review3.put("leadershipRubric", 18);
-        review3.put("rawScore", 51); // 17+16+18
-        review3.put("normalizedScore", 85); // (51/60)*100
-        review3.put("comment", "Outstanding student with exceptional leadership qualities. Highly active in extracurricular activities. Strongly recommended.");
-        review3.put("submittedAt", "2026-01-29");
-        reviews.add(review3);
+        // Parse stored committee reviews from grades
+        if (grades != null) {
+            for (Grade grade : grades) {
+                if (grade.getCategory() != null && grade.getCategory().startsWith("COMMITTEE_REVIEW_")) {
+                    try {
+                        // Parse the JSON-like string stored in remarks
+                        String remarkStr = grade.getRemarks();
+                        Map<String, Object> review = new HashMap<>();
+                        
+                        // Simple JSON parsing - extract values
+                        review.put("reviewID", extractJsonValue(remarkStr, "reviewID", Integer.class));
+                        review.put("committeeMemberName", extractJsonValue(remarkStr, "committeeMemberName", String.class));
+                        review.put("committeeMemberRole", extractJsonValue(remarkStr, "committeeMemberRole", String.class));
+                        review.put("academicRubric", extractJsonValue(remarkStr, "academicRubric", Integer.class));
+                        review.put("cocurricularRubric", extractJsonValue(remarkStr, "cocurricularRubric", Integer.class));
+                        review.put("leadershipRubric", extractJsonValue(remarkStr, "leadershipRubric", Integer.class));
+                        review.put("rawScore", extractJsonValue(remarkStr, "rawScore", Integer.class));
+                        review.put("normalizedScore", grade.getScore()); // Already in database
+                        review.put("comment", extractJsonValue(remarkStr, "comment", String.class));
+                        review.put("submittedAt", LocalDateTime.now().toString());
+                        
+                        reviews.add(review);
+                        totalNormalizedScore += grade.getScore();
+                    } catch (Exception e) {
+                        // Log error but continue processing other reviews
+                        System.err.println("Error parsing committee review: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
         
         reviewsData.put("applicationID", applicationId);
         reviewsData.put("committeeReviews", reviews);
         reviewsData.put("totalReviews", reviews.size());
-        reviewsData.put("combinedScore", 249); // 85+79+85
+        reviewsData.put("combinedScore", totalNormalizedScore);
         
         return reviewsData;
+    }
+    
+    private Object extractJsonValue(String json, String key, Class<?> type) {
+        // Simple regex-based JSON value extraction
+        String pattern = "\"" + key + "\":\\s*([^,}]+)";
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
+        java.util.regex.Matcher m = p.matcher(json);
+        
+        if (m.find()) {
+            String value = m.group(1).trim();
+            // Remove quotes if string
+            if (value.startsWith("\"") && value.endsWith("\"")) {
+                value = value.substring(1, value.length() - 1);
+            }
+            
+            if (type == Integer.class) {
+                return Integer.parseInt(value);
+            } else if (type == String.class) {
+                return value;
+            }
+        }
+        
+        return type == Integer.class ? 0 : "";
     }
 
     public Map<String, Object> sendEmailNotification(Integer applicationId, String subject, String message) {
