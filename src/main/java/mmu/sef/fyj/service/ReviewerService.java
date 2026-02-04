@@ -1,11 +1,16 @@
 package mmu.sef.fyj.service;
 
+import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.Reviewer;
+import mmu.sef.fyj.model.ApplicationStatus;
+import mmu.sef.fyj.repository.ApplicationRepository;
 import mmu.sef.fyj.repository.ReviewerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.time.LocalDateTime;
 
 @Service
 public class ReviewerService {
@@ -13,49 +18,38 @@ public class ReviewerService {
     @Autowired
     private ReviewerRepository reviewerRepository;
 
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
     public List<Reviewer> findAll() {
         return reviewerRepository.findAll();
     }
 
-    // Dummy data for applications
     public List<Map<String, Object>> getAllAssignedApplications(Integer reviewerId) {
         List<Map<String, Object>> applications = new ArrayList<>();
         
-        // Dummy application 1
-        Map<String, Object> app1 = new HashMap<>();
-        app1.put("applicationID", 1);
-        app1.put("studentName", "John Doe");
-        app1.put("scholarshipName", "Merit Excellence Scholarship");
-        app1.put("status", "PENDING APPROVAL");
-        app1.put("submittedAt", "2026-01-25");
-        app1.put("major", "Computer Science");
-        app1.put("totalScore", 249);
-        app1.put("judgingCompleted", true);
-        applications.add(app1);
-
-        // Dummy application 2
-        Map<String, Object> app2 = new HashMap<>();
-        app2.put("applicationID", 2);
-        app2.put("studentName", "Jane Smith");
-        app2.put("scholarshipName", "Merit Excellence Scholarship");
-        app2.put("status", "PENDING APPROVAL");
-        app2.put("submittedAt", "2026-01-26");
-        app2.put("major", "Business Administration");
-        app2.put("totalScore", 269);
-        app2.put("judgingCompleted", true);
-        applications.add(app2);
-
-        // Dummy application 3
-        Map<String, Object> app3 = new HashMap<>();
-        app3.put("applicationID", 3);
-        app3.put("studentName", "Ahmed Hassan");
-        app3.put("scholarshipName", "Merit Excellence Scholarship");
-        app3.put("status", "UNDER REVIEW");
-        app3.put("submittedAt", "2026-01-27");
-        app3.put("major", "Engineering");
-        app3.put("totalScore", 0);
-        app3.put("judgingCompleted", false);
-        applications.add(app3);
+        // Get the reviewer's assigned scholarship
+        Optional<Reviewer> reviewer = reviewerRepository.findById(reviewerId);
+        if (reviewer.isEmpty()) {
+            return applications;
+        }
+        
+        Integer assignedScholarshipId = reviewer.get().getAssignedScholarshipId();
+        
+        // Get all applications for the reviewer's assigned scholarship
+        List<Application> assignedApplications = applicationRepository.findByScholarshipID(assignedScholarshipId);
+        
+        // Convert to map format for API response
+        for (Application app : assignedApplications) {
+            Map<String, Object> appMap = new HashMap<>();
+            appMap.put("applicationID", app.getApplicationID());
+            appMap.put("studentName", app.getFirstName() + " " + app.getLastName());
+            appMap.put("major", app.getMajor());
+            appMap.put("status", app.getStatus().toString());
+            appMap.put("submittedAt", app.getSubmittedAt());
+            appMap.put("createdAt", app.getCreatedAt());
+            applications.add(appMap);
+        }
 
         return applications;
     }
@@ -63,169 +57,167 @@ public class ReviewerService {
     public List<Map<String, Object>> getApplicationsByScholarship(Integer scholarshipId) {
         List<Map<String, Object>> applications = new ArrayList<>();
         
-        Map<String, Object> app1 = new HashMap<>();
-        app1.put("applicationID", 1);
-        app1.put("studentName", "John Doe");
-        app1.put("status", "PENDING REVIEW");
-        app1.put("submittedAt", "2026-01-25");
-        app1.put("gpa", 3.8);
-        applications.add(app1);
-
-        Map<String, Object> app2 = new HashMap<>();
-        app2.put("applicationID", 2);
-        app2.put("studentName", "Jane Smith");
-        app2.put("status", "IN REVIEW");
-        app2.put("submittedAt", "2026-01-26");
-        app2.put("gpa", 3.9);
-        applications.add(app2);
+        // Get all applications for the scholarship
+        List<Application> apps = applicationRepository.findByScholarshipID(scholarshipId);
+        
+        // Convert to map format
+        for (Application app : apps) {
+            Map<String, Object> appMap = new HashMap<>();
+            appMap.put("applicationID", app.getApplicationID());
+            appMap.put("studentName", app.getFirstName() + " " + app.getLastName());
+            appMap.put("status", app.getStatus().toString());
+            appMap.put("submittedAt", app.getSubmittedAt());
+            appMap.put("major", app.getMajor());
+            applications.add(appMap);
+        }
 
         return applications;
     }
 
     public Map<String, Object> getApplicationDetails(Integer applicationId) {
         Map<String, Object> application = new HashMap<>();
-        application.put("applicationID", applicationId);
         
-        // Return different applicant data based on applicationId
-        if (applicationId == 1) {
-            application.put("firstName", "John");
-            application.put("lastName", "Doe");
-            application.put("email", "john.doe@example.com");
-            application.put("phoneNumber", "+60123456789");
-            application.put("nricNumber", "950101-12-1234");
-            application.put("gender", "MALE");
-            application.put("nationality", "Malaysian");
-            application.put("dateOfBirth", "1995-01-01");
-            application.put("monthlyFamilyIncome", 5000.00);
-            application.put("isBumiputera", true);
-            application.put("status", "PENDING REVIEW");
-            application.put("submittedAt", "2026-01-25");
-            
-            Map<String, Object> address = new HashMap<>();
-            address.put("homeAddress", "123 Jalan Merdeka");
-            address.put("city", "Kuala Lumpur");
-            address.put("zipCode", "50000");
-            address.put("state", "Wilayah Persekutuan");
-            application.put("address", address);
-
-            Map<String, Object> education = new HashMap<>();
-            education.put("college", "University of Malaya");
-            education.put("currentYearOfStudy", 2);
-            education.put("expectedGraduationYear", 2027);
-            education.put("major", "Computer Science");
-            education.put("studyLevel", "UNDERGRADUATE");
-            application.put("education", education);
-        } else if (applicationId == 2) {
-            application.put("firstName", "Jane");
-            application.put("lastName", "Smith");
-            application.put("email", "jane.smith@example.com");
-            application.put("phoneNumber", "+60198765432");
-            application.put("nricNumber", "960515-14-5678");
-            application.put("gender", "FEMALE");
-            application.put("nationality", "Malaysian");
-            application.put("dateOfBirth", "1996-05-15");
-            application.put("monthlyFamilyIncome", 7500.00);
-            application.put("isBumiputera", false);
-            application.put("status", "PENDING REVIEW");
-            application.put("submittedAt", "2026-01-26");
-            
-            Map<String, Object> address = new HashMap<>();
-            address.put("homeAddress", "456 Jalan Sultan");
-            address.put("city", "Selangor");
-            address.put("zipCode", "40000");
-            address.put("state", "Selangor");
-            application.put("address", address);
-
-            Map<String, Object> education = new HashMap<>();
-            education.put("college", "Universiti Teknologi Malaysia");
-            education.put("currentYearOfStudy", 3);
-            education.put("expectedGraduationYear", 2026);
-            education.put("major", "Business Administration");
-            education.put("studyLevel", "UNDERGRADUATE");
-            application.put("education", education);
-        } else if (applicationId == 3) {
-            application.put("firstName", "Ahmed");
-            application.put("lastName", "Hassan");
-            application.put("email", "ahmed.hassan@example.com");
-            application.put("phoneNumber", "+60187654321");
-            application.put("nricNumber", "970820-10-9012");
-            application.put("gender", "MALE");
-            application.put("nationality", "Malaysian");
-            application.put("dateOfBirth", "1997-08-20");
-            application.put("monthlyFamilyIncome", 6000.00);
-            application.put("isBumiputera", true);
-            application.put("status", "UNDER REVIEW");
-            application.put("submittedAt", "2026-01-27");
-            
-            Map<String, Object> address = new HashMap<>();
-            address.put("homeAddress", "789 Jalan Raja");
-            address.put("city", "Penang");
-            address.put("zipCode", "10000");
-            address.put("state", "Penang");
-            application.put("address", address);
-
-            Map<String, Object> education = new HashMap<>();
-            education.put("college", "Universiti Pertahanan Nasional");
-            education.put("currentYearOfStudy", 1);
-            education.put("expectedGraduationYear", 2028);
-            education.put("major", "Engineering");
-            education.put("studyLevel", "UNDERGRADUATE");
-            application.put("education", education);
-        } else {
-            // Default fallback for unknown IDs
-            application.put("firstName", "Unknown");
-            application.put("lastName", "Applicant");
-            application.put("email", "unknown@example.com");
-            application.put("phoneNumber", "N/A");
-            application.put("nricNumber", "N/A");
-            application.put("gender", "N/A");
-            application.put("nationality", "N/A");
-            application.put("dateOfBirth", "N/A");
-            application.put("monthlyFamilyIncome", 0.00);
-            application.put("isBumiputera", false);
-            application.put("status", "UNKNOWN");
-            application.put("submittedAt", "N/A");
-            
-            Map<String, Object> address = new HashMap<>();
-            address.put("homeAddress", "N/A");
-            address.put("city", "N/A");
-            address.put("zipCode", "N/A");
-            address.put("state", "N/A");
-            application.put("address", address);
-
-            Map<String, Object> education = new HashMap<>();
-            education.put("college", "N/A");
-            education.put("currentYearOfStudy", 0);
-            education.put("expectedGraduationYear", 0);
-            education.put("major", "N/A");
-            education.put("studyLevel", "N/A");
-            application.put("education", education);
+        // Fetch the application from database
+        Optional<Application> optionalApp = applicationRepository.findById(applicationId);
+        
+        if (optionalApp.isEmpty()) {
+            application.put("error", "Application not found");
+            return application;
+        }
+        
+        Application app = optionalApp.get();
+        
+        // Build the response object with all application details
+        application.put("applicationID", app.getApplicationID());
+        application.put("firstName", app.getFirstName());
+        application.put("lastName", app.getLastName());
+        application.put("phoneNumber", app.getPhoneNumber());
+        application.put("nricNumber", app.getNricNumber());
+        application.put("gender", app.getGender() != null ? app.getGender().toString() : "N/A");
+        application.put("nationality", app.getNationality());
+        application.put("dateOfBirth", app.getDateOfBirth());
+        application.put("monthlyFamilyIncome", app.getMonthlyFamilyIncome());
+        application.put("isBumiputera", app.getBumiputera());
+        application.put("status", app.getStatus().toString());
+        application.put("submittedAt", app.getSubmittedAt());
+        application.put("createdAt", app.getCreatedAt());
+        
+        // Address information
+        Map<String, Object> address = new HashMap<>();
+        address.put("homeAddress", app.getHomeAddress());
+        address.put("city", app.getCity());
+        address.put("zipCode", app.getZipCode());
+        address.put("state", app.getState());
+        application.put("address", address);
+        
+        // Education information
+        Map<String, Object> education = new HashMap<>();
+        education.put("college", app.getCollege());
+        education.put("currentYearOfStudy", app.getCurrentYearOfStudy());
+        education.put("expectedGraduationYear", app.getExpectedGraduationYear());
+        education.put("major", app.getMajor());
+        education.put("studyLevel", app.getStudyLevel() != null ? app.getStudyLevel().toString() : "N/A");
+        application.put("education", education);
+        
+        // Family members information
+        if (app.getFamilyMembers() != null && !app.getFamilyMembers().isEmpty()) {
+            List<Map<String, Object>> familyMembers = new ArrayList<>();
+            for (var member : app.getFamilyMembers()) {
+                Map<String, Object> memberMap = new HashMap<>();
+                memberMap.put("name", member.getName());
+                memberMap.put("relationship", member.getRelationship());
+                memberMap.put("occupation", member.getOccupation());
+                memberMap.put("monthlyIncome", member.getMonthlyIncome());
+                familyMembers.add(memberMap);
+            }
+            application.put("familyMembers", familyMembers);
+        }
+        
+        // Extracurricular activities
+        if (app.getExtracurriculars() != null && !app.getExtracurriculars().isEmpty()) {
+            List<Map<String, Object>> extracurriculars = new ArrayList<>();
+            for (var activity : app.getExtracurriculars()) {
+                Map<String, Object> activityMap = new HashMap<>();
+                activityMap.put("activityName", activity.getActivityName());
+                activityMap.put("role", activity.getRole());
+                activityMap.put("achievement", activity.getAchievement());
+                extracurriculars.add(activityMap);
+            }
+            application.put("extracurriculars", extracurriculars);
         }
 
         return application;
     }
 
+    @Transactional
     public Map<String, Object> approveApplication(Integer applicationId, String decision) {
         Map<String, Object> response = new HashMap<>();
+        
+        Optional<Application> optionalApp = applicationRepository.findById(applicationId);
+        
+        if (optionalApp.isEmpty()) {
+            response.put("success", false);
+            response.put("error", "Application not found");
+            return response;
+        }
+        
+        Application app = optionalApp.get();
+        
+        // Update application status based on decision
+        ApplicationStatus newStatus;
+        if ("APPROVE".equalsIgnoreCase(decision)) {
+            newStatus = ApplicationStatus.APPROVED;
+        } else if ("REJECT".equalsIgnoreCase(decision)) {
+            newStatus = ApplicationStatus.REJECTED;
+        } else {
+            response.put("success", false);
+            response.put("error", "Invalid decision. Must be APPROVE or REJECT");
+            return response;
+        }
+        
+        // Update the application
+        app.setStatus(newStatus);
+        applicationRepository.save(app);
+        
+        response.put("success", true);
         response.put("applicationID", applicationId);
-        response.put("status", decision.equals("APPROVE") ? "APPROVED" : "REJECTED");
-        response.put("reviewedAt", new Date());
+        response.put("status", newStatus.toString());
+        response.put("reviewedAt", LocalDateTime.now());
         response.put("message", "Application " + decision.toLowerCase() + "d successfully");
+        
         return response;
     }
 
     public Map<String, Object> getStatistics() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalApplications", 45);
-        stats.put("approvedApplications", 28);
-        stats.put("rejectedApplications", 12);
-        stats.put("pendingApplications", 5);
-        stats.put("approvalRate", 62.2);
         
-        Map<String, Integer> byStatus = new HashMap<>();
-        byStatus.put("APPROVED", 28);
-        byStatus.put("REJECTED", 12);
-        byStatus.put("PENDING REVIEW", 5);
+        // Get all applications from database
+        List<Application> allApplications = applicationRepository.findAll();
+        
+        // Count by status
+        long approved = allApplications.stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.APPROVED)
+                .count();
+        long rejected = allApplications.stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.REJECTED)
+                .count();
+        long graded = allApplications.stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.GRADED)
+                .count();
+        
+        long total = allApplications.size();
+        double approvalRate = total > 0 ? (approved * 100.0) / total : 0;
+        
+        stats.put("totalApplications", total);
+        stats.put("approvedApplications", approved);
+        stats.put("rejectedApplications", rejected);
+        stats.put("gradedApplications", graded);
+        stats.put("approvalRate", approvalRate);
+        
+        Map<String, Long> byStatus = new HashMap<>();
+        byStatus.put("APPROVED", approved);
+        byStatus.put("REJECTED", rejected);
+        byStatus.put("GRADED", graded);
         stats.put("applicationsByStatus", byStatus);
 
         return stats;

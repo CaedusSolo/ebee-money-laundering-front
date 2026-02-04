@@ -6,53 +6,9 @@ import ApplicationsList from '../components/ApplicationsList';
 import Statistics from '../components/Statistics';
 import ApplicationDetails from '../components/ApplicationDetails';
 
-// Dummy data for testing the UI
-const mockApplications = [
-  {
-    applicationID: 'APP-8821',
-    studentName: 'Zulhelmi Ahmad',
-    scholarshipName: "Merit's Scholarship",
-    major: 'Computer Science',
-    submittedAt: '12/01/2026',
-    status: 'APPROVED',
-    judgingCompleted: true,
-    totalScore: 285
-  },
-  {
-    applicationID: 'APP-9902',
-    studentName: 'Sarah Jenkins',
-    scholarshipName: "President's Scholarship",
-    major: 'Data Science',
-    submittedAt: '15/01/2026',
-    status: 'PENDING APPROVAL',
-    judgingCompleted: true,
-    totalScore: 270
-  },
-  {
-    applicationID: 'APP-1023',
-    studentName: 'Lim Wei Kang',
-    scholarshipName: "High Achiever's Scholarship",
-    major: 'Software Engineering',
-    submittedAt: '18/01/2026',
-    status: 'UNDER REVIEW',
-    judgingCompleted: false,
-    totalScore: null
-  },
-  {
-    applicationID: 'APP-4451',
-    studentName: 'Nurul Izzah',
-    scholarshipName: "Merit's Scholarship",
-    major: 'Cybersecurity',
-    submittedAt: '20/01/2026',
-    status: 'REJECTED',
-    judgingCompleted: true,
-    totalScore: 120
-  }
-];
-
 export default function ReviewerDashboard() {
   const [view, setView] = useState('dashboard');
-  const [applications, setApplications] = useState(mockApplications);
+  const [applications, setApplications] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -63,18 +19,21 @@ export default function ReviewerDashboard() {
 
   useEffect(() => {
     if (token && currentUser) {
-      fetchReviewerProfile();
-      if (view === 'dashboard') {
-        fetchDashboard();
-      }
+      fetchReviewerData();
+    }
+  }, [token, currentUser]);
+
+  useEffect(() => {
+    if (view === 'dashboard' && token && currentUser) {
+      fetchApplications();
     }
   }, [view, token, currentUser]);
 
-  const fetchReviewerProfile = async () => {
+  const fetchReviewerData = async () => {
     try {
       const reviewerId = currentUser?.user?.id || currentUser?.id;
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/dashboard/${reviewerId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/reviewer/${reviewerId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -85,15 +44,16 @@ export default function ReviewerDashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        setReviewerInfo(data.profile);
+        setReviewerInfo(data);
       }
     } catch (err) {
-      console.error('Failed to load reviewer profile:', err);
+      console.error('Failed to load reviewer info:', err);
     }
   };
 
-  const fetchDashboard = async () => {
+  const fetchApplications = async () => {
     setLoading(true);
+    setError('');
     try {
       const reviewerId = currentUser?.user?.id || currentUser?.id;
       const response = await fetch(
@@ -106,13 +66,17 @@ export default function ReviewerDashboard() {
         }
       );
 
-      if (!response.ok) throw new Error('Failed to load dashboard');
+      if (!response.ok) {
+        throw new Error('Failed to load applications');
+      }
 
       const data = await response.json();
-      if (data.applications) setApplications(data.applications);
+      if (data.applications && Array.isArray(data.applications)) {
+        setApplications(data.applications);
+      }
     } catch (err) {
-      setError('Connection failed. Showing offline dummy data.');
-      console.error(err);
+      setError(err.message || 'Failed to load applications');
+      console.error('Error fetching applications:', err);
     } finally {
       setLoading(false);
     }
@@ -161,12 +125,17 @@ export default function ReviewerDashboard() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 uppercase">
-                  {currentUser?.user?.name || currentUser?.name || "Reviewer"}
+                  {reviewerInfo?.name || currentUser?.user?.name || currentUser?.name || "Reviewer"}
                 </h2>
-                <p className="text-blue-800 font-semibold text-sm">Reviewer</p>
+                <p className="text-blue-800 font-semibold text-sm">Scholarship Reviewer</p>
                 <p className="text-gray-500 text-sm mt-1">
-                  {currentUser?.user?.email || currentUser?.email}
+                  {reviewerInfo?.email || currentUser?.user?.email || currentUser?.email}
                 </p>
+                {reviewerInfo?.assignedScholarshipId && (
+                  <p className="text-gray-500 text-sm mt-1">
+                    Assigned Scholarship ID: {reviewerInfo.assignedScholarshipId}
+                  </p>
+                )}
               </div>
             </div>
             <button className="bg-blue-800 text-white font-semibold px-6 py-2 rounded-md hover:bg-blue-700 transition shadow-sm">
@@ -177,24 +146,34 @@ export default function ReviewerDashboard() {
           {/* Content Area */}
           <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
             {error && (
-              <div className="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 rounded">
+              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded">
                 {error}
               </div>
             )}
 
-            {loading && (
+            {loading && view === 'dashboard' && (
               <div className="text-center py-8">
-                <p className="text-gray-600">Loading...</p>
+                <p className="text-gray-600">Loading assigned applications...</p>
               </div>
             )}
 
             {!loading && (
               <>
                 {view === 'dashboard' && (
-                  <ApplicationsList
-                    applications={applications}
-                    onSelectApplication={handleSelectApplication}
-                  />
+                  <>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Assigned Applications ({applications.length})
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        Applications for the scholarship you are assigned to review
+                      </p>
+                    </div>
+                    <ApplicationsList
+                      applications={applications}
+                      onSelectApplication={handleSelectApplication}
+                    />
+                  </>
                 )}
 
                 {view === 'statistics' && (

@@ -17,17 +17,20 @@ public class DataSeeder implements CommandLineRunner {
     private final ScholarshipRepository scholarshipRepository;
     private final ApplicationRepository applicationRepository;
     private final ScholarshipCommitteeRepository committeeRepository; // Added Repository
+    private final ReviewerRepository reviewerRepository; // Added Repository for Reviewers
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(UserRepository userRepository,
             ScholarshipRepository scholarshipRepository,
             ApplicationRepository applicationRepository,
             ScholarshipCommitteeRepository committeeRepository, // Added to Constructor
+            ReviewerRepository reviewerRepository, // Added to Constructor
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.scholarshipRepository = scholarshipRepository;
         this.applicationRepository = applicationRepository;
         this.committeeRepository = committeeRepository;
+        this.reviewerRepository = reviewerRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -94,6 +97,17 @@ public class DataSeeder implements CommandLineRunner {
                 committee.setAssignedScholarshipId(1); // Default assignment for testing
                 committeeRepository.save(committee);
                 System.out.println("Created Committee Profile: " + email);
+            }
+
+            // FIX: If user is a Reviewer, also create their Profile record
+            if (role == Role.REVIEWER && !reviewerRepository.existsByEmail(email)) {
+                Reviewer reviewer = new Reviewer();
+                reviewer.setName(name);
+                reviewer.setEmail(email);
+                reviewer.setPassword(encodedPassword);
+                reviewer.setAssignedScholarshipId(1); // Default assignment for testing
+                reviewerRepository.save(reviewer);
+                System.out.println("Created Reviewer Profile: " + email);
             }
 
             System.out.println("Created User: " + email + " [" + role + "]");
