@@ -87,13 +87,12 @@ public class DataSeeder implements CommandLineRunner {
 
             // FIX: If user is a Committee member, also create their Profile record
             if (role == Role.COMMITTEE && !committeeRepository.existsByEmail(email)) {
-                ScholarshipCommittee committee = new ScholarshipCommittee();
-                committee.setName(name);
-                committee.setEmail(email);
-                committee.setPassword(encodedPassword);
-                committee.setAssignedScholarshipId(1); // Default assignment for testing
-                committeeRepository.save(committee);
-                System.out.println("Created Committee Profile: " + email);
+                ScholarshipCommittee sc = new ScholarshipCommittee();
+                sc.setName(name);
+                sc.setEmail(email);
+                sc.setPassword(encodedPassword);
+                sc.getAssignedScholarshipIds().add(1);
+                committeeRepository.save(sc);
             }
 
             System.out.println("Created User: " + email + " [" + role + "]");
