@@ -55,6 +55,18 @@ export default function ManageApplications() {
     fetchApplications();
   }, [selectedScholarship]);
 
+  const handleDeleteApplication = async (applicationId) => {
+    try {
+      await applicationService.deleteApplication(applicationId);
+      setApplicationData((prev) =>
+        prev.filter((app) => app.applicationId !== applicationId),
+      );
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      alert("Failed to delete application: " + error.message);
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -102,6 +114,7 @@ export default function ManageApplications() {
                 status: application.status,
               }}
               key={application.applicationId}
+              onDelete={handleDeleteApplication}
             />
           ))
         )}
