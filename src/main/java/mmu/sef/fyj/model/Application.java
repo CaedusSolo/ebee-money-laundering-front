@@ -123,7 +123,7 @@ public class Application {
     // Business methods
     public void submitApplication() {
         validate();
-        this.status = ApplicationStatus.PENDING_APPROVAL;
+        this.status = ApplicationStatus.UNDER_REVIEW;
         this.submittedAt = LocalDateTime.now();
     }
 

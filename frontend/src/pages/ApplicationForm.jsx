@@ -167,9 +167,15 @@ export default function ApplicationForm() {
             if (files.payslip) formDataToSubmit.append('payslip', files.payslip);
             if (files.ic) formDataToSubmit.append('ic', files.ic);
 
+            // Get JWT token from localStorage
+            const token = JSON.parse(localStorage.getItem('user'))?.token;
+            
             // Submit to API
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scholarships/apply`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 body: formDataToSubmit,
             });
 

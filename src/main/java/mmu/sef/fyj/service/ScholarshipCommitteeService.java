@@ -45,8 +45,10 @@ public class ScholarshipCommitteeService {
             throw new RuntimeException("No scholarships assigned to this committee member.");
         }
 
-        // 2. Fetch All Assigned Applications
-        List<Application> allAssignedApps = applicationRepository.findByScholarshipIDIn(scholarshipIds);
+        // 2. Fetch All Assigned Applications (only UNDER_REVIEW status for committee evaluation)
+        List<Application> allAssignedApps = applicationRepository.findByScholarshipIDIn(scholarshipIds).stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.UNDER_REVIEW)
+                .collect(Collectors.toList());
 
         // 3. Resolve Scholarship Names for grouping headings
         Map<Integer, String> scholarshipNames = scholarshipRepository.findAllById(scholarshipIds)
