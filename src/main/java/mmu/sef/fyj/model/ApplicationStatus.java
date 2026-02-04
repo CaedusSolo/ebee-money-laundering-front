@@ -2,7 +2,7 @@ package mmu.sef.fyj.model;
 
 public enum ApplicationStatus {
     DRAFT,
-    SUBMITTED,
+    PENDING_APPROVAL,
     UNDER_REVIEW,
     GRADED,
     APPROVED,

@@ -208,8 +208,8 @@ public class ReviewerService {
         long underReview = allApplications.stream()
                 .filter(app -> app.getStatus() == ApplicationStatus.UNDER_REVIEW)
                 .count();
-        long submitted = allApplications.stream()
-                .filter(app -> app.getStatus() == ApplicationStatus.SUBMITTED)
+        long pendingApproval = allApplications.stream()
+                .filter(app -> app.getStatus() == ApplicationStatus.PENDING_APPROVAL)
                 .count();
         
         long total = allApplications.size();
@@ -220,7 +220,7 @@ public class ReviewerService {
         stats.put("rejectedApplications", rejected);
         stats.put("gradedApplications", graded);
         stats.put("underReviewApplications", underReview);
-        stats.put("submittedApplications", submitted);
+        stats.put("pendingApprovalApplications", pendingApproval);
         stats.put("approvalRate", approvalRate);
         
         Map<String, Long> byStatus = new HashMap<>();
@@ -228,7 +228,7 @@ public class ReviewerService {
         byStatus.put("REJECTED", rejected);
         byStatus.put("GRADED", graded);
         byStatus.put("UNDER_REVIEW", underReview);
-        byStatus.put("SUBMITTED", submitted);
+        byStatus.put("PENDING_APPROVAL", pendingApproval);
         stats.put("applicationsByStatus", byStatus);
 
         return stats;

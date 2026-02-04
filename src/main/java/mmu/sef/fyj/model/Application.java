@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "applications")
+@Table(name = "applications", uniqueConstraints = {
+    @UniqueConstraint(name = "unique_student_scholarship", columnNames = {"studentid", "scholarshipid"})
+})
 public class Application {
 
     @Id
@@ -121,7 +123,7 @@ public class Application {
     // Business methods
     public void submitApplication() {
         validate();
-        this.status = ApplicationStatus.SUBMITTED;
+        this.status = ApplicationStatus.PENDING_APPROVAL;
         this.submittedAt = LocalDateTime.now();
     }
 

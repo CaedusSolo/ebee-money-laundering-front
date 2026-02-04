@@ -55,7 +55,7 @@ public class StudentService {
         Map<String, Object> app3 = new HashMap<>();
         app3.put("applicationId", 3);
         app3.put("scholarshipName", "High Achiever's Scholarship");
-        app3.put("status", "SUBMITTED");
+        app3.put("status", "PENDING_APPROVAL");
         app3.put("submittedDate", "20/01/2026");
         applications.add(app3);
         

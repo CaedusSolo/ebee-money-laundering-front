@@ -46,7 +46,7 @@ export default function UserProfile() {
     },
     {
       title: "High Achiever's Scholarship",
-      status: "Submitted",
+      status: "Pending Approval",
       submittedDate: "DD/MM/YYYY",
     },
   ];

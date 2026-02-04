@@ -50,7 +50,7 @@ public class ScholarshipCommitteeService {
         List<Application> allApps = applicationRepository.findByScholarshipID(scholarship.getId());
 
         List<Map<String, Object>> pending = allApps.stream()
-                .filter(app -> app.getStatus() == ApplicationStatus.SUBMITTED
+                .filter(app -> app.getStatus() == ApplicationStatus.PENDING_APPROVAL
                         || app.getStatus() == ApplicationStatus.UNDER_REVIEW)
                 .map(this::mapToSummary)
                 .collect(Collectors.toList());

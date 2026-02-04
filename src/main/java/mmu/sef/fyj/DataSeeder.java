@@ -42,7 +42,6 @@ public class DataSeeder implements CommandLineRunner {
         seedUsers();
         seedScholarships();
         seedApplications();
-        seedGradedApplications();
 
         System.out.println("--- Data Seeding Completed ---");
     }
@@ -147,43 +146,16 @@ public class DataSeeder implements CommandLineRunner {
             return;
 
         Random random = new Random(42);
-        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
-        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
-        ApplicationStatus[] statuses = { ApplicationStatus.SUBMITTED, ApplicationStatus.UNDER_REVIEW,
-                ApplicationStatus.GRADED };
-
-        for (Scholarship scholarship : scholarships) {
-            int numApplications = 2 + random.nextInt(3);
-            for (int i = 0; i < numApplications && i < students.size(); i++) {
-                User student = students.get(i);
-                Application app = new Application();
-                app.setStudentID(student.getId());
-                app.setScholarshipID(scholarship.getId());
-                app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
-                app.setLastName(lastNames[random.nextInt(lastNames.length)]);
-                app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
-                app.setNationality("Malaysian");
-                app.setDateOfBirth(LocalDate.of(2000, 1, 1));
-                app.setPhoneNumber("012-3456789");
-                app.setNricNumber("000101-14-1234");
-                app.setMonthlyFamilyIncome(5000f);
-                app.setBumiputera(true);
-                app.setStatus(statuses[random.nextInt(statuses.length)]);
-                applicationRepository.save(app);
-            }
-        }
-    }
-
-    private void seedGradedApplications() {
-        List<User> students = userRepository.findByRole(Role.STUDENT);
-        List<Scholarship> scholarships = scholarshipRepository.findAll();
-
-        if (students.isEmpty() || scholarships.isEmpty())
-            return;
-
-        Random random = new Random(99);
-        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
-        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
+        String[] firstNames = { 
+            "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling",
+            "Hassan", "Aisha", "Prabhu", "Zainab", "Vikram", "Noor",
+            "Jamal", "Leila", "Arjun", "Fatimah", "Mohammed", "Siti"
+        };
+        String[] lastNames = { 
+            "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong",
+            "Ali", "Chen", "Lim", "Hassan", "Singh", "Ng",
+            "Rahman", "Ooi", "Ong", "Mohamed", "Sharma", "Koh"
+        };
         String[] comments = {
             "Excellent academic performance with strong leadership demonstrated in projects. Well-rounded candidate.",
             "Good overall performance. Shows potential for growth in leadership roles. Consistent contributor in activities.",
@@ -193,16 +165,21 @@ public class DataSeeder implements CommandLineRunner {
             "Exceptional commitment to community service and academic excellence. Highly motivated and driven student."
         };
 
-        // Create some graded applications for testing approval
+        // Each student applies to each scholarship exactly once (respects the unique constraint)
+        // Distribute applications across different statuses
+        ApplicationStatus[] allStatuses = { ApplicationStatus.PENDING_APPROVAL, ApplicationStatus.UNDER_REVIEW,
+                ApplicationStatus.GRADED, ApplicationStatus.APPROVED, ApplicationStatus.REJECTED };
+
+        int appIndex = 0;
         for (Scholarship scholarship : scholarships) {
-            for (int i = 0; i < 3 && i < students.size(); i++) {
+            for (int i = 0; i < students.size(); i++) {
                 User student = students.get(i);
-                
                 Application app = new Application();
                 app.setStudentID(student.getId());
                 app.setScholarshipID(scholarship.getId());
-                app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
-                app.setLastName(lastNames[random.nextInt(lastNames.length)]);
+                // Use deterministic names based on student index to ensure uniqueness
+                app.setFirstName(firstNames[i % firstNames.length]);
+                app.setLastName(lastNames[i % lastNames.length]);
                 app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
                 app.setNationality("Malaysian");
                 app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1, 1 + random.nextInt(28)));
@@ -210,19 +187,51 @@ public class DataSeeder implements CommandLineRunner {
                 app.setNricNumber("000101-14-" + (1000 + random.nextInt(9000)));
                 app.setMonthlyFamilyIncome(3000f + random.nextFloat() * 7000);
                 app.setBumiputera(random.nextBoolean());
+
+                // Assign status: distribute graded ones based on scholarship ID
+                ApplicationStatus status;
+                int appPair = i; // Student index within each scholarship
                 
-                // Add grades from 3 committee members BEFORE setting status
-                List<Grade> appGrades = new ArrayList<>();
-                addRandomGradesToList(appGrades, random, comments);
-                app.setGrades(appGrades);
-                
-                app.setStatus(ApplicationStatus.GRADED);
-                
+                // For scholarship 1 (Merit's Scholarship), assign more GRADED applications for reviewer 1
+                if (scholarship.getId() == 1) {
+                    if (appPair < 4) {
+                        // First 4 students get GRADED status for scholarship 1
+                        status = ApplicationStatus.GRADED;
+                    } else {
+                        // Last student gets PENDING_APPROVAL
+                        status = ApplicationStatus.PENDING_APPROVAL;
+                    }
+                } else {
+                    // For other scholarships, use the original distribution
+                    if (appPair < 3) {
+                        // First 3 students per scholarship get varied statuses
+                        if (appPair == 0) {
+                            status = ApplicationStatus.GRADED;
+                        } else if (appPair == 1) {
+                            status = ApplicationStatus.UNDER_REVIEW;
+                        } else {
+                            status = ApplicationStatus.PENDING_APPROVAL;
+                        }
+                    } else {
+                        // Remaining students: alternate between UNDER_REVIEW and PENDING_APPROVAL
+                        status = (appPair % 2 == 0) ? ApplicationStatus.UNDER_REVIEW : ApplicationStatus.PENDING_APPROVAL;
+                    }
+                }
+
+                // If GRADED, add committee grades
+                if (status == ApplicationStatus.GRADED) {
+                    List<Grade> appGrades = new ArrayList<>();
+                    addRandomGradesToList(appGrades, random, comments);
+                    app.setGrades(appGrades);
+                }
+
+                app.setStatus(status);
                 applicationRepository.save(app);
+                appIndex++;
             }
         }
     }
-    
+
     private void addRandomGradesToList(List<Grade> grades, Random random, String[] comments) {
         String[] committeeNames = { "Dr. Ahmed Khan", "Prof. Sarah Osman", "Assoc. Prof. Fatimah Hassan" };
         String[] committeeRoles = { "Academic Excellence Committee", "Leadership Committee", "Student Affairs Committee" };

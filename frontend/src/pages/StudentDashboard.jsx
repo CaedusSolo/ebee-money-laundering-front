@@ -19,7 +19,7 @@ const mockApplications = [
     {
         applicationId: 3,
         scholarshipName: "High Achiever's Scholarship",
-        status: "Submitted",
+        status: "Pending Approval",
         submittedDate: "DD/MM/YYYY"
     },
 ];
@@ -153,7 +153,7 @@ export default function StudentDashboard() {
                                                     text: 'text-yellow-700',
                                                     border: 'border-l-blue-500'
                                                 };
-                                            case 'submitted':
+                                            case 'pending approval':
                                                 return {
                                                     bg: 'bg-blue-100',
                                                     text: 'text-blue-700',

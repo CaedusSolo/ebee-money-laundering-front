@@ -45,8 +45,8 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'PENDING APPROVAL': return 'Pending Approval';
-      case 'UNDER REVIEW': return 'Under Review';
+      case 'PENDING_APPROVAL': return 'Under Review';
+      case 'UNDER_REVIEW': return 'Under Review';
       case 'GRADED': return 'Pending Approval';
       case 'APPROVED': return 'Approved';
       case 'REJECTED': return 'Rejected';
@@ -60,6 +60,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
       case 'APPROVED': return 'bg-green-50 border-l-4 border-green-500';
       case 'REJECTED': return 'bg-red-50 border-l-4 border-red-500';
       case 'UNDER_REVIEW': return 'bg-blue-50 border-l-4 border-blue-500';
+      case 'PENDING_APPROVAL': return 'bg-yellow-50 border-l-4 border-yellow-500';
       default: return 'bg-gray-50 border-l-4 border-gray-300';
     }
   };
@@ -120,6 +121,7 @@ export default function ApplicationsList({ applications, onSelectApplication }) 
                       app.status === 'APPROVED' ? 'bg-green-200 text-green-800' :
                       app.status === 'REJECTED' ? 'bg-red-200 text-red-800' :
                       app.status === 'UNDER_REVIEW' ? 'bg-blue-200 text-blue-800' :
+                      app.status === 'PENDING_APPROVAL' ? 'bg-yellow-200 text-yellow-800' :
                       'bg-gray-200 text-gray-800'
                     }`}>
                       {getStatusLabel(app.status)}
