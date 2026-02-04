@@ -65,12 +65,12 @@ const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="bg-[#1e3a8a] text-white px-6 pt-4">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold">APP ID: {application.id} {isReadOnly && <span className="ml-2 text-[10px] bg-emerald-500 px-2 py-1 rounded">FINALIZED</span>}</h2>
+            <h2 className="font-bold uppercase tracking-tight">App ID: {application.id} {isReadOnly && <span className="ml-2 text-[10px] bg-emerald-500 px-2 py-1 rounded">FINALIZED</span>}</h2>
             <button onClick={onClose} className="text-2xl hover:text-gray-300 transition-colors">&times;</button>
           </div>
           <div className="flex space-x-6 text-[10px] font-bold uppercase">
-            <button onClick={() => setActiveTab('profile')} className={`pb-2 border-b-2 ${activeTab === 'profile' ? 'border-white' : 'border-transparent text-blue-300'}`}>Profile</button>
-            <button onClick={() => setActiveTab('evaluate')} className={`pb-2 border-b-2 ${activeTab === 'evaluate' ? 'border-white' : 'border-transparent text-blue-300'}`}>Evaluation</button>
+            <button onClick={() => setActiveTab('profile')} className={`pb-2 border-b-2 transition-all ${activeTab === 'profile' ? 'border-white' : 'border-transparent text-blue-300'}`}>Profile</button>
+            <button onClick={() => setActiveTab('evaluate')} className={`pb-2 border-b-2 transition-all ${activeTab === 'evaluate' ? 'border-white' : 'border-transparent text-blue-300'}`}>Evaluation</button>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
             <div className="space-y-4">
               <ApplicantInfoView details={details} />
               {!isReadOnly && (
-                <button onClick={() => setActiveTab('evaluate')} className="w-full py-3 bg-blue-50 text-[#1e3a8a] font-bold rounded-xl border hover:bg-blue-100 transition-colors">
+                <button onClick={() => setActiveTab('evaluate')} className="w-full py-3 bg-blue-50 text-[#1e3a8a] font-bold rounded-xl border hover:bg-blue-100 transition-colors uppercase text-xs">
                   Continue to Grading →
                 </button>
               )}
@@ -117,9 +117,9 @@ const EvaluationModal = ({ isOpen, onClose, application, onSubmit }) => {
               </div>
               {localError && <p className="text-red-600 text-xs font-bold animate-pulse">{localError}</p>}
               <div className="flex justify-end gap-3 pt-4 border-t">
-                <button type="button" onClick={onClose} className="px-6 py-2 text-gray-400 font-bold hover:text-gray-600">Close</button>
+                <button type="button" onClick={onClose} className="px-6 py-2 text-gray-400 font-bold hover:text-gray-600 text-xs uppercase">Close</button>
                 {!isReadOnly && (
-                  <button type="submit" className="px-8 py-2 bg-[#1e3a8a] text-white font-bold rounded-xl shadow-lg transition transform active:scale-95 hover:bg-blue-800">
+                  <button type="submit" className="px-8 py-2 bg-[#1e3a8a] text-white font-bold rounded-xl shadow-lg transition transform active:scale-95 hover:bg-blue-800 text-xs uppercase">
                     Submit Evaluation
                   </button>
                 )}
