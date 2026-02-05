@@ -124,10 +124,10 @@ public class ScholarshipCommitteeService {
                 .distinct()
                 .count();
 
-        // If everyone assigned has graded, mark as GRADED. Otherwise, keep
+        // If everyone assigned has graded, mark as PENDING_APPROVAL (ready for reviewers). Otherwise, keep
         // UNDER_REVIEW.
         if (currentGradersCount >= requiredGraders && requiredGraders > 0) {
-            app.setStatus(ApplicationStatus.GRADED);
+            app.setStatus(ApplicationStatus.PENDING_APPROVAL);
         } else {
             app.setStatus(ApplicationStatus.UNDER_REVIEW);
         }

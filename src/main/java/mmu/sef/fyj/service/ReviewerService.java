@@ -34,27 +34,26 @@ public class ReviewerService {
     public List<Map<String, Object>> getAllAssignedApplications(Integer reviewerId) {
         List<Map<String, Object>> applications = new ArrayList<>();
         
-        // Get the reviewer's assigned scholarship
-        Optional<Reviewer> reviewer = reviewerRepository.findById(reviewerId);
-        if (reviewer.isEmpty()) {
-            return applications;
-        }
+        // Get all scholarships where this reviewer is assigned
+        List<Scholarship> assignedScholarships = scholarshipRepository.findByReviewers_ReviewerId(reviewerId);
         
-        Integer assignedScholarshipId = reviewer.get().getAssignedScholarshipId();
-        
-        // Get all applications for the reviewer's assigned scholarship
-        List<Application> assignedApplications = applicationRepository.findByScholarshipID(assignedScholarshipId);
-        
-        // Convert to map format for API response
-        for (Application app : assignedApplications) {
-            Map<String, Object> appMap = new HashMap<>();
-            appMap.put("applicationID", app.getApplicationID());
-            appMap.put("studentName", app.getFirstName() + " " + app.getLastName());
-            appMap.put("major", app.getMajor());
-            appMap.put("status", app.getStatus().toString());
-            appMap.put("submittedAt", app.getSubmittedAt());
-            appMap.put("createdAt", app.getCreatedAt());
-            applications.add(appMap);
+        // Collect all applications from these scholarships
+        for (Scholarship scholarship : assignedScholarships) {
+            List<Application> apps = applicationRepository.findByScholarshipID(scholarship.getId());
+            
+            // Convert to map format for API response
+            for (Application app : apps) {
+                Map<String, Object> appMap = new HashMap<>();
+                appMap.put("applicationID", app.getApplicationID());
+                appMap.put("studentName", app.getFirstName() + " " + app.getLastName());
+                appMap.put("major", app.getMajor());
+                appMap.put("status", app.getStatus().toString());
+                appMap.put("submittedAt", app.getSubmittedAt());
+                appMap.put("createdAt", app.getCreatedAt());
+                appMap.put("scholarshipId", scholarship.getId());
+                appMap.put("scholarshipName", scholarship.getName());
+                applications.add(appMap);
+            }
         }
 
         return applications;
