@@ -39,12 +39,18 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        // Skip seeding if data already exists
+        if (userRepository.count() > 0 || scholarshipRepository.count() > 0 || applicationRepository.count() > 0) {
+            System.out.println("--- Data already exists, skipping seeding ---");
+            return;
+        }
+
         System.out.println("--- Starting Secure Data Seeding ---");
 
         seedUsers();
         seedScholarships();
         seedApplications();
-        seedGradedApplications();
+        seedApprovedAndRejectedApplications();
 
         System.out.println("--- Data Seeding Completed ---");
     }
@@ -142,9 +148,29 @@ public class DataSeeder implements CommandLineRunner {
                 new Scholarship("Excellence in STEM Scholarship", "Science and Engineering focus.",
                         LocalDate.now().plusMonths(5)));
 
+        // Get reviewers and committee members
+        List<Reviewer> allReviewers = reviewerRepository.findAll();
+        List<ScholarshipCommittee> allCommittees = committeeRepository.findAll();
+
         for (Scholarship s : scholarships) {
+            // Assign first 3 reviewers to each scholarship
+            if (allReviewers.size() >= 3) {
+                s.getReviewers().add(allReviewers.get(0));
+                s.getReviewers().add(allReviewers.get(1));
+                s.getReviewers().add(allReviewers.get(2));
+            }
+
+            // Assign first 3 committee members to each scholarship
+            if (allCommittees.size() >= 3) {
+                s.getScholarshipCommittees().add(allCommittees.get(0));
+                s.getScholarshipCommittees().add(allCommittees.get(1));
+                s.getScholarshipCommittees().add(allCommittees.get(2));
+            }
+
             scholarshipRepository.save(s);
         }
+
+        System.out.println("Seeded " + scholarships.size() + " scholarships with reviewers and committee members");
     }
 
     private void seedApplications() {
@@ -307,36 +333,77 @@ private void addRandomGradesToList(List<Grade> grades, Random random, String[] c
         }
 }
 
-    private void seedGradedApplications() {
+    private void seedApprovedAndRejectedApplications() {
         List<User> students = userRepository.findByRole(Role.STUDENT);
         List<Scholarship> scholarships = scholarshipRepository.findAll();
 
         if (students.isEmpty() || scholarships.isEmpty())
             return;
 
-        Random random = new Random(99);
-        String[] firstNames = { "Ahmad", "Sarah", "Wei Kang", "Nurul", "Ravi", "Mei Ling" };
-        String[] lastNames = { "Abdullah", "Lee", "Tan", "Ibrahim", "Kumar", "Wong" };
+        Random random = new Random(123);
+        String[] firstNames = { "Ali", "Fatima", "Raj", "Siti", "David", "Jasmine" };
+        String[] lastNames = { "Hassan", "Ismail", "Patel", "Ahmad", "Lim", "Tan" };
+        String[] cities = { "Cyberjaya", "Kuala Lumpur", "Petaling Jaya", "Shah Alam", "Subang Jaya" };
+        String[] states = { "Selangor", "Wilayah Persekutuan", "Johor", "Penang", "Perak" };
+        String[] colleges = { "Multimedia University", "Universiti Malaya", "Universiti Teknologi Malaysia" };
+        String[] majors = { "Computer Science", "Software Engineering", "Data Science", "Cybersecurity" };
 
-        for (Scholarship scholarship : scholarships) {
-            for (int i = 0; i < 2 && i < students.size(); i++) {
-                User student = students.get(i);
-                Application app = new Application();
-                app.setStudentID(student.getId());
-                app.setScholarshipID(scholarship.getId());
-                app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
-                app.setLastName(lastNames[random.nextInt(lastNames.length)]);
-                app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
-                app.setNationality("Malaysian");
-                app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1, 1 + random.nextInt(28)));
-                app.setPhoneNumber("012-" + (1000000 + random.nextInt(9000000)));
-                app.setNricNumber("000101-14-" + (1000 + random.nextInt(9000)));
-                app.setMonthlyFamilyIncome(3000f + random.nextFloat() * 7000);
-                app.setBumiputera(random.nextBoolean());
-                app.setCgpa(2.5f + random.nextFloat() * 1.5f); // Random CGPA between 2.5 and 4.0
-                app.setStatus(ApplicationStatus.GRADED);
-                applicationRepository.save(app);
+        // Create 2 APPROVED and 2 REJECTED applications for the first scholarship
+        for (int i = 0; i < 4 && i < students.size(); i++) {
+            User student = students.get(i);
+            Scholarship scholarship = scholarships.get(0); // First scholarship
+            
+            Application app = new Application();
+            app.setStudentID(student.getId());
+            app.setScholarshipID(scholarship.getId());
+            app.setFirstName(firstNames[random.nextInt(firstNames.length)]);
+            app.setLastName(lastNames[random.nextInt(lastNames.length)]);
+            app.setGender(random.nextBoolean() ? Gender.MALE : Gender.FEMALE);
+            app.setNationality("Malaysian");
+            app.setDateOfBirth(LocalDate.of(2000 + random.nextInt(4), 1 + random.nextInt(12), 1 + random.nextInt(28)));
+            app.setPhoneNumber("01" + random.nextInt(10) + "-" + (1000000 + random.nextInt(9000000)));
+            app.setNricNumber("00010" + random.nextInt(10) + "-14-" + (1000 + random.nextInt(9000)));
+            app.setMonthlyFamilyIncome(2000f + random.nextInt(8000));
+            app.setBumiputera(random.nextBoolean());
+            app.setSubmittedAt(LocalDateTime.now().minusDays(random.nextInt(60)));
+            
+            // Address
+            app.setHomeAddress("No. " + (1 + random.nextInt(100)) + ", Jalan " + (1 + random.nextInt(20)));
+            app.setCity(cities[random.nextInt(cities.length)]);
+            app.setZipCode(String.valueOf(40000 + random.nextInt(10000)));
+            app.setState(states[random.nextInt(states.length)]);
+            
+            // Education
+            app.setCollege(colleges[random.nextInt(colleges.length)]);
+            app.setMajor(majors[random.nextInt(majors.length)]);
+            app.setCurrentYearOfStudy(1 + random.nextInt(4));
+            app.setExpectedGraduationYear(2025 + random.nextInt(3));
+            StudyLevel[] studyLevels = StudyLevel.values();
+            app.setStudyLevel(studyLevels[random.nextInt(studyLevels.length)]);
+            app.setCgpa(2.5f + random.nextFloat() * 1.5f);
+            
+            // Documents
+            app.setNricDoc(new DocumentInfo("nric_" + student.getId() + ".pdf",
+                    "https://example.com/docs/nric_" + student.getId() + ".pdf", "application/pdf"));
+            app.setTranscriptDoc(new DocumentInfo("transcript_" + student.getId() + ".pdf",
+                    "https://example.com/docs/transcript_" + student.getId() + ".pdf", "application/pdf"));
+            app.setFamilyIncomeConfirmationDoc(new DocumentInfo("income_" + student.getId() + ".pdf",
+                    "https://example.com/docs/income_" + student.getId() + ".pdf", "application/pdf"));
+            
+            // Set status: First 2 are APPROVED, next 2 are REJECTED
+            if (i < 2) {
+                app.setStatus(ApplicationStatus.APPROVED);
+                // Add reviewer approvals for approved applications (all 3 reviewers approved)
+                app.addReviewerApproval(1);
+                app.addReviewerApproval(2);
+                app.addReviewerApproval(3);
+            } else {
+                app.setStatus(ApplicationStatus.REJECTED);
             }
+            
+            applicationRepository.save(app);
         }
+
+        System.out.println("Seeded " + 2 + " APPROVED and " + 2 + " REJECTED applications");
     }
 }
