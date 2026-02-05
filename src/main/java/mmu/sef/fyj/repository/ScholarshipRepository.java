@@ -15,7 +15,8 @@ import mmu.sef.fyj.model.Scholarship;
 @Repository
 public interface ScholarshipRepository extends JpaRepository<Scholarship, Integer> {
 
-    List<Scholarship> findByReviewer_ReviewerId(Integer reviewerId);
+    @Query("SELECT s FROM Scholarship s JOIN s.reviewers r WHERE r.reviewerId = :reviewerId")
+    List<Scholarship> findByReviewers_ReviewerId(@Param("reviewerId") Integer reviewerId);
 
     List<Scholarship> findByApplicationDeadlineAfter(LocalDate date);
 

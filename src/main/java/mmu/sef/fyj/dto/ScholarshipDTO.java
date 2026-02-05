@@ -19,7 +19,7 @@ public class ScholarshipDTO {
     @Future(message = "Deadline must be in the future")
     private LocalDate applicationDeadline;
 
-    private Integer reviewerId;
+    private Set<Integer> reviewerIds = new HashSet<>();
 
     private Set<Integer> committeeIds = new HashSet<>();
 
@@ -56,12 +56,12 @@ public class ScholarshipDTO {
         this.applicationDeadline = applicationDeadline;
     }
 
-    public Integer getReviewerId() {
-        return reviewerId;
+    public Set<Integer> getReviewerIds() {
+        return reviewerIds;
     }
 
-    public void setReviewerId(Integer reviewerId) {
-        this.reviewerId = reviewerId;
+    public void setReviewerIds(Set<Integer> reviewerIds) {
+        this.reviewerIds = reviewerIds != null ? reviewerIds : new HashSet<>();
     }
 
     public Set<Integer> getCommitteeIds() {

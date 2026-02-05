@@ -22,9 +22,13 @@ public class Scholarship {
     @Column(nullable = false)
     private LocalDate applicationDeadline;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewer_id")
-    private Reviewer reviewer;
+    @ManyToMany
+    @JoinTable(
+        name = "scholarship_reviewer_assignments",
+        joinColumns = @JoinColumn(name = "scholarship_id"),
+        inverseJoinColumns = @JoinColumn(name = "reviewer_id")
+    )
+    private Set<Reviewer> reviewers = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -84,12 +88,12 @@ public class Scholarship {
         this.applicationDeadline = applicationDeadline;
     }
 
-    public Reviewer getReviewer() {
-        return reviewer;
+    public Set<Reviewer> getReviewers() {
+        return reviewers;
     }
 
-    public void setReviewer(Reviewer reviewer) {
-        this.reviewer = reviewer;
+    public void setReviewers(Set<Reviewer> reviewers) {
+        this.reviewers = reviewers;
     }
 
     public Set<ScholarshipCommittee> getScholarshipCommittees() {

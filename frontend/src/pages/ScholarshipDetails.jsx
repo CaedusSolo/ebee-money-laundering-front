@@ -27,7 +27,7 @@ export default function ScholarshipDetailPage() {
     name: "Scholarship Name",
     description: "Scholarship Description",
     applicationDeadline: "1999-12-31",
-    reviewer: "",
+    reviewers: [null, null, null],
     scholarshipCommittees: [null, null, null],
     minCGPA: "",
     maxFamilyIncome: "",
@@ -59,7 +59,9 @@ export default function ScholarshipDetailPage() {
           // Transform the loaded data to match form expectations
           const transformedData = {
             ...data,
-            reviewer: data.reviewer?.reviewerId || "",
+            reviewers: data.reviewers?.length
+              ? data.reviewers.map(r => r.reviewerId)
+              : [null, null, null],
             scholarshipCommittees: data.scholarshipCommittees?.length 
               ? data.scholarshipCommittees.map(c => c.committeeId || c.id)
               : [null, null, null],
@@ -100,6 +102,14 @@ export default function ScholarshipDetailPage() {
     });
   };
 
+  const handleReviewerChange = (index, value) => {
+    setFormData((prev) => {
+      const updatedReviewers = [...prev.reviewers];
+      updatedReviewers[index] = value;
+      return { ...prev, reviewers: updatedReviewers };
+    });
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -111,9 +121,6 @@ export default function ScholarshipDetailPage() {
     }
     if (!formData.applicationDeadline) {
       newErrors.applicationDeadline = "Application deadline is required";
-    }
-    if (!formData.reviewer) {
-      newErrors.reviewer = "Please assign a reviewer";
     }
 
     setErrors(newErrors);
@@ -137,7 +144,9 @@ export default function ScholarshipDetailPage() {
         name: formData.name,
         description: formData.description,
         applicationDeadline: formData.applicationDeadline,
-        reviewerId: formData.reviewer ? parseInt(formData.reviewer) : null,
+        reviewerIds: formData.reviewers
+          .filter((id) => id)
+          .map((id) => parseInt(id)),
         committeeIds: formData.scholarshipCommittees
           .filter((id) => id) // Remove null values
           .map((id) => parseInt(id)),
@@ -275,29 +284,31 @@ export default function ScholarshipDetailPage() {
                   )}
                 </div>
 
-                {/* Reviewer Dropdown */}
+                {/* Reviewer Dropdowns */}
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-gray-700">
-                    Reviewer {errors.reviewer && <span className="text-red-600">*</span>}
+                    Reviewers (up to 3)
                   </label>
-                  <select
-                    value={formData.reviewer || ""}
-                    onChange={(e) => handleChange("reviewer", e.target.value)}
-                    className={`w-full rounded-lg border ${
-                      errors.reviewer ? "border-red-500" : "border-gray-300"
-                    } bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
-                    disabled={loadingOptions}
-                  >
-                    <option value="">Select reviewer</option>
-                    {reviewers.map((r) => (
-                      <option key={r.reviewerId} value={r.reviewerId}>
-                        {r.name} {r.email ? `(${r.email})` : ""}
-                      </option>
+                  <div className="grid gap-3 sm:grid-cols-1">
+                    {[0, 1, 2].map((i) => (
+                      <select
+                        key={i}
+                        value={formData.reviewers[i] || ""}
+                        onChange={(e) => {
+                          handleReviewerChange(i, e.target.value);
+                        }}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        disabled={loadingOptions}
+                      >
+                        <option value="">Reviewer {i + 1}</option>
+                        {reviewers.map((r) => (
+                          <option key={r.reviewerId} value={r.reviewerId}>
+                            {r.name} {r.email ? `(${r.email})` : ""}
+                          </option>
+                        ))}
+                      </select>
                     ))}
-                  </select>
-                  {errors.reviewer && (
-                    <p className="text-red-600 text-sm mt-1">{errors.reviewer}</p>
-                  )}
+                  </div>
                 </div>
 
                 {/* Scholarship Committee Dropdowns */}

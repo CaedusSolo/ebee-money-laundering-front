@@ -111,6 +111,12 @@ public class Application {
     @CollectionTable(name = "application_grades", joinColumns = @JoinColumn(name = "application_id"))
     private List<Grade> grades = new ArrayList<>();
 
+    // Reviewer approvals - track which reviewers have approved
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "application_reviewer_approvals", joinColumns = @JoinColumn(name = "application_id"))
+    @Column(name = "reviewer_id")
+    private List<Integer> reviewerApprovals = new ArrayList<>();
+
     public Application() {
         this.createdAt = LocalDateTime.now();
         this.status = ApplicationStatus.DRAFT;
@@ -403,6 +409,24 @@ public class Application {
 
     public void setGrades(List<Grade> grades) {
         this.grades = grades;
+    }
+
+    public List<Integer> getReviewerApprovals() {
+        return reviewerApprovals;
+    }
+
+    public void setReviewerApprovals(List<Integer> reviewerApprovals) {
+        this.reviewerApprovals = reviewerApprovals;
+    }
+
+    public void addReviewerApproval(Integer reviewerId) {
+        if (!this.reviewerApprovals.contains(reviewerId)) {
+            this.reviewerApprovals.add(reviewerId);
+        }
+    }
+
+    public boolean hasReviewerApproved(Integer reviewerId) {
+        return this.reviewerApprovals.contains(reviewerId);
     }
 }
 

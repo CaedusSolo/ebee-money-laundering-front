@@ -135,10 +135,23 @@ export default function ScholarshipView() {
               </h2>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600">Assigned Reviewer</p>
-                  <p className="font-medium text-gray-900">
-                    {scholarship?.reviewer ? `${scholarship.reviewer.name} (${scholarship.reviewer.email})` : "Not assigned"}
-                  </p>
+                  <p className="text-sm text-gray-600 mb-2">Assigned Reviewers</p>
+                  <div className="space-y-2">
+                    {scholarship?.reviewers && scholarship.reviewers.length > 0 ? (
+                      scholarship.reviewers.map((reviewer, index) => (
+                        <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                          <p className="font-medium text-gray-900">
+                            {index + 1}. {reviewer.name || "Unknown"}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {reviewer.email}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500">No reviewers assigned</p>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-2">

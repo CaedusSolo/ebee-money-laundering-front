@@ -50,10 +50,11 @@ public class ScholarshipService {
             dto.getApplicationDeadline()
         );
 
-        if (dto.getReviewerId() != null) {
-            Reviewer reviewer = reviewerRepository.findById(dto.getReviewerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Reviewer not found"));
-            scholarship.setReviewer(reviewer);
+        if (dto.getReviewerIds() != null && !dto.getReviewerIds().isEmpty()) {
+            Set<Reviewer> reviewers = new HashSet<>(
+                reviewerRepository.findAllById(dto.getReviewerIds())
+            );
+            scholarship.setReviewers(reviewers);
         }
 
         if (dto.getCommitteeIds() != null && !dto.getCommitteeIds().isEmpty()) {
@@ -94,10 +95,11 @@ public class ScholarshipService {
                 scholarship.setDescription(dto.getDescription());
                 scholarship.setApplicationDeadline(dto.getApplicationDeadline());
 
-                if (dto.getReviewerId() != null) {
-                    Reviewer reviewer = reviewerRepository.findById(dto.getReviewerId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Reviewer not found"));
-                    scholarship.setReviewer(reviewer);
+                if (dto.getReviewerIds() != null) {
+                    Set<Reviewer> reviewers = new HashSet<>(
+                        reviewerRepository.findAllById(dto.getReviewerIds())
+                    );
+                    scholarship.setReviewers(reviewers);
                 }
 
                 // Update committee assignments - remove from old committees

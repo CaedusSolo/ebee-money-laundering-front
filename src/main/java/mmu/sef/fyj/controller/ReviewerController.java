@@ -63,7 +63,13 @@ public class ReviewerController {
     public ResponseEntity<?> makeDecision(@PathVariable Integer applicationId, @RequestBody Map<String, String> payload) {
         try {
             String decision = payload.get("decision"); // APPROVE or REJECT
-            Map<String, Object> result = reviewerService.approveApplication(applicationId, decision);
+            Integer reviewerId = payload.get("reviewerId") != null ? Integer.parseInt(payload.get("reviewerId")) : null;
+            
+            if (reviewerId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "reviewerId is required"));
+            }
+            
+            Map<String, Object> result = reviewerService.approveApplication(applicationId, decision, reviewerId);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));

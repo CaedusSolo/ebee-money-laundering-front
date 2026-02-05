@@ -1,6 +1,7 @@
 package mmu.sef.fyj.controller;
 
 import mmu.sef.fyj.dto.ApplicationDetailsDTO;
+import mmu.sef.fyj.model.ScholarshipCommittee;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.service.ScholarshipCommitteeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,11 @@ public class ScholarshipCommitteeController {
 
     @Autowired
     private ScholarshipCommitteeService committeeService;
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getAllCommitteeMembers() {
+        return ResponseEntity.ok(committeeService.findAll());
+    }
 
     @GetMapping("/dashboard/{userId}")
     public ResponseEntity<?> getDashboard(@PathVariable Integer userId) {

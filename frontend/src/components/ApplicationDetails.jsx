@@ -90,21 +90,23 @@ export default function ApplicationDetails({ applicationId, onBack }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${currentUser?.token}`,
           },
-          body: JSON.stringify({ decision: approvalDecision }),
+          body: JSON.stringify({ 
+            decision: approvalDecision,
+            reviewerId: currentUser?.reviewerId?.toString()
+          }),
         },
       );
 
       if (response.ok) {
         const result = await response.json();
-        const successText =
-          approvalDecision === "APPROVE" ? "approved" : "rejected";
-        setSuccessMessage(`Application ${successText} successfully`);
+        setSuccessMessage(result.message || `Application ${approvalDecision.toLowerCase()}d successfully`);
         // Refresh the application details
         setTimeout(() => {
           fetchApplicationDetails();
         }, 1000);
       } else {
-        setError("Failed to submit decision");
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to submit decision");
       }
     } catch (err) {
       setError("Error submitting decision");
@@ -232,6 +234,39 @@ export default function ApplicationDetails({ applicationId, onBack }) {
               </div>
             </div>
           </div>
+
+          {/* Reviewer Approval Progress */}
+          {application?.reviewerApprovals && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Reviewer Approval Status
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">
+                    Approvals: {application.reviewerApprovals.length} / {application.requiredApprovals || 3}
+                  </span>
+                  <div className="flex gap-2">
+                    {[...Array(application.requiredApprovals || 3)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-3 h-3 rounded-full ${
+                          i < application.reviewerApprovals.length
+                            ? "bg-green-500"
+                            : "bg-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {application.reviewerApprovals.length > 0 && (
+                  <p className="text-sm text-gray-600">
+                    Reviewer IDs: {application.reviewerApprovals.join(", ")}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Application Details */}
           <div className="bg-white rounded-lg shadow p-6">
@@ -538,8 +573,10 @@ export default function ApplicationDetails({ applicationId, onBack }) {
               </div>
             </div>
 
-            {/* Decision Buttons - Only show for PENDING_APPROVAL applications */}
-            {application?.status === "PENDING_APPROVAL" && (
+            {/* Decision Buttons - Show for applications that need approval */}
+            {(application?.status === "PENDING_APPROVAL" || 
+              application?.status === "UNDER_REVIEW") && 
+             (!application?.reviewerApprovals?.includes(currentUser?.reviewerId)) && (
                 <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-500">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">
                     Final Decision

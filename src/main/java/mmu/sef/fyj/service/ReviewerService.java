@@ -4,8 +4,10 @@ import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.Reviewer;
 import mmu.sef.fyj.model.ApplicationStatus;
 import mmu.sef.fyj.model.Grade;
+import mmu.sef.fyj.model.Scholarship;
 import mmu.sef.fyj.repository.ApplicationRepository;
 import mmu.sef.fyj.repository.ReviewerRepository;
+import mmu.sef.fyj.repository.ScholarshipRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,9 @@ public class ReviewerService {
 
     @Autowired
     private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private ScholarshipRepository scholarshipRepository;
 
     public List<Reviewer> findAll() {
         return reviewerRepository.findAll();
@@ -103,6 +108,19 @@ public class ReviewerService {
         application.put("submittedAt", app.getSubmittedAt());
         application.put("createdAt", app.getCreatedAt());
         
+        // Reviewer approvals
+        application.put("reviewerApprovals", app.getReviewerApprovals());
+        
+        // Get scholarship to determine required approvals
+        Optional<Scholarship> scholarshipOpt = scholarshipRepository.findById(app.getScholarshipID());
+        if (scholarshipOpt.isPresent()) {
+            int assignedReviewers = scholarshipOpt.get().getReviewers() != null ? 
+                scholarshipOpt.get().getReviewers().size() : 0;
+            application.put("requiredApprovals", assignedReviewers > 0 ? assignedReviewers : 3);
+        } else {
+            application.put("requiredApprovals", 3);
+        }
+        
         // Address information
         Map<String, Object> address = new HashMap<>();
         address.put("homeAddress", app.getHomeAddress());
@@ -151,7 +169,7 @@ public class ReviewerService {
     }
 
     @Transactional
-    public Map<String, Object> approveApplication(Integer applicationId, String decision) {
+    public Map<String, Object> approveApplication(Integer applicationId, String decision, Integer reviewerId) {
         Map<String, Object> response = new HashMap<>();
         
         Optional<Application> optionalApp = applicationRepository.findById(applicationId);
@@ -164,28 +182,62 @@ public class ReviewerService {
         
         Application app = optionalApp.get();
         
-        // Update application status based on decision
-        ApplicationStatus newStatus;
-        if ("APPROVE".equalsIgnoreCase(decision)) {
-            newStatus = ApplicationStatus.APPROVED;
-        } else if ("REJECT".equalsIgnoreCase(decision)) {
-            newStatus = ApplicationStatus.REJECTED;
-        } else {
-            response.put("success", false);
-            response.put("error", "Invalid decision. Must be APPROVE or REJECT");
+        // Handle rejection - any reviewer can reject
+        if ("REJECT".equalsIgnoreCase(decision)) {
+            app.setStatus(ApplicationStatus.REJECTED);
+            applicationRepository.save(app);
+            
+            response.put("success", true);
+            response.put("applicationID", applicationId);
+            response.put("status", ApplicationStatus.REJECTED.toString());
+            response.put("reviewedAt", LocalDateTime.now());
+            response.put("message", "Application rejected successfully");
             return response;
         }
         
-        // Update the application
-        app.setStatus(newStatus);
-        applicationRepository.save(app);
+        // Handle approval
+        if ("APPROVE".equalsIgnoreCase(decision)) {
+            // Add this reviewer's approval
+            app.addReviewerApproval(reviewerId);
+            
+            // Get the scholarship to check how many reviewers are assigned
+            Optional<Scholarship> scholarshipOpt = scholarshipRepository.findById(app.getScholarshipID());
+            
+            int requiredApprovals = 3; // Default to 3
+            if (scholarshipOpt.isPresent()) {
+                Scholarship scholarship = scholarshipOpt.get();
+                // Count the number of assigned reviewers
+                int assignedReviewers = scholarship.getReviewers() != null ? scholarship.getReviewers().size() : 0;
+                if (assignedReviewers > 0) {
+                    requiredApprovals = assignedReviewers;
+                }
+            }
+            
+            int currentApprovals = app.getReviewerApprovals().size();
+            
+            if (currentApprovals >= requiredApprovals) {
+                app.setStatus(ApplicationStatus.APPROVED);
+                response.put("message", "Application fully approved by all reviewers");
+            } else {
+                app.setStatus(ApplicationStatus.UNDER_REVIEW);
+                response.put("message", String.format("Application approved by reviewer. Waiting for %d more approval(s)", 
+                    requiredApprovals - currentApprovals));
+            }
+            
+            applicationRepository.save(app);
+            
+            response.put("success", true);
+            response.put("applicationID", applicationId);
+            response.put("status", app.getStatus().toString());
+            response.put("reviewedAt", LocalDateTime.now());
+            response.put("approvalsCount", currentApprovals);
+            response.put("requiredApprovals", requiredApprovals);
+            
+            return response;
+        }
         
-        response.put("success", true);
-        response.put("applicationID", applicationId);
-        response.put("status", newStatus.toString());
-        response.put("reviewedAt", LocalDateTime.now());
-        response.put("message", "Application " + decision.toLowerCase() + "d successfully");
-        
+        response.put("success", false);
+        response.put("error", "Invalid decision. Must be APPROVE or REJECT");
         return response;
     }
 
