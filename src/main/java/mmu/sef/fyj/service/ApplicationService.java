@@ -275,6 +275,9 @@ public class ApplicationService {
         // Parse bumiputera
         app.setBumiputera("yes".equalsIgnoreCase(request.getBumiputera()));
 
+        // Home address
+        app.setHomeAddress(request.getHomeAddress());
+
         // Parse income
         try {
             if (request.getMonthlyHouseholdIncome() != null) {

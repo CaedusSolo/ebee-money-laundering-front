@@ -36,6 +36,8 @@ public class NewApplicationRequest {
     @NotBlank(message = "Gender is required")
     private String gender;
 
+    private String homeAddress;
+
     @NotBlank(message = "Monthly household income is required")
     private String monthlyHouseholdIncome;
 
@@ -213,6 +215,14 @@ public class NewApplicationRequest {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getHomeAddress() {
+        return homeAddress;
+    }
+
+    public void setHomeAddress(String homeAddress) {
+        this.homeAddress = homeAddress;
     }
 
     public String getMonthlyHouseholdIncome() {

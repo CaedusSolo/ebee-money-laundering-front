@@ -372,14 +372,19 @@ export default function ApplicationDetails({ applicationId, onBack }) {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Address
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <p className="font-medium text-gray-900">
                   {application?.address?.homeAddress}
                 </p>
-                <p className="text-gray-600">
-                  {application?.address?.city}, {application?.address?.zipCode},{" "}
-                  {application?.address?.state}
-                </p>
+                {application?.address?.city && (
+                  <p className="text-gray-600">{application?.address?.city}</p>
+                )}
+                {application?.address?.zipCode && (
+                  <p className="text-gray-600">{application?.address?.zipCode}</p>
+                )}
+                {application?.address?.state && (
+                  <p className="text-gray-600">{application?.address?.state}</p>
+                )}
               </div>
             </div>
 

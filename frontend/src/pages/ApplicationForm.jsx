@@ -23,6 +23,7 @@ export default function ApplicationForm() {
     nationality: "",
     bumiputera: "",
     gender: "",
+    homeAddress: "",
     monthlyHouseholdIncome: "",
     // Academic Info
     university: "",
