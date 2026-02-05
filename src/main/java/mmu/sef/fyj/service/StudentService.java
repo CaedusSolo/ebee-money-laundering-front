@@ -1,11 +1,16 @@
 package mmu.sef.fyj.service;
 
+import mmu.sef.fyj.model.Application;
+import mmu.sef.fyj.model.Scholarship;
 import mmu.sef.fyj.model.Student;
+import mmu.sef.fyj.repository.ApplicationRepository;
+import mmu.sef.fyj.repository.ScholarshipRepository;
 import mmu.sef.fyj.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -13,6 +18,12 @@ public class StudentService {
     
     @Autowired
     private StudentRepository studentRepository;
+    
+    @Autowired
+    private ApplicationRepository applicationRepository;
+    
+    @Autowired
+    private ScholarshipRepository scholarshipRepository;
 
     public Map<String, Object> getStudentDashboard(Integer studentId) {
         Map<String, Object> dashboard = new HashMap<>();
@@ -34,30 +45,33 @@ public class StudentService {
         studentData.put("email", student.getEmail());
         studentData.put("profileImage", student.getProfileImage() != null ? student.getProfileImage() : "user.jpg");
 
-        // TODO: Fetch actual applications from database when Application entity is ready
-        // For now, using dummy data
+        // Fetch actual applications from database
+        List<Application> studentApplications = applicationRepository.findByStudentID(studentId);
         List<Map<String, Object>> applications = new ArrayList<>();
         
-        Map<String, Object> app1 = new HashMap<>();
-        app1.put("applicationId", 1);
-        app1.put("scholarshipName", "Merit's Scholarship");
-        app1.put("status", "UNDER REVIEW");
-        app1.put("submittedDate", "15/01/2026");
-        applications.add(app1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         
-        Map<String, Object> app2 = new HashMap<>();
-        app2.put("applicationId", 2);
-        app2.put("scholarshipName", "President's Scholarship");
-        app2.put("status", "ACCEPTED");
-        app2.put("submittedDate", "10/01/2026");
-        applications.add(app2);
-        
-        Map<String, Object> app3 = new HashMap<>();
-        app3.put("applicationId", 3);
-        app3.put("scholarshipName", "High Achiever's Scholarship");
-        app3.put("status", "PENDING_APPROVAL");
-        app3.put("submittedDate", "20/01/2026");
-        applications.add(app3);
+        for (Application app : studentApplications) {
+            Map<String, Object> appData = new HashMap<>();
+            appData.put("applicationId", app.getApplicationID());
+            
+            // Fetch scholarship name
+            Optional<Scholarship> scholarship = scholarshipRepository.findById(app.getScholarshipID());
+            String scholarshipName = scholarship.isPresent() ? scholarship.get().getName() : "Unknown Scholarship";
+            appData.put("scholarshipName", scholarshipName);
+            
+            // Format status
+            String status = app.getStatus().name();
+            appData.put("status", status);
+            
+            // Format submitted date
+            String submittedDate = app.getSubmittedAt() != null 
+                ? app.getSubmittedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                : "Not submitted";
+            appData.put("submittedDate", submittedDate);
+            
+            applications.add(appData);
+        }
         
         dashboard.put("student", studentData);
         dashboard.put("applications", applications);

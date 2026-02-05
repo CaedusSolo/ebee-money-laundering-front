@@ -4,8 +4,10 @@ import jakarta.validation.Valid;
 import mmu.sef.fyj.dto.LoginRequest;
 import mmu.sef.fyj.dto.RegisterRequest;
 import mmu.sef.fyj.dto.ResetPasswordRequest;
+import mmu.sef.fyj.model.Student;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.model.Reviewer;
+import mmu.sef.fyj.repository.StudentRepository;
 import mmu.sef.fyj.repository.UserRepository;
 import mmu.sef.fyj.repository.ReviewerRepository;
 import mmu.sef.fyj.service.AuthService;
@@ -40,6 +42,9 @@ public class AuthController {
 
     @Autowired
     private ReviewerRepository reviewerRepository;
+    
+    @Autowired
+    private StudentRepository studentRepository;
 
     @PostMapping("/register/student")
     public ResponseEntity<?> registerStudent(@Valid @RequestBody RegisterRequest request) { // Changed to DTO
@@ -67,8 +72,20 @@ public class AuthController {
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("role", user.getRole());
-            response.put("user", user);
+            response.put("userId", user.getId());
+            response.put("name", user.getName());
+            response.put("email", user.getEmail());
 
+            // If user is a student, include student ID
+            if (user.getRole().toString().equals("STUDENT")) {
+                Optional<Student> student = studentRepository.findByEmail(user.getEmail());
+                if (student.isPresent()) {
+                    response.put("id", student.get().getStudentId());
+                    response.put("studentId", student.get().getStudentId());
+                    response.put("studentUniId", student.get().getStudentUniId());
+                }
+            }
+            
             // If user is a reviewer, include reviewer ID
             if (user.getRole().toString().equals("REVIEWER")) {
                 Optional<Reviewer> reviewer = reviewerRepository.findByEmail(user.getEmail());

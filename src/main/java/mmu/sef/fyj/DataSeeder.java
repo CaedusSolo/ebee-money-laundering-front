@@ -17,6 +17,7 @@ import java.util.Random;
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
     private final ScholarshipRepository scholarshipRepository;
     private final ApplicationRepository applicationRepository;
     private final ScholarshipCommitteeRepository committeeRepository;
@@ -24,12 +25,14 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     public DataSeeder(UserRepository userRepository,
+            StudentRepository studentRepository,
             ScholarshipRepository scholarshipRepository,
             ApplicationRepository applicationRepository,
             ScholarshipCommitteeRepository committeeRepository,
             ReviewerRepository reviewerRepository,
             PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
         this.scholarshipRepository = scholarshipRepository;
         this.applicationRepository = applicationRepository;
         this.committeeRepository = committeeRepository;
@@ -108,6 +111,12 @@ public class DataSeeder implements CommandLineRunner {
 
             User user = new User(name, email, encodedPassword, role, studentId);
             userRepository.save(user);
+            
+            // Create Student record for STUDENT role
+            if (role == Role.STUDENT && !studentRepository.existsByEmail(email)) {
+                Student student = new Student(name, studentId, email, encodedPassword);
+                studentRepository.save(student);
+            }
 
             if (role == Role.COMMITTEE && !committeeRepository.existsByEmail(email)) {
                 ScholarshipCommittee sc = new ScholarshipCommittee();

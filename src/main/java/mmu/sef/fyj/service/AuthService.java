@@ -1,7 +1,9 @@
 package mmu.sef.fyj.service;
 
 import mmu.sef.fyj.model.Role;
+import mmu.sef.fyj.model.Student;
 import mmu.sef.fyj.model.User;
+import mmu.sef.fyj.repository.StudentRepository;
 import mmu.sef.fyj.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +14,9 @@ public class AuthService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private StudentRepository studentRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -24,8 +29,15 @@ public class AuthService {
         // Use standard BCrypt encoding
         String encodedPassword = passwordEncoder.encode(password);
 
+        // Create User record
         User newUser = new User(name, email, encodedPassword, Role.STUDENT, studentId);
-        return userRepository.save(newUser);
+        newUser = userRepository.save(newUser);
+        
+        // Create Student record
+        Student student = new Student(name, studentId, email, encodedPassword);
+        studentRepository.save(student);
+
+        return newUser;
     }
 
     public void resetPassword(String email, String newPassword) throws Exception {
