@@ -242,8 +242,8 @@ public class ApplicationService {
     public Application createFromApplicationRequest(NewApplicationRequest request, Integer studentId) {
         Application app = new Application();
 
-        // Set IDs
-        app.setScholarshipID(1); // Default scholarship
+        // Set IDs - use the scholarshipID from request, default to 1 if not provided
+        app.setScholarshipID(request.getScholarshipID() != null ? request.getScholarshipID() : 1);
         app.setStudentID(studentId);
 
         // Personal info

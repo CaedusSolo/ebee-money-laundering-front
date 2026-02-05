@@ -8,6 +8,9 @@ import java.util.List;
 
 public class NewApplicationRequest {
 
+    // Scholarship ID
+    private Integer scholarshipID;
+
     // Personal Info
     @NotBlank(message = "First name is required")
     private String firstName;
@@ -140,6 +143,14 @@ public class NewApplicationRequest {
     }
 
     // Getters and Setters
+    public Integer getScholarshipID() {
+        return scholarshipID;
+    }
+
+    public void setScholarshipID(Integer scholarshipID) {
+        this.scholarshipID = scholarshipID;
+    }
+
     public String getFirstName() {
         return firstName;
     }
