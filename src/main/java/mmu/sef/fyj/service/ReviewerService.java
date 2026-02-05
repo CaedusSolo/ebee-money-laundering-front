@@ -218,7 +218,8 @@ public class ReviewerService {
                 app.setStatus(ApplicationStatus.APPROVED);
                 response.put("message", "Application fully approved by all reviewers");
             } else {
-                app.setStatus(ApplicationStatus.UNDER_REVIEW);
+                // Keep status as PENDING_APPROVAL so other reviewers can still see and approve it
+                app.setStatus(ApplicationStatus.PENDING_APPROVAL);
                 response.put("message", String.format("Application approved by reviewer. Waiting for %d more approval(s)", 
                     requiredApprovals - currentApprovals));
             }
@@ -300,35 +301,52 @@ public class ReviewerService {
         List<Map<String, Object>> reviews = new ArrayList<>();
         int totalNormalizedScore = 0;
         
-        // Parse stored committee reviews from grades
+        // Group grades by committee member
+        Map<Integer, Map<String, Object>> committeeReviewsMap = new HashMap<>();
+        
         if (grades != null) {
             for (Grade grade : grades) {
-                if (grade.getCategory() != null && grade.getCategory().startsWith("COMMITTEE_REVIEW_")) {
-                    try {
-                        // Parse the JSON-like string stored in remarks
-                        String remarkStr = grade.getRemarks();
-                        Map<String, Object> review = new HashMap<>();
-                        
-                        // Simple JSON parsing - extract values
-                        review.put("reviewID", extractJsonValue(remarkStr, "reviewID", Integer.class));
-                        review.put("committeeMemberName", extractJsonValue(remarkStr, "committeeMemberName", String.class));
-                        review.put("committeeMemberRole", extractJsonValue(remarkStr, "committeeMemberRole", String.class));
-                        review.put("academicRubric", extractJsonValue(remarkStr, "academicRubric", Integer.class));
-                        review.put("cocurricularRubric", extractJsonValue(remarkStr, "cocurricularRubric", Integer.class));
-                        review.put("leadershipRubric", extractJsonValue(remarkStr, "leadershipRubric", Integer.class));
-                        review.put("rawScore", extractJsonValue(remarkStr, "rawScore", Integer.class));
-                        review.put("normalizedScore", grade.getScore()); // Already in database
-                        review.put("comment", extractJsonValue(remarkStr, "comment", String.class));
-                        review.put("submittedAt", LocalDateTime.now().toString());
-                        
-                        reviews.add(review);
-                        totalNormalizedScore += grade.getScore();
-                    } catch (Exception e) {
-                        // Log error but continue processing other reviews
-                        System.err.println("Error parsing committee review: " + e.getMessage());
-                        e.printStackTrace();
+                Integer committeeId = grade.getCommitteeId();
+                if (committeeId != null) {
+                    // Get or create review for this committee member
+                    committeeReviewsMap.putIfAbsent(committeeId, new HashMap<>());
+                    Map<String, Object> review = committeeReviewsMap.get(committeeId);
+                    
+                    // Store committee info on first grade
+                    if (!review.containsKey("reviewID")) {
+                        review.put("reviewID", committeeId);
+                        review.put("committeeMemberName", "Committee Member " + committeeId);
+                        review.put("committeeMemberRole", "Committee Member");
+                        review.put("comment", grade.getRemarks() != null ? grade.getRemarks() : "No comments provided");
+                    }
+                    
+                    // Store rubric scores based on category
+                    String category = grade.getCategory();
+                    if ("ACADEMIC".equals(category)) {
+                        review.put("academicRubric", grade.getScore());
+                    } else if ("CURRICULUM".equals(category) || "COCURRICULAR".equals(category)) {
+                        review.put("cocurricularRubric", grade.getScore());
+                    } else if ("LEADERSHIP".equals(category)) {
+                        review.put("leadershipRubric", grade.getScore());
                     }
                 }
+            }
+            
+            // Calculate normalized scores and format reviews
+            for (Map<String, Object> review : committeeReviewsMap.values()) {
+                int academic = (Integer) review.getOrDefault("academicRubric", 0);
+                int cocurricular = (Integer) review.getOrDefault("cocurricularRubric", 0);
+                int leadership = (Integer) review.getOrDefault("leadershipRubric", 0);
+                
+                int rawScore = academic + cocurricular + leadership;
+                int normalizedScore = (rawScore * 100) / 60; // Assuming max 20 per rubric
+                
+                review.put("rawScore", rawScore);
+                review.put("normalizedScore", normalizedScore);
+                review.put("submittedAt", LocalDateTime.now().toString());
+                
+                reviews.add(review);
+                totalNormalizedScore += normalizedScore;
             }
         }
         
