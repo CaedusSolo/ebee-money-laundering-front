@@ -16,12 +16,15 @@ import mmu.sef.fyj.dto.NewApplicationRequest;
 import mmu.sef.fyj.model.Scholarship;
 import mmu.sef.fyj.model.Application;
 import mmu.sef.fyj.model.User;
+import mmu.sef.fyj.model.Student;
 import mmu.sef.fyj.service.ScholarshipService;
 import mmu.sef.fyj.service.ApplicationService;
+import mmu.sef.fyj.service.StudentService;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 
 @RestController
@@ -30,10 +33,12 @@ public class ScholarshipController {
 
     private final ScholarshipService scholarshipService;
     private final ApplicationService applicationService;
+    private final StudentService studentService;
 
-    public ScholarshipController(ScholarshipService scholarshipService, ApplicationService applicationService) {
+    public ScholarshipController(ScholarshipService scholarshipService, ApplicationService applicationService, StudentService studentService) {
         this.scholarshipService = scholarshipService;
         this.applicationService = applicationService;
+        this.studentService = studentService;
     }
 
     @GetMapping
@@ -76,7 +81,20 @@ public class ScholarshipController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             User currentUser = (User) authentication.getPrincipal();
 
-            Application application = applicationService.createFromApplicationRequest(request, currentUser.getId());
+            // Find the student record by email to get the correct student ID
+            Optional<Student> studentOpt = studentService.findByEmail(currentUser.getEmail());
+            
+            if (studentOpt.isEmpty()) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("status", "error");
+                error.put("message", "Student record not found for the authenticated user");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+            
+            Student student = studentOpt.get();
+            Integer studentId = student.getStudentId();
+
+            Application application = applicationService.createFromApplicationRequest(request, studentId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("applicationId", application.getApplicationID());

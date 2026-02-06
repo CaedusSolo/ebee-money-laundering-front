@@ -120,7 +120,7 @@ public class ScholarshipCommitteeService {
                 .count();
 
         if (currentGradersCount >= requiredGraders && requiredGraders > 0) {
-            app.setStatus(ApplicationStatus.GRADED);
+            app.setStatus(ApplicationStatus.PENDING_APPROVAL);
         } else {
             app.setStatus(ApplicationStatus.UNDER_REVIEW);
         }
