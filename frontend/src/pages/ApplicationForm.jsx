@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PersonalInfoForm from "../components/PersonalInfoForm";
@@ -55,6 +55,24 @@ export default function ApplicationForm() {
   ]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Prefill student's full name from authenticated user when available
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const name =
+      currentUser.name ||
+      currentUser.fullName ||
+      currentUser.studentName ||
+      currentUser.username ||
+      currentUser.userName ||
+      (currentUser.student && currentUser.student.name) ||
+      "";
+
+    if (name) {
+      setFormData((prev) => ({ ...prev, name }));
+    }
+  }, [currentUser]);
 
   // Handle input changes - memoized to prevent re-renders
   const handleInputChange = useCallback((field, value) => {
@@ -209,6 +227,8 @@ export default function ApplicationForm() {
       // Build the application request body
       const applicationData = {
         ...formData,
+        // backend expects `fullName` (validated). Ensure we send it.
+        fullName: formData.name || formData.fullName || "",
         scholarshipID: scholarshipId,
         familyMembers: familyMembers,
         activities: activities,
@@ -238,7 +258,8 @@ export default function ApplicationForm() {
           state: {
             submissionSuccess: true,
             applicationId: result.applicationId,
-            scholarshipName: result.scholarshipName || scholarshipName || "Scholarship",
+            scholarshipName:
+              result.scholarshipName || scholarshipName || "Scholarship",
           },
         });
       } else {
