@@ -15,16 +15,12 @@ public class ScholarshipCommitteeService {
 
     @Autowired
     private ScholarshipCommitteeRepository scholarshipCommitteeRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private ScholarshipRepository scholarshipRepository;
-
     @Autowired
     private ApplicationRepository applicationRepository;
-
     @Autowired
     private ApplicationService applicationService;
 
@@ -39,9 +35,17 @@ public class ScholarshipCommitteeService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User account not found"));
 
-        ScholarshipCommittee committee = scholarshipCommitteeRepository.findByEmail(user.getEmail())
-                .orElseThrow(() -> new RuntimeException("Committee profile not found"));
+        // FIX: Graceful handling if the user exists but isn't in the committee table
+        Optional<ScholarshipCommittee> committeeOpt = scholarshipCommitteeRepository.findByEmail(user.getEmail());
 
+        if (committeeOpt.isEmpty()) {
+            // Return empty data instead of crashing
+            dashboard.put("scholarships", new HashMap<>());
+            dashboard.put("warning", "Account verified, but no Committee Profile linked to " + user.getEmail());
+            return dashboard;
+        }
+
+        ScholarshipCommittee committee = committeeOpt.get();
         Integer currentCommitteeId = committee.getCommitteeId();
         List<Integer> scholarshipIds = committee.getAssignedScholarshipIds();
 
@@ -50,11 +54,8 @@ public class ScholarshipCommitteeService {
             return dashboard;
         }
 
-        // FIX: Removed the .filter(app -> app.getStatus() == UNDER_REVIEW)
-        // We want to see ALL submitted applications so "Evaluated" items don't
-        // disappear when fully graded.
         List<Application> allAssignedApps = applicationRepository.findByScholarshipIDIn(scholarshipIds).stream()
-                .filter(app -> app.getStatus() != ApplicationStatus.DRAFT) // Only exclude drafts
+                .filter(app -> app.getStatus() != ApplicationStatus.DRAFT)
                 .collect(Collectors.toList());
 
         Map<Integer, String> scholarshipNames = scholarshipRepository.findAllById(scholarshipIds)
@@ -70,15 +71,14 @@ public class ScholarshipCommitteeService {
 
             Map<String, List<Map<String, Object>>> groups = new HashMap<>();
 
-            // Pending: I have NOT graded it yet
+            // Pending
             groups.put("pending", appsForThisType.stream()
                     .filter(app -> app.getGrades().stream()
-                            .noneMatch(
-                                    g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
+                            .noneMatch(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
                     .map(app -> mapToSummary(app, currentCommitteeId))
                     .toList());
 
-            // Evaluated: I HAVE graded it (Regardless of global status)
+            // Evaluated
             groups.put("evaluated", appsForThisType.stream()
                     .filter(app -> app.getGrades().stream()
                             .anyMatch(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(currentCommitteeId)))
@@ -96,25 +96,20 @@ public class ScholarshipCommitteeService {
     public void evaluateApplication(Integer applicationId, Map<String, Object> evaluationData, Integer userId) {
         Application app = applicationRepository.findById(applicationId).orElseThrow();
         User user = userRepository.findById(userId).orElseThrow();
-        ScholarshipCommittee committee = scholarshipCommitteeRepository.findByEmail(user.getEmail()).orElseThrow();
-        Integer committeeId = committee.getCommitteeId();
 
+        // Same safety check for evaluation
+        ScholarshipCommittee committee = scholarshipCommitteeRepository.findByEmail(user.getEmail())
+             .orElseThrow(() -> new RuntimeException("Committee profile not found. You cannot grade applications."));
+
+        Integer committeeId = committee.getCommitteeId();
         String remarks = (String) evaluationData.get("comments");
 
-        // 1. Remove any existing grades by this committee member (to allow
-        // updates/corrections)
         app.getGrades().removeIf(g -> g.getCommitteeId() != null && g.getCommitteeId().equals(committeeId));
 
-        // 2. Add new raw grades (0-20)
-        // We use .getGrades().add() to bypass any entity logic that might auto-set
-        // status
         app.getGrades().add(new Grade(committeeId, "ACADEMIC", parseInteger(evaluationData.get("academic")), remarks));
-        app.getGrades()
-                .add(new Grade(committeeId, "CURRICULUM", parseInteger(evaluationData.get("curriculum")), remarks));
-        app.getGrades()
-                .add(new Grade(committeeId, "LEADERSHIP", parseInteger(evaluationData.get("leadership")), remarks));
+        app.getGrades().add(new Grade(committeeId, "CURRICULUM", parseInteger(evaluationData.get("curriculum")), remarks));
+        app.getGrades().add(new Grade(committeeId, "LEADERSHIP", parseInteger(evaluationData.get("leadership")), remarks));
 
-        // 3. Determine Global Status based on Grader Count
         Scholarship scholarship = scholarshipRepository.findById(app.getScholarshipID()).orElseThrow();
         int requiredGraders = scholarship.getScholarshipCommittees().size();
 
@@ -124,10 +119,8 @@ public class ScholarshipCommitteeService {
                 .distinct()
                 .count();
 
-        // If everyone assigned has graded, mark as PENDING_APPROVAL (ready for reviewers). Otherwise, keep
-        // UNDER_REVIEW.
         if (currentGradersCount >= requiredGraders && requiredGraders > 0) {
-            app.setStatus(ApplicationStatus.PENDING_APPROVAL);
+            app.setStatus(ApplicationStatus.GRADED);
         } else {
             app.setStatus(ApplicationStatus.UNDER_REVIEW);
         }
@@ -136,15 +129,9 @@ public class ScholarshipCommitteeService {
     }
 
     private Integer parseInteger(Object obj) {
-        if (obj == null)
-            return 0;
-        if (obj instanceof Integer)
-            return (Integer) obj;
-        try {
-            return Integer.parseInt(obj.toString());
-        } catch (Exception e) {
-            return 0;
-        }
+        if (obj == null) return 0;
+        if (obj instanceof Integer) return (Integer) obj;
+        try { return Integer.parseInt(obj.toString()); } catch (Exception e) { return 0; }
     }
 
     public ApplicationDetailsDTO getFullApplicationDetails(Integer applicationId) {
@@ -172,12 +159,7 @@ public class ScholarshipCommitteeService {
 
         map.put("scores", scores);
         map.put("totalScore", rawTotal);
-        // "status" here is the relationship between ME and the APP.
-        // If I have graded it, I mark it GRADED so the UI knows to make it Read-Only.
         map.put("status", myGrades.isEmpty() ? "PENDING" : "GRADED");
-
-        // We can pass the real global status if needed for badges
-        map.put("globalStatus", app.getStatus().toString());
 
         return map;
     }
