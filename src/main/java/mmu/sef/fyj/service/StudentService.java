@@ -6,6 +6,8 @@ import mmu.sef.fyj.model.Student;
 import mmu.sef.fyj.repository.ApplicationRepository;
 import mmu.sef.fyj.repository.ScholarshipRepository;
 import mmu.sef.fyj.repository.StudentRepository;
+import mmu.sef.fyj.repository.UserRepository;
+import mmu.sef.fyj.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,9 @@ public class StudentService {
     
     @Autowired
     private ScholarshipRepository scholarshipRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     public Map<String, Object> getStudentDashboard(Integer studentId) {
         Map<String, Object> dashboard = new HashMap<>();
@@ -116,6 +121,42 @@ public class StudentService {
         response.put("message", "Profile image updated successfully");
         response.put("imageUrl", imageUrl);
         
+        return response;
+    }
+
+    public Map<String, Object> updateStudentEmail(Integer studentId, String newEmail) {
+        Map<String, Object> response = new HashMap<>();
+
+        // Validate input
+        if (newEmail == null || newEmail.isBlank()) {
+            throw new RuntimeException("Email cannot be empty");
+        }
+
+        // Check if new email already exists in students or users
+        if (studentRepository.existsByEmail(newEmail) || userRepository.existsByEmail(newEmail)) {
+            throw new RuntimeException("Email is already in use");
+        }
+
+        Optional<Student> studentOpt = studentRepository.findById(studentId);
+        if (studentOpt.isEmpty()) {
+            throw new RuntimeException("Student not found with ID: " + studentId);
+        }
+
+        Student student = studentOpt.get();
+        String oldEmail = student.getEmail();
+        student.setEmail(newEmail);
+        studentRepository.save(student);
+
+        // Update corresponding user record if present (find by old email)
+        userRepository.findByEmail(oldEmail).ifPresent(user -> {
+            user.setEmail(newEmail);
+            userRepository.save(user);
+        });
+
+        response.put("success", true);
+        response.put("message", "Email updated successfully");
+        response.put("email", newEmail);
+
         return response;
     }
 
