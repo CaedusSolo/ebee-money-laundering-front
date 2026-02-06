@@ -16,7 +16,7 @@ const PersonalInfoForm = ({
     // Check form validity only when key fields change
     useEffect(() => {
         const requiredFields = [
-            'fullName', 'phoneNumber', 
+            'name', 'phoneNumber', 
             'dateOfBirth', 'icNumber', 'nationality', 'bumiputera', 
             'gender', 'homeAddress', 'monthlyHouseholdIncome'
         ];
@@ -165,12 +165,12 @@ const PersonalInfoForm = ({
                     <div className="md:col-span-2">
                         <InputField 
                             label="Full Name" 
-                            field="fullName"
-                            value={formData.fullName}
+                            field="name"
+                            value={formData.name}
                             onChange={handleInputChange}
                             onValidate={handleValidationError}
-                            error={errors.fullName}
-                            validationType="fullName"
+                            error={errors.name}
+                            validationType="name"
                             disabled={true}
                         />
                     </div>

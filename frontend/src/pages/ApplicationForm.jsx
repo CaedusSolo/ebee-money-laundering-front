@@ -15,8 +15,7 @@ export default function ApplicationForm() {
 
   const [formData, setFormData] = useState({
     // Personal Info
-    firstName: "",
-    lastName: "",
+    name: "",
     phoneNumber: "",
     dateOfBirth: "",
     icNumber: "",

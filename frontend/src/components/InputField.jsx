@@ -188,7 +188,7 @@ const InputField = React.memo(({
                     </span>
                 )}
                 {disabled && (
-                    <span className="text-blue-600 font-normal normal-case ml-1 text-[10px]">
+                    <span className="text-gray-500 font-normal normal-case ml-1">
                         (Auto-filled from your account)
                     </span>
                 )}
