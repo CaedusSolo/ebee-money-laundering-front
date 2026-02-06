@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173")
 public class FileController {
 
     @Value("${file.upload-dir:uploads}")
@@ -65,12 +65,25 @@ public class FileController {
 
             return ResponseEntity.ok(response);
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to upload file: " + e.getMessage()));
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Failed to upload file: " + e.getMessage()));
         }
     }
 
+    // Endpoint to DOWNLOAD the file (Save As...)
     @GetMapping("/download/{filename}")
     public ResponseEntity<?> downloadFile(@PathVariable String filename) {
+        return serveFile(filename, "attachment");
+    }
+
+    // Endpoint to VIEW the file (Open in Browser/Preview)
+    @GetMapping("/view/{filename}")
+    public ResponseEntity<?> viewFile(@PathVariable String filename) {
+        return serveFile(filename, "inline");
+    }
+
+    // Helper method to handle file serving logic for both View and Download
+    private ResponseEntity<?> serveFile(String filename, String dispositionType) {
         try {
             Path filePath = uploadPath.resolve(filename).normalize();
 
@@ -89,16 +102,13 @@ public class FileController {
                 contentType = "application/octet-stream";
             }
 
-            String downloadFilename = UUID.randomUUID().toString();
-            String extension = "";
-            if (filename.contains(".")) {
-                extension = filename.substring(filename.lastIndexOf("."));
-                downloadFilename += extension;
-            }
+            // For download, we often want the original extension or a safe name
+            String downloadFilename = resource.getFilename();
 
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadFilename + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            dispositionType + "; filename=\"" + downloadFilename + "\"")
                     .body(resource);
         } catch (MalformedURLException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid file path"));
