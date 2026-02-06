@@ -1,7 +1,6 @@
 package mmu.sef.fyj.controller;
 
 import mmu.sef.fyj.dto.ApplicationDetailsDTO;
-import mmu.sef.fyj.model.ScholarshipCommittee;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.service.ScholarshipCommitteeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,20 +13,22 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/committee")
-@CrossOrigin(origins = "*") // Allow frontend access
+@CrossOrigin(origins = "*")
 public class ScholarshipCommitteeController {
 
     @Autowired
     private ScholarshipCommitteeService committeeService;
 
-    @GetMapping("/list")
-    public ResponseEntity<?> getAllCommitteeMembers() {
-        return ResponseEntity.ok(committeeService.findAll());
-    }
-
-    @GetMapping("/dashboard/{userId}")
-    public ResponseEntity<?> getDashboard(@PathVariable Integer userId) {
-        return ResponseEntity.ok(committeeService.getCommitteeDashboard(userId));
+    // FIX: Removed /{userId} path variable. Uses Token instead.
+    @GetMapping("/dashboard")
+    public ResponseEntity<?> getDashboard() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            User currentUser = (User) authentication.getPrincipal();
+            return ResponseEntity.ok(committeeService.getCommitteeDashboard(currentUser.getId()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @GetMapping("/application/{id}")
