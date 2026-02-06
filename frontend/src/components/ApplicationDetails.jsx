@@ -344,6 +344,12 @@ export default function ApplicationDetails({ applicationId, onBack }) {
                       {application?.education?.studyLevel}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-sm text-gray-600">CGPA</p>
+                    <p className="font-medium text-gray-900">
+                      {application?.education?.cgpa ? application.education.cgpa.toFixed(2) : "N/A"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

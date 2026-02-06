@@ -101,6 +101,7 @@ export default function ApplicationForm() {
 
   // Handle input changes - memoized to prevent re-renders
   const handleInputChange = useCallback((field, value) => {
+    console.log(`Field changed: ${field} = ${value}`); // DEBUG
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -252,9 +253,10 @@ export default function ApplicationForm() {
       // Build the application request body
       const applicationData = {
         ...formData,
-        // backend expects `fullName` (validated). Ensure we send it.
         fullName: formData.name || formData.fullName || "",
         scholarshipID: scholarshipId,
+        // Explicitly include cgpa to ensure it's sent properly
+        cgpa: formData.cgpa || "",
         familyMembers: familyMembers,
         activities: activities,
         transcript: uploadedFiles.transcript || null,
@@ -308,6 +310,8 @@ export default function ApplicationForm() {
     files,
     navigate,
     currentUser,
+    scholarshipId,
+    scholarshipName,
   ]);
 
   return (

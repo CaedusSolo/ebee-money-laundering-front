@@ -135,6 +135,7 @@ public class ReviewerService {
         education.put("expectedGraduationYear", app.getExpectedGraduationYear());
         education.put("major", app.getMajor());
         education.put("studyLevel", app.getStudyLevel() != null ? app.getStudyLevel().toString() : "N/A");
+        education.put("cgpa", app.getCgpa());
         application.put("education", education);
         
         // Family members information
