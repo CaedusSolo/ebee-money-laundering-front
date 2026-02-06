@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import PersonalInfoForm from "../components/PersonalInfoForm";
 import AcademicInfoForm from "../components/AcademicInfoForm";
 import Navbar from "../components/Navbar";
+import ScholarshipService from "../services/ScholarshipService";
 
 export default function ApplicationForm() {
   const navigate = useNavigate();
@@ -55,6 +56,30 @@ export default function ApplicationForm() {
   ]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scholarshipDetails, setScholarshipDetails] = useState(null);
+  const [loadingScholarship, setLoadingScholarship] = useState(false);
+
+  // Fetch scholarship details when scholarshipId changes
+  useEffect(() => {
+    if (!scholarshipId || !currentUser?.token) return;
+
+    const fetchScholarshipDetails = async () => {
+      try {
+        setLoadingScholarship(true);
+        console.log("Fetching scholarship details for ID:", scholarshipId);
+        const service = new ScholarshipService(currentUser.token);
+        const details = await service.getScholarshipById(scholarshipId);
+        console.log("Scholarship details loaded:", details);
+        setScholarshipDetails(details);
+      } catch (error) {
+        console.error("Failed to fetch scholarship details:", error);
+      } finally {
+        setLoadingScholarship(false);
+      }
+    };
+
+    fetchScholarshipDetails();
+  }, [scholarshipId, currentUser?.token]);
 
   // Prefill student's full name from authenticated user when available
   useEffect(() => {
@@ -76,6 +101,7 @@ export default function ApplicationForm() {
 
   // Handle input changes - memoized to prevent re-renders
   const handleInputChange = useCallback((field, value) => {
+    console.log(`Field changed: ${field} = ${value}`); // DEBUG
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -227,9 +253,10 @@ export default function ApplicationForm() {
       // Build the application request body
       const applicationData = {
         ...formData,
-        // backend expects `fullName` (validated). Ensure we send it.
         fullName: formData.name || formData.fullName || "",
         scholarshipID: scholarshipId,
+        // Explicitly include cgpa to ensure it's sent properly
+        cgpa: formData.cgpa || "",
         familyMembers: familyMembers,
         activities: activities,
         transcript: uploadedFiles.transcript || null,
@@ -283,6 +310,8 @@ export default function ApplicationForm() {
     files,
     navigate,
     currentUser,
+    scholarshipId,
+    scholarshipName,
   ]);
 
   return (
@@ -339,6 +368,7 @@ export default function ApplicationForm() {
                 errors={errors}
                 files={files}
                 activities={activities}
+                scholarshipDetails={scholarshipDetails}
                 handleInputChange={handleInputChange}
                 handleValidationError={handleValidationError}
                 handleFileChange={handleFileChange}

@@ -12,6 +12,8 @@ import mmu.sef.fyj.model.DocumentInfo;
 import mmu.sef.fyj.repository.ApplicationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 @Service
 public class ApplicationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationService.class);
     private final ApplicationRepository applicationRepository;
 
     public ApplicationService(ApplicationRepository applicationRepository) {
@@ -224,6 +227,15 @@ public class ApplicationService {
             app.setExpectedGraduationYear(2025);
         }
 
+        try {
+            String cgpaStr = formData.get("cgpa");
+            if (cgpaStr != null && !cgpaStr.isBlank()) {
+                app.setCgpa(Float.parseFloat(cgpaStr));
+            }
+        } catch (Exception e) {
+            app.setCgpa(null);
+        }
+
         // Study level
         try {
             String qualStr = formData.getOrDefault("highestQualification", "BACHELOR");
@@ -240,6 +252,8 @@ public class ApplicationService {
 
     @Transactional
     public Application createFromApplicationRequest(NewApplicationRequest request, Integer studentId) {
+        logger.info("Creating application from request. CGPA value received: '{}'", request.getCgpa());
+        
         Application app = new Application();
 
         // Set IDs - use the scholarshipID from request, default to 1 if not provided
@@ -263,7 +277,7 @@ public class ApplicationService {
                 app.setDateOfBirth(LocalDate.parse(request.getDateOfBirth()));
             }
         } catch (Exception e) {
-            // Handle date parse error
+            logger.error("Failed to parse date of birth: {}", request.getDateOfBirth(), e);
         }
 
         // Parse gender
@@ -273,6 +287,7 @@ public class ApplicationService {
                 app.setGender(Gender.valueOf(genderStr.toUpperCase()));
             }
         } catch (Exception e) {
+            logger.error("Failed to parse gender: {}", request.getGender(), e);
             app.setGender(Gender.MALE);
         }
 
@@ -288,6 +303,7 @@ public class ApplicationService {
                 app.setMonthlyFamilyIncome(Float.parseFloat(request.getMonthlyHouseholdIncome()));
             }
         } catch (Exception e) {
+            logger.error("Failed to parse monthly household income: {}", request.getMonthlyHouseholdIncome(), e);
             app.setMonthlyFamilyIncome(0f);
         }
 
@@ -300,6 +316,7 @@ public class ApplicationService {
                 app.setCurrentYearOfStudy(Integer.parseInt(request.getYear()));
             }
         } catch (Exception e) {
+            logger.error("Failed to parse year: {}", request.getYear(), e);
             app.setCurrentYearOfStudy(1);
         }
 
@@ -308,6 +325,7 @@ public class ApplicationService {
                 app.setExpectedGraduationYear(Integer.parseInt(request.getExpectedGraduation()));
             }
         } catch (Exception e) {
+            logger.error("Failed to parse expected graduation: {}", request.getExpectedGraduation(), e);
             app.setExpectedGraduationYear(2025);
         }
 
@@ -318,7 +336,29 @@ public class ApplicationService {
                 app.setStudyLevel(StudyLevel.valueOf(qualStr.toUpperCase()));
             }
         } catch (Exception e) {
+            logger.error("Failed to parse study level: {}", request.getHighestQualification(), e);
             app.setStudyLevel(StudyLevel.BACHELOR);
+        }
+
+        // CGPA 
+        try {
+            String cgpaStr = request.getCgpa();
+            logger.debug("Parsing CGPA. Raw value: '{}', isNull: {}, isEmpty: {}", 
+                cgpaStr, 
+                cgpaStr == null, 
+                cgpaStr != null && cgpaStr.isEmpty());
+            
+            if (cgpaStr != null && !cgpaStr.trim().isEmpty()) {
+                Float cgpaValue = Float.parseFloat(cgpaStr.trim());
+                app.setCgpa(cgpaValue);
+                logger.info("Successfully parsed CGPA: {}", cgpaValue);
+            } else {
+                logger.warn("CGPA is null or empty. Setting to null.");
+                app.setCgpa(null);
+            }
+        } catch (NumberFormatException e) {
+            logger.error("Failed to parse CGPA value: '{}'. Error: {}", request.getCgpa(), e.getMessage());
+            app.setCgpa(null);
         }
 
         // Family members
@@ -365,7 +405,7 @@ public class ApplicationService {
         // Submit the application
         app.submitApplication();
 
+        logger.info("Application created successfully. CGPA set to: {}", app.getCgpa());
         return applicationRepository.save(app);
     }
 }
-
