@@ -79,6 +79,24 @@ const validators = {
             return "Name must be at least 3 characters";
         }
         return null;
+    },
+    fullName: (value) => {
+        // Validate full name (must contain letters and spaces only)
+        const re = /^[a-zA-Z\s]+$/;
+        if (!value || value.trim().length === 0) {
+            return "Full name is required";
+        }
+        if (!re.test(value)) {
+            return "Name can only contain letters and spaces";
+        }
+        if (value.trim().length < 3) {
+            return "Full name must be at least 3 characters";
+        }
+        // Check if it contains at least one space (first and last name)
+        if (!value.trim().includes(' ')) {
+            return "Please enter your full name (first and last name)";
+        }
+        return null;
     }
 };
 
@@ -93,9 +111,14 @@ const InputField = React.memo(({
     error,
     validationType = null,
     required = true,
-    exampleFormat = ""
+    exampleFormat = "",
+    disabled = false,
+    readonly = false
 }) => {
     const handleChange = (e) => {
+        // Don't allow changes if disabled or readonly
+        if (disabled || readonly) return;
+        
         let newValue = e.target.value;
         
         // For phone numbers, auto-format with dash
@@ -164,6 +187,11 @@ const InputField = React.memo(({
                         (e.g., {exampleFormat})
                     </span>
                 )}
+                {disabled && (
+                    <span className="text-blue-600 font-normal normal-case ml-1 text-[10px]">
+                        (Auto-filled from your account)
+                    </span>
+                )}
             </label>
             <input
                 type={type}
@@ -171,7 +199,9 @@ const InputField = React.memo(({
                 value={value || ""}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className={`border ${error ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${error ? 'focus:ring-red-500' : 'focus:ring-blue-500'}`}
+                disabled={disabled}
+                readOnly={readonly}
+                className={`border ${error ? 'border-red-500' : disabled ? 'border-gray-200' : 'border-gray-300'} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 ${error ? 'focus:ring-red-500' : 'focus:ring-blue-500'} ${disabled ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : readonly ? 'bg-gray-50' : ''}`}
             />
             {error && (
                 <span className="text-red-500 text-xs mt-1">{error}</span>

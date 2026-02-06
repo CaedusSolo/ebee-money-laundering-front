@@ -16,7 +16,7 @@ const PersonalInfoForm = ({
     // Check form validity only when key fields change
     useEffect(() => {
         const requiredFields = [
-            'firstName', 'lastName', 'phoneNumber', 
+            'fullName', 'phoneNumber', 
             'dateOfBirth', 'icNumber', 'nationality', 'bumiputera', 
             'gender', 'homeAddress', 'monthlyHouseholdIncome'
         ];
@@ -162,24 +162,18 @@ const PersonalInfoForm = ({
                     Personal Information
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputField 
-                        label="First Name" 
-                        field="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.firstName}
-                        validationType="name"
-                    />
-                    <InputField 
-                        label="Last Name" 
-                        field="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        onValidate={handleValidationError}
-                        error={errors.lastName}
-                        validationType="name"
-                    />
+                    <div className="md:col-span-2">
+                        <InputField 
+                            label="Full Name" 
+                            field="fullName"
+                            value={formData.fullName}
+                            onChange={handleInputChange}
+                            onValidate={handleValidationError}
+                            error={errors.fullName}
+                            validationType="fullName"
+                            disabled={true}
+                        />
+                    </div>
                     <InputField 
                         label="Phone Number"
                         field="phoneNumber"
