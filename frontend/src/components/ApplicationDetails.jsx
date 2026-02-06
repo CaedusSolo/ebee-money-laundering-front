@@ -372,14 +372,19 @@ export default function ApplicationDetails({ applicationId, onBack }) {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Address
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <p className="font-medium text-gray-900">
                   {application?.address?.homeAddress}
                 </p>
-                <p className="text-gray-600">
-                  {application?.address?.city}, {application?.address?.zipCode},{" "}
-                  {application?.address?.state}
-                </p>
+                {application?.address?.city && (
+                  <p className="text-gray-600">{application?.address?.city}</p>
+                )}
+                {application?.address?.zipCode && (
+                  <p className="text-gray-600">{application?.address?.zipCode}</p>
+                )}
+                {application?.address?.state && (
+                  <p className="text-gray-600">{application?.address?.state}</p>
+                )}
               </div>
             </div>
 
@@ -509,7 +514,10 @@ export default function ApplicationDetails({ applicationId, onBack }) {
             )}
 
           {/* Message for applications not yet graded */}
-          {application?.status !== "GRADED" && (
+          {application?.status !== "GRADED" && 
+           application?.status !== "PENDING_APPROVAL" && 
+           application?.status !== "APPROVED" && 
+           application?.status !== "REJECTED" && (
             <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-6">
               <h3 className="text-lg font-bold text-blue-900 mb-2">
                 ℹ️ Judging In Progress
@@ -573,9 +581,8 @@ export default function ApplicationDetails({ applicationId, onBack }) {
               </div>
             </div>
 
-            {/* Decision Buttons - Show for applications that need approval */}
-            {(application?.status === "PENDING_APPROVAL" || 
-              application?.status === "UNDER_REVIEW") && 
+            {/* Decision Buttons - Only show for PENDING_APPROVAL after all judging is complete */}
+            {application?.status === "PENDING_APPROVAL" && 
              (!application?.reviewerApprovals?.includes(currentUser?.reviewerId)) && (
                 <div className="bg-white rounded-lg shadow-lg p-6 border-t-4 border-blue-500">
                   <h3 className="text-lg font-bold text-gray-900 mb-4">

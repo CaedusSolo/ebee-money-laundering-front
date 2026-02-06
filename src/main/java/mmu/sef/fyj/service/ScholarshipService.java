@@ -44,25 +44,37 @@ public class ScholarshipService {
 
     @Transactional
     public Scholarship create(ScholarshipDTO dto) {
+        // Validate exactly 3 reviewers are assigned
+        if (dto.getReviewerIds() == null || dto.getReviewerIds().size() != 3) {
+            throw new IllegalArgumentException("Exactly 3 reviewers must be assigned to a scholarship");
+        }
+
+        // Validate exactly 3 committee members are assigned
+        if (dto.getCommitteeIds() == null || dto.getCommitteeIds().size() != 3) {
+            throw new IllegalArgumentException("Exactly 3 committee members must be assigned to a scholarship");
+        }
+
         Scholarship scholarship = new Scholarship(
             dto.getName(),
             dto.getDescription(),
             dto.getApplicationDeadline()
         );
 
-        if (dto.getReviewerIds() != null && !dto.getReviewerIds().isEmpty()) {
-            Set<Reviewer> reviewers = new HashSet<>(
-                reviewerRepository.findAllById(dto.getReviewerIds())
-            );
-            scholarship.setReviewers(reviewers);
+        Set<Reviewer> reviewers = new HashSet<>(
+            reviewerRepository.findAllById(dto.getReviewerIds())
+        );
+        if (reviewers.size() != 3) {
+            throw new IllegalArgumentException("One or more reviewer IDs are invalid");
         }
+        scholarship.setReviewers(reviewers);
 
-        if (dto.getCommitteeIds() != null && !dto.getCommitteeIds().isEmpty()) {
-            Set<ScholarshipCommittee> committees = new HashSet<>(
-                committeeRepository.findAllById(dto.getCommitteeIds())
-            );
-            scholarship.setScholarshipCommittees(committees);
+        Set<ScholarshipCommittee> committees = new HashSet<>(
+            committeeRepository.findAllById(dto.getCommitteeIds())
+        );
+        if (committees.size() != 3) {
+            throw new IllegalArgumentException("One or more committee member IDs are invalid");
         }
+        scholarship.setScholarshipCommittees(committees);
 
         // Set eligibility criteria
         scholarship.setMinCGPA(dto.getMinCGPA());
@@ -89,18 +101,29 @@ public class ScholarshipService {
 
     @Transactional
     public Optional<Scholarship> update(Integer id, ScholarshipDTO dto) {
+        // Validate exactly 3 reviewers are assigned
+        if (dto.getReviewerIds() == null || dto.getReviewerIds().size() != 3) {
+            throw new IllegalArgumentException("Exactly 3 reviewers must be assigned to a scholarship");
+        }
+
+        // Validate exactly 3 committee members are assigned
+        if (dto.getCommitteeIds() == null || dto.getCommitteeIds().size() != 3) {
+            throw new IllegalArgumentException("Exactly 3 committee members must be assigned to a scholarship");
+        }
+
         return scholarshipRepository.findById(id)
             .map(scholarship -> {
                 scholarship.setName(dto.getName());
                 scholarship.setDescription(dto.getDescription());
                 scholarship.setApplicationDeadline(dto.getApplicationDeadline());
 
-                if (dto.getReviewerIds() != null) {
-                    Set<Reviewer> reviewers = new HashSet<>(
-                        reviewerRepository.findAllById(dto.getReviewerIds())
-                    );
-                    scholarship.setReviewers(reviewers);
+                Set<Reviewer> reviewers = new HashSet<>(
+                    reviewerRepository.findAllById(dto.getReviewerIds())
+                );
+                if (reviewers.size() != 3) {
+                    throw new IllegalArgumentException("One or more reviewer IDs are invalid");
                 }
+                scholarship.setReviewers(reviewers);
 
                 // Update committee assignments - remove from old committees
                 Set<Integer> oldCommitteeIds = scholarship.getScholarshipCommittees().stream()
@@ -108,7 +131,7 @@ public class ScholarshipService {
                     .collect(java.util.stream.Collectors.toSet());
 
                 for (Integer oldCommitteeId : oldCommitteeIds) {
-                    if (dto.getCommitteeIds() == null || !dto.getCommitteeIds().contains(oldCommitteeId)) {
+                    if (!dto.getCommitteeIds().contains(oldCommitteeId)) {
                         committeeRepository.findById(oldCommitteeId).ifPresent(committee -> {
                             committee.getAssignedScholarshipIds().remove(Integer.valueOf(id));
                             committeeRepository.save(committee);
@@ -116,21 +139,22 @@ public class ScholarshipService {
                     }
                 }
 
-                if (dto.getCommitteeIds() != null) {
-                    Set<ScholarshipCommittee> committees = new HashSet<>(
-                        committeeRepository.findAllById(dto.getCommitteeIds())
-                    );
-                    scholarship.setScholarshipCommittees(committees);
+                Set<ScholarshipCommittee> committees = new HashSet<>(
+                    committeeRepository.findAllById(dto.getCommitteeIds())
+                );
+                if (committees.size() != 3) {
+                    throw new IllegalArgumentException("One or more committee member IDs are invalid");
+                }
+                scholarship.setScholarshipCommittees(committees);
 
-                    // Add to new committees
-                    for (Integer committeeId : dto.getCommitteeIds()) {
-                        committeeRepository.findById(committeeId).ifPresent(committee -> {
-                            if (!committee.getAssignedScholarshipIds().contains(id)) {
-                                committee.getAssignedScholarshipIds().add(id);
-                                committeeRepository.save(committee);
-                            }
-                        });
-                    }
+                // Add to new committees
+                for (Integer committeeId : dto.getCommitteeIds()) {
+                    committeeRepository.findById(committeeId).ifPresent(committee -> {
+                        if (!committee.getAssignedScholarshipIds().contains(id)) {
+                            committee.getAssignedScholarshipIds().add(id);
+                            committeeRepository.save(committee);
+                        }
+                    });
                 }
 
                 // Update eligibility criteria

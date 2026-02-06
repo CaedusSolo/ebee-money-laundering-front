@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PersonalInfoForm from "../components/PersonalInfoForm";
 import AcademicInfoForm from "../components/AcademicInfoForm";
@@ -7,7 +7,10 @@ import Navbar from "../components/Navbar";
 
 export default function ApplicationForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser } = useAuth();
+  const scholarshipId = location.state?.scholarshipId;
+  const scholarshipName = location.state?.scholarshipName;
   const [currentStep, setCurrentStep] = useState(1); // 1 = Personal, 2 = Academic
 
   const [formData, setFormData] = useState({
@@ -20,6 +23,7 @@ export default function ApplicationForm() {
     nationality: "",
     bumiputera: "",
     gender: "",
+    homeAddress: "",
     monthlyHouseholdIncome: "",
     // Academic Info
     university: "",
@@ -206,6 +210,7 @@ export default function ApplicationForm() {
       // Build the application request body
       const applicationData = {
         ...formData,
+        scholarshipID: scholarshipId,
         familyMembers: familyMembers,
         activities: activities,
         transcript: uploadedFiles.transcript || null,
@@ -234,7 +239,7 @@ export default function ApplicationForm() {
           state: {
             submissionSuccess: true,
             applicationId: result.applicationId,
-            scholarshipName: result.scholarshipName || "Scholarship",
+            scholarshipName: result.scholarshipName || scholarshipName || "Scholarship",
           },
         });
       } else {

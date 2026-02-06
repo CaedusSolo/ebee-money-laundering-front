@@ -100,6 +100,13 @@ export default function ScholarshipDetailPage() {
       updatedCommitteeIds[index] = value;
       return { ...prev, scholarshipCommittees: updatedCommitteeIds };
     });
+    if (errors.committees) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.committees;
+        return newErrors;
+      });
+    }
   };
 
   const handleReviewerChange = (index, value) => {
@@ -108,6 +115,13 @@ export default function ScholarshipDetailPage() {
       updatedReviewers[index] = value;
       return { ...prev, reviewers: updatedReviewers };
     });
+    if (errors.reviewers) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.reviewers;
+        return newErrors;
+      });
+    }
   };
 
   const validateForm = () => {
@@ -121,6 +135,34 @@ export default function ScholarshipDetailPage() {
     }
     if (!formData.applicationDeadline) {
       newErrors.applicationDeadline = "Application deadline is required";
+    }
+
+    // Validate exactly 3 reviewers are assigned
+    const assignedReviewers = formData.reviewers.filter(id => id !== null && id !== "");
+    if (assignedReviewers.length !== 3) {
+      newErrors.reviewers = "Exactly 3 reviewers must be assigned";
+    }
+
+    // Validate exactly 3 committee members are assigned
+    const assignedCommittees = formData.scholarshipCommittees.filter(id => id !== null && id !== "");
+    if (assignedCommittees.length !== 3) {
+      newErrors.committees = "Exactly 3 committee members must be assigned";
+    }
+
+    // Validate Min CGPA is between 0 and 4
+    if (formData.minCGPA !== "" && formData.minCGPA !== null) {
+      const cgpa = parseFloat(formData.minCGPA);
+      if (isNaN(cgpa) || cgpa < 0 || cgpa > 4) {
+        newErrors.minCGPA = "Min CGPA must be between 0 and 4";
+      }
+    }
+
+    // Validate Min Graduation Year is >= current year (2026)
+    if (formData.minGraduationYear !== "" && formData.minGraduationYear !== null) {
+      const year = parseInt(formData.minGraduationYear);
+      if (isNaN(year) || year < 2026) {
+        newErrors.minGraduationYear = "Min Graduation Year must be 2026 or later";
+      }
     }
 
     setErrors(newErrors);
@@ -287,7 +329,7 @@ export default function ScholarshipDetailPage() {
                 {/* Reviewer Dropdowns */}
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-gray-700">
-                    Reviewers (up to 3)
+                    Reviewers (exactly 3 required)
                   </label>
                   <div className="grid gap-3 sm:grid-cols-1">
                     {[0, 1, 2].map((i) => (
@@ -297,10 +339,12 @@ export default function ScholarshipDetailPage() {
                         onChange={(e) => {
                           handleReviewerChange(i, e.target.value);
                         }}
-                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className={`w-full rounded-lg border ${
+                          errors.reviewers ? "border-red-500" : "border-gray-300"
+                        } bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
                         disabled={loadingOptions}
                       >
-                        <option value="">Reviewer {i + 1}</option>
+                        <option value="" disabled>Reviewer {i + 1}</option>
                         {reviewers.map((r) => (
                           <option key={r.reviewerId} value={r.reviewerId}>
                             {r.name} {r.email ? `(${r.email})` : ""}
@@ -309,12 +353,15 @@ export default function ScholarshipDetailPage() {
                       </select>
                     ))}
                   </div>
+                  {errors.reviewers && (
+                    <p className="text-red-600 text-sm mt-1">{errors.reviewers}</p>
+                  )}
                 </div>
 
                 {/* Scholarship Committee Dropdowns */}
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-gray-700">
-                    Scholarship Committee
+                    Scholarship Committee (exactly 3 required)
                   </label>
                   <div className="grid gap-3 sm:grid-cols-1">
                     {[0, 1, 2].map((i) => (
@@ -324,10 +371,12 @@ export default function ScholarshipDetailPage() {
                         onChange={(e) => {
                           handleCommitteeChange(i, e.target.value);
                         }}
-                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        className={`w-full rounded-lg border ${
+                          errors.committees ? "border-red-500" : "border-gray-300"
+                        } bg-white px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500`}
                         disabled={loadingOptions}
                       >
-                        <option value="">Committee member {i + 1}</option>
+                        <option value="" disabled>Committee member {i + 1}</option>
                         {committeeMembers.map((c) => (
                           <option key={c.committeeId} value={c.committeeId}>
                             {c.name} {c.email ? `(${c.email})` : ""}
@@ -336,6 +385,9 @@ export default function ScholarshipDetailPage() {
                       </select>
                     ))}
                   </div>
+                  {errors.committees && (
+                    <p className="text-red-600 text-sm mt-1">{errors.committees}</p>
+                  )}
                 </div>
 
                 {/* Eligibility Criteria */}
@@ -345,7 +397,9 @@ export default function ScholarshipDetailPage() {
                   </label>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {/* Min CGPA */}
-                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                    <div className={`flex items-center gap-2 rounded-lg border ${
+                      errors.minCGPA ? "border-red-500" : "border-gray-300"
+                    } px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500`}>
                       <span className="text-sm text-gray-500">Min CGPA:</span>
                       <input
                         type="number"
@@ -353,16 +407,20 @@ export default function ScholarshipDetailPage() {
                         min="0"
                         max="4"
                         value={formData.minCGPA ?? ""}
-                        onChange={(e) =>
-                          handleChange(
-                            "minCGPA",
-                            e.target.value ? parseFloat(e.target.value) : null,
-                          )
-                        }
+                        onChange={(e) => {
+                          let value = e.target.value ? parseFloat(e.target.value) : null;
+                          if (value !== null) {
+                            value = Math.max(0, Math.min(4, value));
+                          }
+                          handleChange("minCGPA", value);
+                        }}
                         placeholder="e.g. 3.0"
                         className="flex-1 bg-transparent text-sm text-gray-900 outline-none"
                       />
                     </div>
+                    {errors.minCGPA && (
+                      <p className="text-red-600 text-sm mt-1">{errors.minCGPA}</p>
+                    )}
 
                     {/* Max Family Income */}
                     <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
@@ -386,13 +444,15 @@ export default function ScholarshipDetailPage() {
                     </div>
 
                     {/* Min Graduation Year */}
-                    <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                    <div className={`flex items-center gap-2 rounded-lg border ${
+                      errors.minGraduationYear ? "border-red-500" : "border-gray-300"
+                    } px-4 py-3 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500`}>
                       <span className="text-sm text-gray-500">
                         Min Grad Year:
                       </span>
                       <input
                         type="number"
-                        min="2024"
+                        min="2026"
                         value={formData.minGraduationYear ?? ""}
                         onChange={(e) =>
                           handleChange(
@@ -400,10 +460,13 @@ export default function ScholarshipDetailPage() {
                             e.target.value ? parseInt(e.target.value) : null,
                           )
                         }
-                        placeholder="e.g. 2025"
+                        placeholder="e.g. 2026"
                         className="flex-1 bg-transparent text-sm text-gray-900 outline-none"
                       />
                     </div>
+                    {errors.minGraduationYear && (
+                      <p className="text-red-600 text-sm mt-1">{errors.minGraduationYear}</p>
+                    )}
 
                     {/* Must Bumiputera */}
                     <div className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-3">

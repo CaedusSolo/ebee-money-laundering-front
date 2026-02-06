@@ -1,33 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Navbar from "../components/Navbar";
 import personPlaceholder from "../assets/personPlaceholder.svg";
-
-const mockApplications = [
-    {
-        applicationId: 1,
-        scholarshipName: "Merit's Scholarship",
-        status: "Under Review",
-        submittedDate: "DD/MM/YYYY"
-    },
-    {
-        applicationId: 2,
-        scholarshipName: "President's Scholarship",
-        status: "Accepted",
-        submittedDate: "DD/MM/YYYY"
-    },
-    {
-        applicationId: 3,
-        scholarshipName: "High Achiever's Scholarship",
-        status: "Pending Approval",
-        submittedDate: "DD/MM/YYYY"
-    },
-];
 
 export default function StudentDashboard() {
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const { currentUser } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -35,14 +16,37 @@ export default function StudentDashboard() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const studentId = 1;
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/students/dashboard/${studentId}`);
+                console.log("Current user:", currentUser); // Debug log
+                // Check for both id and userId (for backwards compatibility)
+                const studentId = currentUser?.id || currentUser?.studentId || currentUser?.userId;
+                if (!studentId) {
+                    console.error("No current user ID found. Current user:", currentUser);
+                    setDashboardData({ student: {}, applications: [] });
+                    setLoading(false);
+                    return;
+                }
+                
+                console.log(`Fetching dashboard for student ID: ${studentId}`); // Debug log
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_BASE_URL}/api/students/dashboard/${studentId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${currentUser.token}`
+                        }
+                    }
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch dashboard data');
+                }
+                
                 const data = await response.json();
+                console.log("Dashboard data received:", data); // Debug log
                 setDashboardData(data);
             } catch (error) {
                 console.error("Error fetching dashboard:", error);
                 // Set empty applications on error
-                setDashboardData({ applications: [] });
+                setDashboardData({ student: {}, applications: [] });
             } finally {
                 setLoading(false);
             }
@@ -57,9 +61,9 @@ export default function StudentDashboard() {
             // Hide message after 5 seconds
             setTimeout(() => setShowSuccessMessage(false), 5000);
         }
-    }, [location]);
+    }, [location, currentUser]);
 
-    const applications = mockApplications; // Using mock data
+    const applications = dashboardData?.applications || []; // Use real data from API
 
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
@@ -140,26 +144,29 @@ export default function StudentDashboard() {
                             <div className="space-y-4">
                                 {applications.map((app) => {
                                     const getStatusStyles = (status) => {
-                                        switch(status?.toLowerCase()) {
-                                            case 'accepted':
+                                        const statusUpper = status?.toUpperCase();
+                                        switch(statusUpper) {
+                                            case 'APPROVED':
                                                 return {
                                                     bg: 'bg-green-100',
                                                     text: 'text-green-700',
-                                                    border: 'border-l-blue-500'
+                                                    border: 'border-l-green-500'
                                                 };
-                                            case 'under review':
+                                            case 'UNDER_REVIEW':
+                                            case 'GRADED':
                                                 return {
                                                     bg: 'bg-yellow-100',
                                                     text: 'text-yellow-700',
-                                                    border: 'border-l-blue-500'
+                                                    border: 'border-l-yellow-500'
                                                 };
-                                            case 'pending approval':
+                                            case 'PENDING_APPROVAL':
+                                            case 'DRAFT':
                                                 return {
                                                     bg: 'bg-blue-100',
                                                     text: 'text-blue-700',
                                                     border: 'border-l-blue-500'
                                                 };
-                                            case 'rejected':
+                                            case 'REJECTED':
                                                 return {
                                                     bg: 'bg-red-100',
                                                     text: 'text-red-700',
@@ -175,6 +182,11 @@ export default function StudentDashboard() {
                                     };
 
                                     const statusStyles = getStatusStyles(app.status);
+                                    
+                                    // Format status for display
+                                    const formatStatus = (status) => {
+                                        return status?.replace(/_/g, ' ') || 'UNKNOWN';
+                                    };
 
                                     return (
                                         <div 
@@ -188,7 +200,7 @@ export default function StudentDashboard() {
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-sm text-gray-600 font-medium">Status:</span>
                                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${statusStyles.bg} ${statusStyles.text}`}>
-                                                                {app.status.toUpperCase()}
+                                                                {formatStatus(app.status)}
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-500">

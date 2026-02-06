@@ -8,6 +8,9 @@ import java.util.List;
 
 public class NewApplicationRequest {
 
+    // Scholarship ID
+    private Integer scholarshipID;
+
     // Personal Info
     @NotBlank(message = "First name is required")
     private String firstName;
@@ -32,6 +35,8 @@ public class NewApplicationRequest {
 
     @NotBlank(message = "Gender is required")
     private String gender;
+
+    private String homeAddress;
 
     @NotBlank(message = "Monthly household income is required")
     private String monthlyHouseholdIncome;
@@ -140,6 +145,14 @@ public class NewApplicationRequest {
     }
 
     // Getters and Setters
+    public Integer getScholarshipID() {
+        return scholarshipID;
+    }
+
+    public void setScholarshipID(Integer scholarshipID) {
+        this.scholarshipID = scholarshipID;
+    }
+
     public String getFirstName() {
         return firstName;
     }
@@ -202,6 +215,14 @@ public class NewApplicationRequest {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getHomeAddress() {
+        return homeAddress;
+    }
+
+    public void setHomeAddress(String homeAddress) {
+        this.homeAddress = homeAddress;
     }
 
     public String getMonthlyHouseholdIncome() {

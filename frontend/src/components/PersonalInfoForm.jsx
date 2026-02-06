@@ -18,7 +18,7 @@ const PersonalInfoForm = ({
         const requiredFields = [
             'firstName', 'lastName', 'phoneNumber', 
             'dateOfBirth', 'icNumber', 'nationality', 'bumiputera', 
-            'gender', 'monthlyHouseholdIncome'
+            'gender', 'homeAddress', 'monthlyHouseholdIncome'
         ];
         
         // Check all required fields are filled
@@ -300,6 +300,17 @@ const PersonalInfoForm = ({
                             <span className="text-red-500 text-xs mt-1">{errors.gender}</span>
                         )}
                     </div>
+                </div>
+                <div className="mt-4">
+                    <InputField 
+                        label="Home Address" 
+                        field="homeAddress"
+                        value={formData.homeAddress}
+                        onChange={handleInputChange}
+                        onValidate={handleValidationError}
+                        error={errors.homeAddress}
+                        validationType="text"
+                    />
                 </div>
             </section>
 
