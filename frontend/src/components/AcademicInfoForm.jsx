@@ -7,6 +7,7 @@ const AcademicInfoForm = ({
     errors, 
     files,
     activities,
+    scholarshipDetails,
     handleInputChange,
     handleValidationError,
     handleFileChange,
@@ -16,6 +17,15 @@ const AcademicInfoForm = ({
 }) => {
     const [isFormValid, setIsFormValid] = useState(false);
     const [validationMessages, setValidationMessages] = useState([]);
+    const [eligibilityErrors, setEligibilityErrors] = useState([]);
+
+    // Clear eligibility errors when relevant form fields change
+    useEffect(() => {
+        if (eligibilityErrors.length > 0) {
+            // Clear eligibility errors so user knows they can resubmit
+            setEligibilityErrors([]);
+        }
+    }, [formData.cgpa, formData.monthlyHouseholdIncome, formData.expectedGraduation, formData.bumiputera]);
 
     // Check form validity
     useEffect(() => {
@@ -183,6 +193,72 @@ const AcademicInfoForm = ({
     ];
 
     // Validate activities table (minimum 2 rows with ALL fields filled) and file uploads
+    const validateEligibilityCriteria = () => {
+        console.log("Validating eligibility criteria...");
+        console.log("scholarshipDetails:", scholarshipDetails);
+        
+        if (!scholarshipDetails) {
+            console.log("No scholarship details available");
+            return []; // No scholarship details to validate against
+        }
+
+        const eligibilityIssues = [];
+        const criteria = scholarshipDetails;
+
+        console.log("Checking criteria:", {
+            minCGPA: criteria.minCGPA,
+            maxFamilyIncome: criteria.maxFamilyIncome,
+            minGraduationYear: criteria.minGraduationYear,
+            mustBumiputera: criteria.mustBumiputera
+        });
+
+        // Check minimum CGPA
+        if (criteria.minCGPA !== null && criteria.minCGPA !== undefined) {
+            const studentCGPA = parseFloat(formData.cgpa);
+            console.log(`Checking CGPA: student=${studentCGPA}, required=${criteria.minCGPA}`);
+            if (isNaN(studentCGPA) || studentCGPA < criteria.minCGPA) {
+                eligibilityIssues.push(
+                    `Minimum CGPA required: ${criteria.minCGPA}. Your CGPA: ${formData.cgpa || "Not provided"}`
+                );
+            }
+        }
+
+        // Check maximum family income
+        if (criteria.maxFamilyIncome !== null && criteria.maxFamilyIncome !== undefined) {
+            const studentIncome = parseFloat(formData.monthlyHouseholdIncome);
+            console.log(`Checking Income: student=${studentIncome}, max=${criteria.maxFamilyIncome}`);
+            if (!isNaN(studentIncome) && studentIncome > criteria.maxFamilyIncome) {
+                eligibilityIssues.push(
+                    `Maximum monthly household income: RM ${criteria.maxFamilyIncome}. Your income: RM ${formData.monthlyHouseholdIncome}`
+                );
+            }
+        }
+
+        // Check minimum graduation year
+        if (criteria.minGraduationYear !== null && criteria.minGraduationYear !== undefined) {
+            const studentGradYear = parseInt(formData.expectedGraduation);
+            console.log(`Checking Grad Year: student=${studentGradYear}, required=${criteria.minGraduationYear}`);
+            if (isNaN(studentGradYear) || studentGradYear < criteria.minGraduationYear) {
+                eligibilityIssues.push(
+                    `Minimum graduation year: ${criteria.minGraduationYear}. Your expected graduation: ${formData.expectedGraduation || "Not provided"}`
+                );
+            }
+        }
+
+        // Check Bumiputera requirement
+        if (criteria.mustBumiputera === true) {
+            console.log(`Checking Bumiputera: student=${formData.bumiputera}, required=true`);
+            if (formData.bumiputera !== "Yes" && formData.bumiputera !== "yes" && formData.bumiputera !== true) {
+                eligibilityIssues.push(
+                    "This scholarship requires Bumiputera status. You are not eligible."
+                );
+            }
+        }
+
+        console.log("Eligibility issues found:", eligibilityIssues);
+        return eligibilityIssues;
+    };
+
     const validateActivities = () => {
         const filledRows = activities.filter(activity => {
             // A row is considered filled only if ALL fields have values
@@ -243,16 +319,32 @@ const AcademicInfoForm = ({
         handleValidationError('transcript', '');
         handleValidationError('payslip', '');
         handleValidationError('ic', '');
+        
+        // Check eligibility criteria
+        const eligibilityIssues = validateEligibilityCriteria();
+        if (eligibilityIssues.length > 0) {
+            setEligibilityErrors(eligibilityIssues);
+            return false;
+        }
+        
+        // Clear eligibility errors if all checks pass
+        setEligibilityErrors([]);
         return true;
     };
 
     const handleSubmitClick = (e) => {
         e.preventDefault();
-        if (validateActivities()) {
+        console.log("Submit clicked, validating...");
+        const isValid = validateActivities();
+        console.log("Validation result:", isValid);
+        if (isValid) {
             // Call the parent's submit handler
             if (handleSubmit) {
+                console.log("Calling handleSubmit");
                 handleSubmit();
             }
+        } else {
+            console.log("Validation failed, not submitting");
         }
     };
 
@@ -500,6 +592,23 @@ const AcademicInfoForm = ({
             </section>
 
             <div className="flex flex-col items-center pt-10">
+                {/* Eligibility Criteria Errors */}
+                {eligibilityErrors.length > 0 && (
+                    <div className="mb-4 p-4 bg-red-50 border border-red-300 rounded-lg w-full max-w-2xl">
+                        <h3 className="text-red-700 font-bold mb-2 text-center">
+                            You do not meet the scholarship eligibility criteria:
+                        </h3>
+                        <ul className="text-red-600 text-sm space-y-1">
+                            {eligibilityErrors.map((error, index) => (
+                                <li key={index} className="flex items-start">
+                                    <span className="text-red-700 font-bold mr-2">•</span>
+                                    <span>{error}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 {/* Validation Messages */}
                 {!isFormValid && validationMessages.length > 0 && (
                     <div className="mb-4 text-red-600 text-sm font-semibold text-center">
@@ -508,7 +617,7 @@ const AcademicInfoForm = ({
                         ))}
                     </div>
                 )}
-                {!isFormValid && validationMessages.length === 0 && (
+                {!isFormValid && validationMessages.length === 0 && eligibilityErrors.length === 0 && (
                     <div className="mb-4 text-red-600 text-sm font-semibold text-center">
                         Please fill in all required fields and upload all documents
                     </div>

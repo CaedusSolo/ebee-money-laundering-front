@@ -147,15 +147,36 @@ public class DataSeeder implements CommandLineRunner {
         if (scholarshipRepository.count() > 0)
             return;
 
-        List<Scholarship> scholarships = List.of(
-                new Scholarship("Merit's Scholarship", "Outstanding academic achievement.",
-                        LocalDate.now().plusMonths(3)),
-                new Scholarship("President's Scholarship", "Highest honour for students.",
-                        LocalDate.now().plusMonths(4)),
-                new Scholarship("High Achiever's Scholarship", "Strong academic records (3.7+).",
-                        LocalDate.now().plusMonths(2)),
-                new Scholarship("Excellence in STEM Scholarship", "Science and Engineering focus.",
-                        LocalDate.now().plusMonths(5)));
+        // Create scholarships with eligibility criteria
+        Scholarship scholarship1 = new Scholarship("Merit's Scholarship", 
+                "Outstanding academic achievement. Candidates must maintain a strong CGPA and moderate family income.",
+                LocalDate.now().plusMonths(3));
+        scholarship1.setMinCGPA(3.5f);
+        scholarship1.setMaxFamilyIncome(5000f);
+        scholarship1.setMinGraduationYear(2026);
+        scholarship1.setMustBumiputera(false);
+
+        Scholarship scholarship2 = new Scholarship("President's Scholarship",
+                "Highest honour for students. Bumiputera candidates only with excellent academic standing.",
+                LocalDate.now().plusMonths(4));
+        scholarship2.setMinCGPA(3.7f);
+        scholarship2.setMaxFamilyIncome(4000f);
+        scholarship2.setMinGraduationYear(2026);
+        scholarship2.setMustBumiputera(true);
+
+        Scholarship scholarship3 = new Scholarship("High Achiever's Scholarship",
+                "For students with strong academic records. Minimum CGPA requirement applies.",
+                LocalDate.now().plusMonths(2));
+        scholarship3.setMinCGPA(3.5f);
+        scholarship3.setMinGraduationYear(2027);
+
+        Scholarship scholarship4 = new Scholarship("Excellence in STEM Scholarship",
+                "For Science and Engineering students. Competitive CGPA and income requirements.",
+                LocalDate.now().plusMonths(5));
+        scholarship4.setMinCGPA(3.0f);
+        scholarship4.setMaxFamilyIncome(6000f);
+
+        List<Scholarship> scholarships = List.of(scholarship1, scholarship2, scholarship3, scholarship4);
 
         // Get reviewers and committee members
         List<Reviewer> allReviewers = reviewerRepository.findAll();
@@ -179,7 +200,7 @@ public class DataSeeder implements CommandLineRunner {
             scholarshipRepository.save(s);
         }
 
-        System.out.println("Seeded " + scholarships.size() + " scholarships with reviewers and committee members");
+        System.out.println("Seeded " + scholarships.size() + " scholarships with eligibility criteria, reviewers, and committee members");
     }
 
     private void seedApplications() {
