@@ -246,9 +246,13 @@ public class ApplicationService {
         app.setScholarshipID(request.getScholarshipID() != null ? request.getScholarshipID() : 1);
         app.setStudentID(studentId);
 
-        // Personal info
-        app.setFirstName(request.getFirstName());
-        app.setLastName(request.getLastName());
+        // Personal info - split fullName into firstName and lastName
+        String fullName = request.getFullName();
+        if (fullName != null && !fullName.isEmpty()) {
+            String[] nameParts = fullName.trim().split("\\s+", 2);
+            app.setFirstName(nameParts[0]);
+            app.setLastName(nameParts.length > 1 ? nameParts[1] : "");
+        }
         app.setPhoneNumber(request.getPhoneNumber());
         app.setNricNumber(request.getIcNumber());
         app.setNationality(request.getNationality());

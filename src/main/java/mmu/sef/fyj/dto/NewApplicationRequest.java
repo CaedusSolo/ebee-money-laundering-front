@@ -12,11 +12,9 @@ public class NewApplicationRequest {
     private Integer scholarshipID;
 
     // Personal Info
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
-    @NotBlank(message = "Last name is required")
-    private String lastName;
+    // Use a single fullName field to simplify client requests
+    @NotBlank(message = "Name is required")
+    private String fullName;
 
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
@@ -153,20 +151,12 @@ public class NewApplicationRequest {
         this.scholarshipID = scholarshipID;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public String getPhoneNumber() {
