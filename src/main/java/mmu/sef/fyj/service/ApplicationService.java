@@ -9,6 +9,7 @@ import mmu.sef.fyj.model.StudyLevel;
 import mmu.sef.fyj.model.Extracurricular;
 import mmu.sef.fyj.model.FamilyMember;
 import mmu.sef.fyj.model.DocumentInfo;
+import mmu.sef.fyj.dto.ApplicationDetailsDTO.FamilyMemberDTO;
 import mmu.sef.fyj.repository.ApplicationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,8 +94,7 @@ public class ApplicationService {
                         app.getFirstName() + " " + app.getLastName(),
                         app.getCreatedAt(),
                         app.getSubmittedAt(),
-                        app.getStatus()
-                ))
+                        app.getStatus()))
                 .collect(Collectors.toList());
     }
 
@@ -102,7 +102,7 @@ public class ApplicationService {
         return applicationRepository.findById(id).map(this::mapToDetailsDTO);
     }
 
-    private ApplicationDetailsDTO mapToDetailsDTO(Application app) {
+    ApplicationDetailsDTO mapToDetailsDTO(Application app) {
         ApplicationDetailsDTO dto = new ApplicationDetailsDTO();
 
         dto.setApplicationId(app.getApplicationID());
@@ -138,6 +138,17 @@ public class ApplicationService {
         if (app.getExtracurriculars() != null) {
             dto.setExtracurriculars(app.getExtracurriculars().stream()
                     .map(e -> new ExtracurricularDTO(e.getActivityName(), e.getRole()))
+                    .collect(Collectors.toList()));
+        }
+
+        // Family Members (Added Mapping)
+        if (app.getFamilyMembers() != null) {
+            dto.setFamilyMembers(app.getFamilyMembers().stream()
+                    .map(fm -> new FamilyMemberDTO(
+                        fm.getName(),
+                        fm.getRelationship(),
+                        fm.getOccupation(),
+                        fm.getMonthlyIncome()))
                     .collect(Collectors.toList()));
         }
 
@@ -253,7 +264,7 @@ public class ApplicationService {
     @Transactional
     public Application createFromApplicationRequest(NewApplicationRequest request, Integer studentId) {
         logger.info("Creating application from request. CGPA value received: '{}'", request.getCgpa());
-        
+
         Application app = new Application();
 
         // Set IDs - use the scholarshipID from request, default to 1 if not provided
@@ -340,14 +351,14 @@ public class ApplicationService {
             app.setStudyLevel(StudyLevel.BACHELOR);
         }
 
-        // CGPA 
+        // CGPA
         try {
             String cgpaStr = request.getCgpa();
-            logger.debug("Parsing CGPA. Raw value: '{}', isNull: {}, isEmpty: {}", 
-                cgpaStr, 
-                cgpaStr == null, 
-                cgpaStr != null && cgpaStr.isEmpty());
-            
+            logger.debug("Parsing CGPA. Raw value: '{}', isNull: {}, isEmpty: {}",
+                    cgpaStr,
+                    cgpaStr == null,
+                    cgpaStr != null && cgpaStr.isEmpty());
+
             if (cgpaStr != null && !cgpaStr.trim().isEmpty()) {
                 Float cgpaValue = Float.parseFloat(cgpaStr.trim());
                 app.setCgpa(cgpaValue);
@@ -396,10 +407,12 @@ public class ApplicationService {
             app.setNricDoc(new DocumentInfo(request.getIc().getFileName(), request.getIc().getFileUrl(), null));
         }
         if (request.getTranscript() != null) {
-            app.setTranscriptDoc(new DocumentInfo(request.getTranscript().getFileName(), request.getTranscript().getFileUrl(), null));
+            app.setTranscriptDoc(new DocumentInfo(request.getTranscript().getFileName(),
+                    request.getTranscript().getFileUrl(), null));
         }
         if (request.getPayslip() != null) {
-            app.setFamilyIncomeConfirmationDoc(new DocumentInfo(request.getPayslip().getFileName(), request.getPayslip().getFileUrl(), null));
+            app.setFamilyIncomeConfirmationDoc(
+                    new DocumentInfo(request.getPayslip().getFileName(), request.getPayslip().getFileUrl(), null));
         }
 
         // Submit the application

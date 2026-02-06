@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 public class ApplicationDetailsDTO {
-    
+
     private Integer applicationId;
-    
+
     // Personal Information
     private String firstName;
     private String lastName;
@@ -16,184 +16,115 @@ public class ApplicationDetailsDTO {
     private String gender;
     private String nationality;
     private LocalDate dateOfBirth;
-    
+
     // Reviewer
     private String reviewerName;
-    
+
     // Education
     private EducationDTO education;
-    
+
     // Financial Information
     private Float monthlyFamilyIncome;
     private Boolean isBumiputera;
-    
+
     // Academic
     private Float cgpa;
-    
+
     // Address
     private AddressDTO address;
-    
+
     // Extracurriculars
     private List<ExtracurricularDTO> extracurriculars;
-    
+
+    // Family Members (Added)
+    private List<FamilyMemberDTO> familyMembers;
+
     // Documents
     private DocumentDTO nricDoc;
     private DocumentDTO transcriptDoc;
     private DocumentDTO familyIncomeConfirmationDoc;
 
-    // Constructors
     public ApplicationDetailsDTO() {}
 
-    // Getters and Setters
-    public Integer getApplicationId() {
-        return applicationId;
-    }
+    // --- Getters and Setters ---
 
-    public void setApplicationId(Integer applicationId) {
-        this.applicationId = applicationId;
-    }
+    public Integer getApplicationId() { return applicationId; }
+    public void setApplicationId(Integer applicationId) { this.applicationId = applicationId; }
 
-    public String getFirstName() {
-        return firstName;
-    }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public String getLastName() {
-        return lastName;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getNricNumber() { return nricNumber; }
+    public void setNricNumber(String nricNumber) { this.nricNumber = nricNumber; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
+    public String getNationality() { return nationality; }
+    public void setNationality(String nationality) { this.nationality = nationality; }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 
-    public String getNricNumber() {
-        return nricNumber;
-    }
+    public String getReviewerName() { return reviewerName; }
+    public void setReviewerName(String reviewerName) { this.reviewerName = reviewerName; }
 
-    public void setNricNumber(String nricNumber) {
-        this.nricNumber = nricNumber;
-    }
+    public EducationDTO getEducation() { return education; }
+    public void setEducation(EducationDTO education) { this.education = education; }
 
-    public String getGender() {
-        return gender;
-    }
+    public Float getMonthlyFamilyIncome() { return monthlyFamilyIncome; }
+    public void setMonthlyFamilyIncome(Float monthlyFamilyIncome) { this.monthlyFamilyIncome = monthlyFamilyIncome; }
 
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
+    public Boolean getIsBumiputera() { return isBumiputera; }
+    public void setIsBumiputera(Boolean isBumiputera) { this.isBumiputera = isBumiputera; }
 
-    public String getNationality() {
-        return nationality;
-    }
+    public Float getCgpa() { return cgpa; }
+    public void setCgpa(Float cgpa) { this.cgpa = cgpa; }
 
-    public void setNationality(String nationality) {
-        this.nationality = nationality;
-    }
+    public AddressDTO getAddress() { return address; }
+    public void setAddress(AddressDTO address) { this.address = address; }
 
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
-    }
+    public List<ExtracurricularDTO> getExtracurriculars() { return extracurriculars; }
+    public void setExtracurriculars(List<ExtracurricularDTO> extracurriculars) { this.extracurriculars = extracurriculars; }
 
-    public void setDateOfBirth(LocalDate dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
+    public List<FamilyMemberDTO> getFamilyMembers() { return familyMembers; }
+    public void setFamilyMembers(List<FamilyMemberDTO> familyMembers) { this.familyMembers = familyMembers; }
 
-    public String getReviewerName() {
-        return reviewerName;
-    }
+    public DocumentDTO getNricDoc() { return nricDoc; }
+    public void setNricDoc(DocumentDTO nricDoc) { this.nricDoc = nricDoc; }
 
-    public void setReviewerName(String reviewerName) {
-        this.reviewerName = reviewerName;
-    }
+    public DocumentDTO getTranscriptDoc() { return transcriptDoc; }
+    public void setTranscriptDoc(DocumentDTO transcriptDoc) { this.transcriptDoc = transcriptDoc; }
 
-    public EducationDTO getEducation() {
-        return education;
-    }
+    public DocumentDTO getFamilyIncomeConfirmationDoc() { return familyIncomeConfirmationDoc; }
+    public void setFamilyIncomeConfirmationDoc(DocumentDTO familyIncomeConfirmationDoc) { this.familyIncomeConfirmationDoc = familyIncomeConfirmationDoc; }
 
-    public void setEducation(EducationDTO education) {
-        this.education = education;
-    }
+    // Inner DTO Class for Family Member
+    public static class FamilyMemberDTO {
+        private String name;
+        private String relationship;
+        private String occupation;
+        private Float monthlyIncome;
 
-    public Float getMonthlyFamilyIncome() {
-        return monthlyFamilyIncome;
-    }
+        public FamilyMemberDTO(String name, String relationship, String occupation, Float monthlyIncome) {
+            this.name = name;
+            this.relationship = relationship;
+            this.occupation = occupation;
+            this.monthlyIncome = monthlyIncome;
+        }
 
-    public void setMonthlyFamilyIncome(Float monthlyFamilyIncome) {
-        this.monthlyFamilyIncome = monthlyFamilyIncome;
-    }
-
-    public Boolean getIsBumiputera() {
-        return isBumiputera;
-    }
-
-    public void setIsBumiputera(Boolean isBumiputera) {
-        this.isBumiputera = isBumiputera;
-    }
-
-    public Float getCgpa() {
-        return cgpa;
-    }
-
-    public void setCgpa(Float cgpa) {
-        this.cgpa = cgpa;
-    }
-
-    public AddressDTO getAddress() {
-        return address;
-    }
-
-    public void setAddress(AddressDTO address) {
-        this.address = address;
-    }
-
-    public List<ExtracurricularDTO> getExtracurriculars() {
-        return extracurriculars;
-    }
-
-    public void setExtracurriculars(List<ExtracurricularDTO> extracurriculars) {
-        this.extracurriculars = extracurriculars;
-    }
-
-    public DocumentDTO getNricDoc() {
-        return nricDoc;
-    }
-
-    public void setNricDoc(DocumentDTO nricDoc) {
-        this.nricDoc = nricDoc;
-    }
-
-    public DocumentDTO getTranscriptDoc() {
-        return transcriptDoc;
-    }
-
-    public void setTranscriptDoc(DocumentDTO transcriptDoc) {
-        this.transcriptDoc = transcriptDoc;
-    }
-
-    public DocumentDTO getFamilyIncomeConfirmationDoc() {
-        return familyIncomeConfirmationDoc;
-    }
-
-    public void setFamilyIncomeConfirmationDoc(DocumentDTO familyIncomeConfirmationDoc) {
-        this.familyIncomeConfirmationDoc = familyIncomeConfirmationDoc;
+        public String getName() { return name; }
+        public String getRelationship() { return relationship; }
+        public String getOccupation() { return occupation; }
+        public Float getMonthlyIncome() { return monthlyIncome; }
     }
 }
