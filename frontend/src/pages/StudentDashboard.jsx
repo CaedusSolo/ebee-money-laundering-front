@@ -152,8 +152,6 @@ export default function StudentDashboard() {
             }
 
             closeModal();
-            // reload to update auth context consumer values
-            window.location.reload();
         } catch (err) {
             setFormError(err.message || 'Failed to update profile');
             console.error(err);
@@ -217,30 +215,43 @@ export default function StudentDashboard() {
                     </div>
 
                     {editOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                            <div className="bg-white rounded-lg w-full max-w-lg p-6">
-                                <h3 className="text-lg font-semibold mb-4">Edit Profile</h3>
-                                <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                            <div className="bg-white rounded-xl w-full max-w-lg p-8 shadow-2xl">
+                                <h3 className="text-2xl font-bold mb-6 text-gray-800">Edit Profile</h3>
+                                <form onSubmit={handleSubmit} className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Profile picture</label>
-                                        <div className="mt-2 flex items-center gap-4">
-                                            <div className="w-20 h-20 rounded-full bg-gray-100 overflow-hidden border">
+                                        <label className="block text-sm font-semibold text-gray-700 mb-3">Profile Picture</label>
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-24 h-24 rounded-full bg-gray-100 overflow-hidden border-2 border-gray-200 shadow-sm">
                                                 <img src={preview || dashboardData?.student?.profileImage || personPlaceholder} alt="preview" className="w-full h-full object-cover" />
                                             </div>
-                                            <input type="file" accept="image/*" onChange={handleFileChange} />
+                                            <div className="flex-1">
+                                                <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition">
+                                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    Upload Image
+                                                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                                                </label>
+                                                <p className="text-xs text-gray-500 mt-2">JPG, PNG (max. 5MB)</p>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Email</label>
-                                        <input value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="mt-1 block w-full border rounded-md p-2" />
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                                        <input type="email" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="your.email@example.com" />
                                     </div>
 
-                                    {formError && <p className="text-red-600">{formError}</p>}
+                                    {formError && (
+                                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                                            <p className="text-sm font-medium">{formError}</p>
+                                        </div>
+                                    )}
 
-                                    <div className="flex justify-end gap-3">
-                                        <button type="button" onClick={closeModal} className="px-4 py-2 border rounded-md">Cancel</button>
-                                        <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-blue-800 text-white rounded-md">{isSubmitting ? 'Saving...' : 'Save'}</button>
+                                    <div className="flex justify-end gap-3 pt-4 border-t">
+                                        <button type="button" onClick={closeModal} className="px-5 py-2.5 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                                        <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 bg-blue-800 text-white rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">{isSubmitting ? 'Saving...' : 'Save Changes'}</button>
                                     </div>
                                 </form>
                             </div>
