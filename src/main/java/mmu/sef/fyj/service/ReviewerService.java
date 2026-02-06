@@ -5,9 +5,11 @@ import mmu.sef.fyj.model.Reviewer;
 import mmu.sef.fyj.model.ApplicationStatus;
 import mmu.sef.fyj.model.Grade;
 import mmu.sef.fyj.model.Scholarship;
+import mmu.sef.fyj.model.Student;
 import mmu.sef.fyj.repository.ApplicationRepository;
 import mmu.sef.fyj.repository.ReviewerRepository;
 import mmu.sef.fyj.repository.ScholarshipRepository;
+import mmu.sef.fyj.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,12 @@ public class ReviewerService {
 
     @Autowired
     private ScholarshipRepository scholarshipRepository;
+
+    @Autowired
+    private StudentRepository studentRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public List<Reviewer> findAll() {
         return reviewerRepository.findAll();
@@ -171,6 +179,9 @@ public class ReviewerService {
     public Map<String, Object> approveApplication(Integer applicationId, String decision, Integer reviewerId) {
         Map<String, Object> response = new HashMap<>();
         
+        org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+            .info("=== APPROVE APPLICATION CALLED === applicationId: {}, decision: {}, reviewerId: {}", applicationId, decision, reviewerId);
+        
         Optional<Application> optionalApp = applicationRepository.findById(applicationId);
         
         if (optionalApp.isEmpty()) {
@@ -183,8 +194,12 @@ public class ReviewerService {
         
         // Handle rejection - any reviewer can reject
         if ("REJECT".equalsIgnoreCase(decision)) {
+            org.slf4j.LoggerFactory.getLogger(ReviewerService.class).info("REJECTING application: {}", applicationId);
             app.setStatus(ApplicationStatus.REJECTED);
             applicationRepository.save(app);
+            
+            // Send rejection email to student
+            sendRejectionEmailToStudent(app);
             
             response.put("success", true);
             response.put("applicationID", applicationId);
@@ -196,6 +211,7 @@ public class ReviewerService {
         
         // Handle approval
         if ("APPROVE".equalsIgnoreCase(decision)) {
+            org.slf4j.LoggerFactory.getLogger(ReviewerService.class).info("APPROVING application: {}", applicationId);
             // Add this reviewer's approval
             app.addReviewerApproval(reviewerId);
             
@@ -213,10 +229,17 @@ public class ReviewerService {
             }
             
             int currentApprovals = app.getReviewerApprovals().size();
+            org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                .info("Current approvals: {}/{}", currentApprovals, requiredApprovals);
             
             if (currentApprovals >= requiredApprovals) {
+                org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                    .info("✓✓✓ APPLICATION FULLY APPROVED ✓✓✓ - Sending email...");
                 app.setStatus(ApplicationStatus.APPROVED);
                 response.put("message", "Application fully approved by all reviewers");
+                
+                // Send approval email to student
+                sendApprovalEmailToStudent(app);
             } else {
                 // Keep status as PENDING_APPROVAL so other reviewers can still see and approve it
                 app.setStatus(ApplicationStatus.PENDING_APPROVAL);
@@ -239,6 +262,64 @@ public class ReviewerService {
         response.put("success", false);
         response.put("error", "Invalid decision. Must be APPROVE or REJECT");
         return response;
+    }
+
+    /**
+     * Helper method to send approval email to student
+     */
+    private void sendApprovalEmailToStudent(Application app) {
+        try {
+            Optional<Student> studentOpt = studentRepository.findById(app.getStudentID());
+            Optional<Scholarship> scholarshipOpt = scholarshipRepository.findById(app.getScholarshipID());
+            
+            if (studentOpt.isPresent() && scholarshipOpt.isPresent()) {
+                Student student = studentOpt.get();
+                Scholarship scholarship = scholarshipOpt.get();
+                
+                String studentEmail = student.getEmail();
+                String studentName = student.getName();
+                String scholarshipName = scholarship.getName();
+                
+                org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                    .info("Sending approval email to: {} for scholarship: {}", studentEmail, scholarshipName);
+                emailService.sendApprovalEmail(studentEmail, studentName, scholarshipName);
+            } else {
+                org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                    .warn("Could not find student or scholarship for application: {}", app.getApplicationID());
+            }
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                .error("Failed to send approval email for application: " + app.getApplicationID(), e);
+        }
+    }
+
+    /**
+     * Helper method to send rejection email to student
+     */
+    private void sendRejectionEmailToStudent(Application app) {
+        try {
+            Optional<Student> studentOpt = studentRepository.findById(app.getStudentID());
+            Optional<Scholarship> scholarshipOpt = scholarshipRepository.findById(app.getScholarshipID());
+            
+            if (studentOpt.isPresent() && scholarshipOpt.isPresent()) {
+                Student student = studentOpt.get();
+                Scholarship scholarship = scholarshipOpt.get();
+                
+                String studentEmail = student.getEmail();
+                String studentName = student.getName();
+                String scholarshipName = scholarship.getName();
+                
+                org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                    .info("Sending rejection email to: {} for scholarship: {}", studentEmail, scholarshipName);
+                emailService.sendRejectionEmail(studentEmail, studentName, scholarshipName);
+            } else {
+                org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                    .warn("Could not find student or scholarship for application: {}", app.getApplicationID());
+            }
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(ReviewerService.class)
+                .error("Failed to send rejection email for application: " + app.getApplicationID(), e);
+        }
     }
 
     public Map<String, Object> getStatistics() {
