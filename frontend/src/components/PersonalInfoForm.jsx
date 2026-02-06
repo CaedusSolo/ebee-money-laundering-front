@@ -63,7 +63,7 @@ const PersonalInfoForm = ({
         filledRows.forEach((member, index) => {
             ['name', 'relationship', 'occupation'].forEach(field => {
                 const value = member[field];
-                if (value && value.trim().length > 0 && value.trim().length < 3) {
+                if (value && value.trim().length > 0 && value.trim().length < 2) {
                     familyFieldsValid = false;
                 }
             });
@@ -131,9 +131,9 @@ const PersonalInfoForm = ({
         const textValue = value.replace(/[^a-zA-Z\s]/g, '');
         handleFamilyChange(index, field, textValue);
         
-        // Validate minimum length (3 characters) if field has content
-        if (textValue.trim().length > 0 && textValue.trim().length < 3) {
-            handleValidationError(`family_${field}_${index}`, 'Minimum 3 characters required');
+        // Validate minimum length (2 characters) if field has content
+        if (textValue.trim().length > 0 && textValue.trim().length < 2) {
+            handleValidationError(`family_${field}_${index}`, 'Minimum 2 characters required');
         } else {
             // Clear error if validation passes
             handleValidationError(`family_${field}_${index}`, '');
