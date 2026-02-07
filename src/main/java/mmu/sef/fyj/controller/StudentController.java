@@ -50,4 +50,20 @@ public class StudentController {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PutMapping("/email/{studentId}")
+    public ResponseEntity<?> updateEmail(
+            @PathVariable Integer studentId,
+            @RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+            }
+            Map<String, Object> result = studentService.updateStudentEmail(studentId, email);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
