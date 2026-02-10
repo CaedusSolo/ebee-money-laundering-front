@@ -5,14 +5,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import mmu.sef.fyj.model.Role;
+import mmu.sef.fyj.model.Student;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.repository.UserRepository;
 import mmu.sef.fyj.repository.ReviewerRepository;
 import mmu.sef.fyj.repository.ScholarshipCommitteeRepository;
 import mmu.sef.fyj.dto.NewUser;
+import mmu.sef.fyj.service.StudentService;
 import mmu.sef.fyj.service.UserService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -30,6 +34,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private StudentService studentService;
+
     // GET all users (optional query param: role=ADMIN|STUDENT|COMMITTEE|REVIEWER)
     @GetMapping
     public List<User> getAllUsers(@RequestParam(required = false) Role role) {
@@ -45,6 +52,24 @@ public class UserController {
         return userRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Get student ID from user ID
+    @GetMapping("/{id}/student-id")
+    public ResponseEntity<Integer> getStudentIdByUserId(@PathVariable Integer id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        User user = userOpt.get();
+
+        Optional<Student> studentOpt = studentService.findByEmail(user.getEmail());
+        if (studentOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Student student = studentOpt.get();
+
+        return ResponseEntity.ok(student.getStudentId());
     }
 
     // POST create user
@@ -82,7 +107,7 @@ public class UserController {
                         committeeRepository.findByEmail(user.getEmail())
                             .ifPresent(committee -> committeeRepository.delete(committee));
                     }
-                    
+
                     // Delete from users table
                     userRepository.delete(user);
                     return ResponseEntity.ok().<Void>build();
