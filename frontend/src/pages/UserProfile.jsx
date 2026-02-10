@@ -72,8 +72,10 @@ export default function UserProfile() {
         // Fetch applications if user is a student
         // Use data.id (the primary key) which matches Application.studentID
         if (data.role === "STUDENT") {
-          console.log('Fetching applications for student ID:', data.id);
-          await fetchApplications(data.id);
+          const studentId = await userService.getStudentIdByUserId(data.id);
+          console.log("Student ID: ", studentId);
+          console.log("Fetching applications for student ID:", studentId);
+          await fetchApplications(studentId);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
