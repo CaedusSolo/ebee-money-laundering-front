@@ -11,7 +11,7 @@ function ApplicationCard({ application }) {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+    return date.toLocaleDateString("en-GB"); // DD/MM/YYYY format
   };
 
   return (
@@ -65,10 +65,10 @@ export default function UserProfile() {
       try {
         setLoading(true);
         const data = await userService.getUserById(targetUserId);
-        console.log('User data received:', data);
-        console.log('User ID for applications:', data.id);
+        console.log("User data received:", data);
+        console.log("User ID for applications:", data.id);
         setUser(data);
-        
+
         // Fetch applications if user is a student
         // Use data.id (the primary key) which matches Application.studentID
         if (data.role === "STUDENT") {
@@ -92,22 +92,25 @@ export default function UserProfile() {
   const fetchApplications = async (userId) => {
     try {
       setApplicationsLoading(true);
-      
+
       // Get the base URL and ensure it doesn't include /api/users
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-      const cleanBaseUrl = baseUrl.replace('/api/users', '').replace('/api', '');
+      const baseUrl =
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+      const cleanBaseUrl = baseUrl
+        .replace("/api/users", "")
+        .replace("/api", "");
       const apiUrl = `${cleanBaseUrl}/api/applications/student/${userId}`;
-      
-      console.log('Fetching applications from:', apiUrl); // Debug log
-      
+
+      console.log("Fetching applications from:", apiUrl); // Debug log
+
       const response = await axios.get(apiUrl, {
         headers: {
           Authorization: `Bearer ${currentUser?.token}`,
           "Content-Type": "application/json",
         },
       });
-      
-      console.log('Applications received:', response.data); // Debug log
+
+      console.log("Applications received:", response.data); // Debug log
       setApplications(response.data || []);
     } catch (error) {
       console.error("Error fetching applications:", error);
@@ -125,7 +128,11 @@ export default function UserProfile() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this account? This action cannot be undone.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this account? This action cannot be undone.",
+      )
+    ) {
       return;
     }
 
@@ -177,11 +184,13 @@ export default function UserProfile() {
             <h2 className="text-xl font-bold text-foreground">
               {user.name || "N/A"}
             </h2>
-            <p className="text-sm text-muted-foreground">{user.role || "N/A"}</p>
+            <p className="text-sm text-muted-foreground">
+              {user.role || "N/A"}
+            </p>
             <p className="text-sm text-blue-600">{user.email || "N/A"}</p>
           </div>
         </div>
-        <button 
+        <button
           onClick={handleEdit}
           className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors"
         >
@@ -213,7 +222,9 @@ export default function UserProfile() {
               <td className="px-4 py-3 bg-gray-50 text-sm font-medium text-foreground">
                 Email
               </td>
-              <td className="px-4 py-3 text-sm text-blue-600">{user.email || "N/A"}</td>
+              <td className="px-4 py-3 text-sm text-blue-600">
+                {user.email || "N/A"}
+              </td>
             </tr>
             <tr className="border-b border-gray-200">
               <td className="px-4 py-3 bg-gray-50 text-sm font-medium text-foreground">
@@ -244,7 +255,7 @@ export default function UserProfile() {
               Application Status
             </h3>
           </div>
-          
+
           {applicationsLoading ? (
             <div className="text-center py-8 text-gray-600">
               Loading applications...
@@ -252,10 +263,7 @@ export default function UserProfile() {
           ) : applications.length > 0 ? (
             <div className="space-y-3">
               {applications.map((app) => (
-                <ApplicationCard
-                  key={app.applicationID}
-                  application={app}
-                />
+                <ApplicationCard key={app.applicationID} application={app} />
               ))}
             </div>
           ) : (
@@ -271,7 +279,7 @@ export default function UserProfile() {
 
       {/* Delete Account Button */}
       <div className="flex justify-end">
-        <button 
+        <button
           onClick={handleDelete}
           className="border-2 border-red-500 text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
