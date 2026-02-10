@@ -22,48 +22,81 @@ export default function UserDetails() {
     password: "",
     email: "",
   });
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const { userId } = useParams();
+  const isEditMode = Boolean(userId);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId) return;
+      
+      setLoading(true);
       try {
         const data = await userService.getUserById(userId);
-        setFormData(data);
+        setFormData({
+          name: data.name || "",
+          role: data.role || "",
+          password: "", // Don't populate password for security
+          email: data.email || "",
+        });
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setError("Failed to load user data");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Creating user:", formData);
-    userService
-      .createUser(formData)
-      .then((response) => {
-        console.log("User created successfully:", response);
-        // Optionally, reset the form or redirect the user
-        setFormData({
-          name: "",
-          role: "",
-          password: "",
-          email: "",
-        });
-        navigate("/admin/users");
-      })
-      .catch((error) => {
-        console.error("Error creating user:", error);
-      });
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (isEditMode) {
+        // Update existing user
+        const updateData = { ...formData };
+        // Only include password if it's been changed
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+        
+        await userService.updateUser(userId, updateData);
+        console.log("User updated successfully");
+      } else {
+        // Create new user
+        await userService.createUser(formData);
+        console.log("User created successfully");
+      }
+      
+      navigate("/admin/users");
+    } catch (error) {
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} user:`, error);
+      setError(`Failed to ${isEditMode ? 'update' : 'create'} user. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading && isEditMode && !formData.email) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-gray-600">Loading user data...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -72,11 +105,20 @@ export default function UserDetails() {
         <div className="w-8 h-8 flex items-center justify-center">
           <img src={Person} alt="" className="w-6 h-6" />
         </div>
-        <h2 className="text-xl font-semibold text-gray-900">Create New User</h2>
+        <h2 className="text-xl font-semibold text-gray-900">
+          {isEditMode ? "Edit User" : "Create New User"}
+        </h2>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
       {/* Form */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} autoComplete="off">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
           {/* NAME */}
           <div>
@@ -84,7 +126,7 @@ export default function UserDetails() {
               htmlFor="name"
               className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-1"
             >
-              Name
+              Name<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -92,11 +134,13 @@ export default function UserDetails() {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              required
+              autoComplete="off"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
-          {/* role */}
+          {/* ROLE */}
           <div>
             <label
               htmlFor="role"
@@ -112,6 +156,7 @@ export default function UserDetails() {
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
             >
+              <option value="">Select a role</option>
               {Object.entries(ROLES).map(([key, value]) => (
                 <option key={key} value={value}>
                   {value}
@@ -120,31 +165,13 @@ export default function UserDetails() {
             </select>
           </div>
 
-          {/* PASSWORD */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-1"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
           {/* EMAIL */}
           <div>
             <label
               htmlFor="email"
               className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-1"
             >
-              Email
+              Email<span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -152,18 +179,50 @@ export default function UserDetails() {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              required
+              autoComplete="off"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* PASSWORD */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-xs font-medium text-gray-600 uppercase tracking-wide mb-1"
+            >
+              Password{!isEditMode && <span className="text-red-500">*</span>}
+              {isEditMode && <span className="text-xs text-gray-500 normal-case ml-2">(Leave blank to keep current)</span>}
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required={!isEditMode}
+              placeholder={isEditMode ? "Enter new password to change" : ""}
+              autoComplete="new-password"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-end mt-8">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 mt-8">
+          <button
+            type="button"
+            onClick={() => navigate("/admin/users")}
+            className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+            disabled={loading}
+            className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed"
           >
-            Create User
+            {loading ? "Saving..." : isEditMode ? "Update User" : "Create User"}
           </button>
         </div>
       </form>

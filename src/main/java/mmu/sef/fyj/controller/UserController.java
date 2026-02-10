@@ -52,22 +52,21 @@ public class UserController {
     public ResponseEntity<?> createUser(@RequestBody NewUser newUser) {
         try {
             User user = userService.addUser(newUser);
-            return ResponseEntity.ok(Map.of("message", "Student registered successfully", "userId", user.getId()));
+            return ResponseEntity.ok(Map.of("message", "User created successfully", "userId", user.getId()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    // PUT update user
+    // PUT update user - UPDATED TO USE UserService
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setName(userDetails.getName());
-                    user.setEmail(userDetails.getEmail());
-                    return ResponseEntity.ok(userRepository.save(user));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody NewUser updateData) {
+        try {
+            User updatedUser = userService.updateUser(id, updateData);
+            return ResponseEntity.ok(Map.of("message", "User updated successfully", "user", updatedUser));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // DELETE user
