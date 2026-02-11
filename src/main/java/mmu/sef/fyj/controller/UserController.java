@@ -4,19 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import mmu.sef.fyj.model.Role;
-import mmu.sef.fyj.model.Student;
-import mmu.sef.fyj.model.User;
+import mmu.sef.fyj.model.*;
 import mmu.sef.fyj.repository.UserRepository;
-import mmu.sef.fyj.repository.ReviewerRepository;
-import mmu.sef.fyj.repository.ScholarshipCommitteeRepository;
 import mmu.sef.fyj.dto.NewUser;
 import mmu.sef.fyj.service.StudentService;
 import mmu.sef.fyj.service.UserService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 
 @RestController
 @RequestMapping("/api/users")
@@ -26,18 +21,11 @@ public class UserController {
     private UserRepository userRepository;
 
     @Autowired
-    private ReviewerRepository reviewerRepository;
-
-    @Autowired
-    private ScholarshipCommitteeRepository committeeRepository;
-
-    @Autowired
     private UserService userService;
 
     @Autowired
     private StudentService studentService;
 
-    // GET all users (optional query param: role=ADMIN|STUDENT|COMMITTEE|REVIEWER)
     @GetMapping
     public List<User> getAllUsers(@RequestParam(required = false) Role role) {
         if (role != null) {
@@ -46,7 +34,6 @@ public class UserController {
         return userRepository.findAll();
     }
 
-    // GET user by ID
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         return userRepository.findById(id)
@@ -54,7 +41,6 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // Get student ID from user ID
     @GetMapping("/{id}/student-id")
     public ResponseEntity<Integer> getStudentIdByUserId(@PathVariable Integer id) {
         Optional<User> userOpt = userRepository.findById(id);
@@ -72,7 +58,6 @@ public class UserController {
         return ResponseEntity.ok(student.getStudentId());
     }
 
-    // POST create user
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody NewUser newUser) {
         try {
@@ -83,7 +68,6 @@ public class UserController {
         }
     }
 
-    // PUT update user - UPDATED TO USE UserService
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody NewUser updateData) {
         try {
@@ -94,24 +78,13 @@ public class UserController {
         }
     }
 
-    // DELETE user
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    // Delete from reviewer or committee tables if applicable
-                    if (user.getRole() == Role.REVIEWER) {
-                        reviewerRepository.findByEmail(user.getEmail())
-                            .ifPresent(reviewer -> reviewerRepository.delete(reviewer));
-                    } else if (user.getRole() == Role.COMMITTEE) {
-                        committeeRepository.findByEmail(user.getEmail())
-                            .ifPresent(committee -> committeeRepository.delete(committee));
-                    }
-
-                    // Delete from users table
-                    userRepository.delete(user);
-                    return ResponseEntity.ok().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "You cannot delete an admin account."));
+        }
     }
 }
