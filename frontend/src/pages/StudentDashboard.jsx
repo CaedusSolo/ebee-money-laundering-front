@@ -73,7 +73,14 @@ export default function StudentDashboard() {
     useEffect(() => {
         if (dashboardData?.student) {
             setEmailInput(dashboardData.student.email || "");
-            setPreview(dashboardData.student.profileImage || null);
+            // Use placeholder if no profile image or if it's the backend default path
+            const profileImg = dashboardData.student.profileImage;
+            console.log('Profile image from backend:', profileImg); // Debug log
+            if (!profileImg || profileImg === '/assets/images/personPlaceholder.svg') {
+                setPreview(personPlaceholder);
+            } else {
+                setPreview(profileImg);
+            }
         }
     }, [dashboardData]);
 
@@ -197,7 +204,21 @@ export default function StudentDashboard() {
                     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 flex items-center justify-between">
                         <div className="flex items-center space-x-6">
                             <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden border border-gray-100">
-                                <img src={dashboardData?.student?.profileImage || personPlaceholder} alt="Profile" className="w-full h-full object-cover" />
+                                <img 
+                                    src={
+                                        !dashboardData?.student?.profileImage || 
+                                        dashboardData?.student?.profileImage === '/assets/images/personPlaceholder.svg' ||
+                                        dashboardData?.student?.profileImage === '/assets/personPlaceholder.svg'
+                                            ? personPlaceholder 
+                                            : dashboardData?.student?.profileImage
+                                    } 
+                                    alt="Profile" 
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => {
+                                        console.log('Image failed to load, using placeholder');
+                                        e.target.src = personPlaceholder;
+                                    }}
+                                />
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-gray-800 uppercase">
@@ -205,7 +226,7 @@ export default function StudentDashboard() {
                                 </h2>
                                 <p className="text-gray-600">Student</p>
                                 <p className="text-gray-500 text-sm">
-                                    {dashboardData?.student?.email || "student1234@student.fyj.edu.my"}
+                                    {dashboardData?.student?.email || "student@gmail.com"}
                                 </p>
                             </div>
                         </div>

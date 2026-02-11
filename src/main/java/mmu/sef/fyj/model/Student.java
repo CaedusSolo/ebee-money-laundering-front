@@ -10,7 +10,7 @@ public class Student {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer studentId;
 
-    @Column(nullable = false) 
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
@@ -25,7 +25,7 @@ public class Student {
     @Column
     private String profileImage;
 
-    // Default constructor 
+    // Default constructor
     public Student() {
     }
 

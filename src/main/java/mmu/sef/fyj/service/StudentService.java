@@ -7,7 +7,6 @@ import mmu.sef.fyj.repository.ApplicationRepository;
 import mmu.sef.fyj.repository.ScholarshipRepository;
 import mmu.sef.fyj.repository.StudentRepository;
 import mmu.sef.fyj.repository.UserRepository;
-import mmu.sef.fyj.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +16,8 @@ import java.util.*;
 
 @Service
 public class StudentService {
+    
+    private static final String DEFAULT_PROFILE_IMAGE = "/assets/images/personPlaceholder.svg";
     
     @Autowired
     private StudentRepository studentRepository;
@@ -48,7 +49,7 @@ public class StudentService {
         studentData.put("name", student.getName());
         studentData.put("studentUniId", student.getStudentUniId());
         studentData.put("email", student.getEmail());
-        studentData.put("profileImage", student.getProfileImage() != null ? student.getProfileImage() : "user.jpg");
+        studentData.put("profileImage", student.getProfileImage() != null && !student.getProfileImage().equals(DEFAULT_PROFILE_IMAGE) ? student.getProfileImage() : null);
 
         // Fetch actual applications from database
         List<Application> studentApplications = applicationRepository.findByStudentID(studentId);

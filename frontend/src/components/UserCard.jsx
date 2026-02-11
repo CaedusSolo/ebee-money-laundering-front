@@ -48,7 +48,7 @@ export default function UserCard({ user: { id, name, email, role }, onDelete }) 
       <div className="flex items-center gap-4">
         {/* View button */}
         <Link
-          to={`/admin/users/${id}`}
+          to={`/admin/users/view/${id}`}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
         >
           <img src={Eye} alt="View" className="w-5 h-5" />

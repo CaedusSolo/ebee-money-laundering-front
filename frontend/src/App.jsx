@@ -21,6 +21,7 @@ import AdminLayout from "./pages/AdminLayout";
 import ManageUsers from "./pages/ManageUsers";
 import ScholarshipCommitteeLayout from "./pages/ScholarshipCommitteeLayout";
 import UserDetails from "./pages/UserDetails";
+import UserProfile from "./pages/UserProfile";
 import ManageScholarship from "./pages/ManageScholarship";
 import ScholarshipDetail from "./pages/ScholarshipDetails";
 import ScholarshipView from "./pages/ScholarshipView";
@@ -71,7 +72,7 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/terms-and-policy" element={<TermsAndPolicy />} />
 
-          {/* Committee Routes - Added leading slash */}
+          {/* Committee Routes */}
           <Route
             path="/scholarship-committee-dashboard"
             element={
@@ -111,7 +112,6 @@ function App() {
             }
           />
 
-          {/* Added leading slash */}
           <Route
             path="/application-form"
             element={
@@ -121,7 +121,7 @@ function App() {
             }
           />
 
-          {/* Admin Routes - Added leading slash */}
+          {/* Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -132,7 +132,9 @@ function App() {
           >
             <Route path="users">
               <Route index element={<ManageUsers />} />
-              <Route path="edit/:userId?" element={<UserDetails />} />
+              <Route path="create" element={<UserDetails />} />
+              <Route path="edit/:userId" element={<UserDetails />} />
+              <Route path="view/:userId" element={<UserProfile />} />
             </Route>
             <Route path="scholarship">
               <Route index element={<ManageScholarship />} />

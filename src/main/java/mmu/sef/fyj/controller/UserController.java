@@ -5,14 +5,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import mmu.sef.fyj.model.Role;
+import mmu.sef.fyj.model.Student;
 import mmu.sef.fyj.model.User;
 import mmu.sef.fyj.repository.UserRepository;
 import mmu.sef.fyj.repository.ReviewerRepository;
 import mmu.sef.fyj.repository.ScholarshipCommitteeRepository;
 import mmu.sef.fyj.dto.NewUser;
+import mmu.sef.fyj.service.StudentService;
 import mmu.sef.fyj.service.UserService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -29,6 +33,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private StudentService studentService;
 
     // GET all users (optional query param: role=ADMIN|STUDENT|COMMITTEE|REVIEWER)
     @GetMapping
@@ -47,27 +54,44 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Get student ID from user ID
+    @GetMapping("/{id}/student-id")
+    public ResponseEntity<Integer> getStudentIdByUserId(@PathVariable Integer id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        User user = userOpt.get();
+
+        Optional<Student> studentOpt = studentService.findByEmail(user.getEmail());
+        if (studentOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Student student = studentOpt.get();
+
+        return ResponseEntity.ok(student.getStudentId());
+    }
+
     // POST create user
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody NewUser newUser) {
         try {
             User user = userService.addUser(newUser);
-            return ResponseEntity.ok(Map.of("message", "Student registered successfully", "userId", user.getId()));
+            return ResponseEntity.ok(Map.of("message", "User created successfully", "userId", user.getId()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    // PUT update user
+    // PUT update user - UPDATED TO USE UserService
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setName(userDetails.getName());
-                    user.setEmail(userDetails.getEmail());
-                    return ResponseEntity.ok(userRepository.save(user));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody NewUser updateData) {
+        try {
+            User updatedUser = userService.updateUser(id, updateData);
+            return ResponseEntity.ok(Map.of("message", "User updated successfully", "user", updatedUser));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // DELETE user
@@ -83,7 +107,7 @@ public class UserController {
                         committeeRepository.findByEmail(user.getEmail())
                             .ifPresent(committee -> committeeRepository.delete(committee));
                     }
-                    
+
                     // Delete from users table
                     userRepository.delete(user);
                     return ResponseEntity.ok().<Void>build();
